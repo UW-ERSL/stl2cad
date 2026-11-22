@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stl2cad"
+version = "0.1.0"
+description = "Reconstruct parametric CAD solids (STEP) from STL meshes: exact analytic fitting or smooth symmetric reconstruction of topology-optimized parts"
+requires-python = ">=3.10"
+dependencies = [
+    "cadquery>=2.4",
+    "trimesh>=4.0",
+    "numpy",
+    "scipy",
+    "scikit-image",
+    "networkx",
+    "shapely",
+    "rtree",
+    "matplotlib",
+    "fast_simplification",
+    "manifold3d",
+]
+
+[project.scripts]
+stl2cad-cli = "stl2cad.cli:main"
+
+[project.gui-scripts]
+stl2cad = "stl2cad.gui:main"
+
+[tool.setuptools]
+packages = ["stl2cad"]
+
+[tool.setuptools.package-data]
+stl2cad = ["swmock/*.py", "swmock/win32com/*.py"]

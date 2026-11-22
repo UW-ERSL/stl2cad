@@ -1,0 +1,11 @@
+cadquery>=2.4
+trimesh>=4.0
+numpy
+scipy
+scikit-image
+networkx
+shapely
+rtree
+matplotlib
+fast_simplification
+manifold3d

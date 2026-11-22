@@ -1,0 +1,16 @@
+Metadata-Version: 2.4
+Name: stl2cad
+Version: 0.1.0
+Summary: Reconstruct parametric CAD solids (STEP) from STL meshes: exact analytic fitting or smooth symmetric reconstruction of topology-optimized parts
+Requires-Python: >=3.10
+Requires-Dist: cadquery>=2.4
+Requires-Dist: trimesh>=4.0
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: scikit-image
+Requires-Dist: networkx
+Requires-Dist: shapely
+Requires-Dist: rtree
+Requires-Dist: matplotlib
+Requires-Dist: fast_simplification
+Requires-Dist: manifold3d
