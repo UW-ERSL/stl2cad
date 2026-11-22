@@ -647,6 +647,21 @@ def stacked_script(p25, name, nd=4):
             L.append(f"part = part {'+' if ft['op'] == 'add' else '-'} {expr}")
         L.append("")
         m += 1
+    cyls = p25.get("cylinders") or []
+    if cyls:
+        import numpy as np
+        L.append("# ---- off-axis bosses and holes: (start point, axis direction, diameter, length) " + "-" * 4)
+        L.append("for p, u, d, h, op in [")
+        for cy in cyls:
+            c, u = np.asarray(cy["c"]), np.asarray(cy["d"])
+            p0 = c + cy["t0"] * u
+            L.append(f"    (({f(p0[0])}, {f(p0[1])}, {f(p0[2])}), ({_f(u[0], 10)}, {_f(u[1], 10)}, {_f(u[2], 10)}), "
+                     f"{f(2 * cy['r'])}, {f(cy['t1'] - cy['t0'])}, \"{cy['op']}\"),")
+        L.append("]:")
+        L.append("    c = Solid.makeCylinder(d / 2, h, Vector(*p), Vector(*u))")
+        L.append("    part = part + c if op == \"add\" else part - c")
+        L.append("")
+        L[L.index("from cadquery import Edge, Vector")] = "from cadquery import Edge, Solid, Vector"
     L.append("part = part.clean()")
     L += ["", 'if __name__ == "__main__":',
           f'    part.exportStep(sys.argv[1] if len(sys.argv) > 1 else "{name}.step")']

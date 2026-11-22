@@ -30,6 +30,93 @@ def prism_axis(mesh, min_fraction=0.999, deg=1.0):
     return (kbest, best) if best >= min_fraction else (None, best)
 
 
+def _wall_or_cap(mesh, k, deg=1.0):
+    c = np.abs(mesh.face_normals[:, k])
+    return (c > np.cos(np.radians(deg))) | (c < np.sin(np.radians(deg)))
+
+
+def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print):
+    """Bosses and holes along directions other than the prism axis k. The faces that are neither
+    walls nor caps for k must form connected patches, each a cylinder (normals perpendicular to
+    one axis, vertices on one circle about it). Returns a list of dict(op, c, d, r, t0, t1, ext)
+    with c a point on the axis, d the unit axis (from the attached end to the free end of a boss),
+    the feature spanning c + t d for t in [t0, t1], and ext its extent along k; or None if the
+    off-axis faces are not all such cylinders."""
+    import trimesh
+    off = ~_wall_or_cap(mesh, k)
+    a = mesh.area_faces
+    if not off.any():
+        return []
+    if a[off].sum() > max_fraction * a.sum():
+        return None
+    idx = np.nonzero(off)[0]
+    adj = mesh.face_adjacency
+    keep = off[adj[:, 0]] & off[adj[:, 1]]
+    comps = trimesh.graph.connected_components(adj[keep], nodes=idx, min_len=1)
+    out = []
+    for comp in comps:
+        comp = np.asarray(comp)
+        n, w = mesh.face_normals[comp], a[comp]
+        M = (n * w[:, None]).T @ n
+        _, vec = np.linalg.eigh(M)
+        d = vec[:, 0]
+        if np.abs(n @ d).max() > np.sin(np.radians(2.0)):
+            log(f"  2.5D: off-axis patch of {len(comp)} faces is not a cylinder")
+            return None
+        V = mesh.vertices[np.unique(mesh.faces[comp])]
+        u = np.cross(d, [1.0, 0, 0] if abs(d[0]) < 0.9 else [0, 1.0, 0])
+        u /= np.linalg.norm(u)
+        v = np.cross(d, u)
+        Q = np.c_[V @ u, V @ v]
+        c2, r, err = _circle_fit(Q)
+        if err > tol:
+            log(f"  2.5D: off-axis patch of {len(comp)} faces is not circular (error {err:.3f} mm)")
+            return None
+        c = c2[0] * u + c2[1] * v
+        t = V @ d
+        t0, t1 = float(t.min()), float(t.max())
+        # outward normals point away from the axis on a boss, towards it in a hole
+        F = mesh.triangles_center[comp]
+        radial = F - c - np.outer(F @ d, d)
+        op = "add" if float(np.sum(w * np.einsum("ij,ij->i", radial, n))) > 0 else "cut"
+        # an end is free when the point just beyond it on the axis lies outside the material
+        e = max(2 * tol, 0.05 * r)
+        beyond = mesh.contains([c + (t0 - e) * d, c + (t1 + e) * d])
+        if op == "add":
+            if beyond[0] == beyond[1]:
+                log("  2.5D: off-axis boss is not attached at exactly one end")
+                return None
+            if beyond[1]:                          # attached at the t1 end: flip so it comes first
+                d, c, t0, t1 = -d, c, -t1, -t0
+                beyond = beyond[::-1]
+        else:                                      # a hole open at an end is cut past that end
+            t0 -= 0 if beyond[0] else e
+            t1 += 0 if beyond[1] else e
+        ext = (float(V[:, k].min()), float(V[:, k].max()))
+        out.append(dict(op=op, c=c, d=d, r=float(r), t0=t0, t1=t1, ext=ext, err=float(err)))
+    return out
+
+
+def _free_height(a, b, feats, tol):
+    """Height in (a, b) away from the k-extent of every secondary feature (the section there is
+    that of the prism alone), at the middle of the longest free interval; None if none is free."""
+    cuts = sorted((max(a, lo - tol), min(b, hi + tol)) for lo, hi in (f["ext"] for f in feats)
+                  if hi + tol > a and lo - tol < b)
+    best, cur = None, a
+    for lo, hi in cuts + [(b, b)]:
+        if lo - cur > 2 * tol and (best is None or lo - cur > best[1] - best[0]):
+            best = (cur, lo)
+        cur = max(cur, hi)
+    return None if best is None else 0.5 * (best[0] + best[1])
+
+
+def cylinder_solid(cy):
+    import cadquery as cq
+    c, d = np.asarray(cy["c"]), np.asarray(cy["d"])
+    base = c + cy["t0"] * d
+    return cq.Solid.makeCylinder(cy["r"], cy["t1"] - cy["t0"], cq.Vector(*base), cq.Vector(*d))
+
+
 def levels(mesh, k, tol):
     """Heights of the cap faces along axis k, clustered within tol."""
     cap = np.abs(mesh.face_normals[:, k]) > np.cos(np.radians(1.0))
@@ -592,14 +679,16 @@ def reconstruct(mesh, tol, log=print):
         f"{vsum - solid.Volume():.1f}) ({time.time() - t0:.1f}s)")
     if not solid.isValid():
         return None
-    feats = []
+    feats, cyls = [], []
     for r in res:
         feats += r.extras["prism25"]["features"]
+        cyls += r.extras["prism25"].get("cylinders", [])
     out = Result(shape=solid, mode="exact")
     out.extras = dict(prims=[], analytic_fraction=1.0, summary=f"2.5D: {len(feats)} extrusions",
                       volume_error=max(r.extras["volume_error"] for r in res), brep=None, valid=True,
                       passed=True, overlapping_shells=len(bodies),
-                      prism25=dict(axis=res[0].extras["prism25"]["axis"], features=feats))
+                      prism25=dict(axis=res[0].extras["prism25"]["axis"], features=feats,
+                                   cylinders=cyls))
     return out
 
 
@@ -668,15 +757,24 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
     import time
     import cadquery as cq
     t0 = time.time()
-    k, frac = prism_axis(mesh)
-    if k is None:
+    k, frac = prism_axis(mesh, min_fraction=0.0)
+    cyls = [] if frac >= 0.999 else secondary_cylinders(mesh, k, tol, log=log)
+    if cyls is None:
         log(f"  2.5D: no prism axis (best face fraction {frac:.3f})")
         return None
+    if cyls:
+        log(f"  2.5D along {AX[k]} ({100 * frac:.1f} % of the area) with {len(cyls)} off-axis "
+            f"cylinder(s): " + ", ".join(f"{'boss' if c['op'] == 'add' else 'hole'} d={2 * c['r']:.3f}"
+                                         for c in cyls))
     lv = levels(mesh, k, tol)
     slabs = [(a, b) for a, b in zip(lv[:-1], lv[1:]) if b - a > 2 * tol]
     if not slabs:
         return None
-    secs = [section_loops(mesh, k, 0.5 * (a + b), tol) for a, b in slabs]
+    zs = [_free_height(a, b, cyls, tol) for a, b in slabs]
+    if any(z is None for z in zs):
+        log("  2.5D: an off-axis feature spans a whole slab; no clean section")
+        return None
+    secs = [section_loops(mesh, k, z, tol) for z in zs]
     tracks = loop_tracks(slabs, secs, tol)
     # material is built in nesting order: outlines, then the holes in them, then islands in the
     # holes, and so on; at every height this reproduces the section
@@ -700,6 +798,12 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
         else:
             solid = solid.cut(body)
         feats.append(dict(z0=t["z0"], z1=t["z1"], op=t["op"], loop=loop))
+    for cy in cyls:                              # off-axis bosses first, then the holes
+        if cy["op"] == "add":
+            solid = solid.fuse(cylinder_solid(cy))
+    for cy in cyls:
+        if cy["op"] == "cut":
+            solid = solid.cut(cylinder_solid(cy))
     solid = solid.clean()
     n_edges = sum(len(f["loop"].edges) for f in feats)
     vol_err = abs(solid.Volume() / mesh.volume - 1)
@@ -718,5 +822,10 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
     res = Result(shape=solid, mode="exact")
     res.extras = dict(prims=[], analytic_fraction=1.0, summary=f"2.5D: {len(feats)} features",
                       volume_error=vol_err, brep=None, valid=True, passed=True,
-                      prism25=dict(axis=k, features=feats))
+                      prism25=dict(axis=k, features=feats, cylinders=_order_cyls(cyls)))
     return res
+
+
+def _order_cyls(cyls):
+    return [dict(op=c["op"], c=c["c"], d=c["d"], r=c["r"], t0=c["t0"], t1=c["t1"])
+            for c in sorted(cyls, key=lambda c: c["op"] == "cut")]

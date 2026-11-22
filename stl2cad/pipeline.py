@@ -185,7 +185,11 @@ def save(res, path, o, log=print, out_dir=None):
         else:
             log(f"script: not written ({msg})")
         res.report += f"\nscript: {kind + ' script, ' + msg if code else 'not written (' + msg + ')'}"
-    if o.export_solidworks and res.mode == "exact" and res.extras.get("prism25") is not None:
+    if (o.export_solidworks and res.mode == "exact" and res.extras.get("prism25") is not None
+            and res.extras["prism25"].get("cylinders")):
+        log("SolidWorks script: not written (off-axis bosses and holes are not yet supported by the "
+            "SolidWorks generator)")
+    elif o.export_solidworks and res.mode == "exact" and res.extras.get("prism25") is not None:
         from .swgen import solidworks_script, verify_with_standin
         t0 = time.time()
         swname = os.path.splitext(os.path.basename(path))[0] + "_solidworks"
