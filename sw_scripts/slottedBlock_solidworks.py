@@ -22,7 +22,7 @@ FEATURES = [
     dict(
         name="Boss 1 x -4.626e-16 to 18", op="add", lo=0.0, hi=18.0, volume=47702.4353, centroid=(46.75468, 20.50015, 9.00000), holes=False,
         expect="fully defined",
-        plans=[[('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (22.74947, -78.0))], 'horizontal edge at (22.749470000000006, -78.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (0.0, -39.0))], 'vertical edge at (0.0, -39.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (8.0, 0.0))], 'horizontal edge at (8.0, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (16.0, -12.0))], 'vertical edge at (16.0, -12.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (25.0, -24.0))], 'horizontal edge at (25.0, -24.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (34.0, -32.0))], 'vertical edge at (34.0, -32.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (35.34719, -57.17887)), ('SKETCHSEGMENT', (33.234095, -61.71041))], 'equal length, edges at (35.34718952466606, -57.17886977834811) and (33.234094999999996, -61.710409999999996)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (8.0, 0.0)), ('SKETCHSEGMENT', (34.0, -32.0))], 'equal length, edges at (8.0, 0.0) and (34.0, -32.0)'), ('rel', 'sgCOINCIDENT', [('SKETCHPOINT', (0.0, 0.0)), ('ORIGIN', None)], 'corner on the origin'), ('dim', 'any', [('SKETCHSEGMENT', (22.74947, -78.0))], (22.74947, -84.0), 'length of edge at (22.749470000000006, -78.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -39.0))], (-6.0, -39.0), 'length of edge at (0.0, -39.0)'), ('dim', 'any', [('SKETCHSEGMENT', (8.0, 0.0))], (8.0, 6.0), 'length of edge at (8.0, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (16.0, -12.0))], (22.0, -12.0), 'length of edge at (16.0, -12.0)'), ('dim', 'any', [('SKETCHSEGMENT', (25.0, -24.0))], (25.0, -18.0), 'length of edge at (25.0, -24.0)'), ('dim', 'H', [('SKETCHPOINT', (55.928357, -55.634039)), ('SKETCHPOINT', (51.660729, -64.786))], (53.794543, -70.786), 'horizontal extent of slanted edge at (53.7945430987067, -60.21001911368019)'), ('dim', 'V', [('SKETCHPOINT', (55.928357, -55.634039)), ('SKETCHPOINT', (51.660729, -64.786))], (45.660729, -60.210019), 'vertical extent of slanted edge at (53.7945430987067, -60.21001911368019)'), ('dim', 'H', [('SKETCHPOINT', (51.660729, -64.786)), ('SKETCHPOINT', (19.03365, -49.57174))], (35.34719, -70.786), 'horizontal extent of slanted edge at (35.34718952466606, -57.17886977834811)'), ('dim', 'V', [('SKETCHPOINT', (51.660729, -64.786)), ('SKETCHPOINT', (19.03365, -49.57174))], (13.03365, -57.17887), 'vertical extent of slanted edge at (35.34718952466606, -57.17886977834811)'), ('dim', 'H', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (16.92055, -54.10328))], (17.9771, -60.10328), 'horizontal extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'V', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (16.92055, -54.10328))], (10.92055, -51.83751), 'vertical extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'H', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (49.54764, -69.31754))], (33.234095, -75.31754), 'horizontal extent of slanted edge at (33.234094999999996, -61.710409999999996)'), ('dim', 'H', [('SKETCHPOINT', (49.54764, -69.31754)), ('SKETCHPOINT', (45.49894, -78.0))], (47.52329, -84.0), 'horizontal extent of slanted edge at (47.52329, -73.65877)'), ('dim', 'V', [('SKETCHPOINT', (49.54764, -69.31754)), ('SKETCHPOINT', (45.49894, -78.0))], (39.49894, -73.65877), 'vertical extent of slanted edge at (47.52329, -73.65877)'), ('dim', 'H', [('SKETCHPOINT', (34.0, -40.0)), ('SKETCHPOINT', (58.0, -51.19138))], (46.0, -57.19138), 'horizontal extent of slanted edge at (46.0000000629138, -45.59569002933718)'), ('dim', 'V', [('SKETCHPOINT', (34.0, -40.0)), ('SKETCHPOINT', (58.0, -51.19138))], (28.0, -45.59569), 'vertical extent of slanted edge at (46.0000000629138, -45.59569002933718)')]],
+        plans=[[('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (22.74947, -78.0))], 'horizontal edge at (22.749470000000006, -78.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (0.0, -39.0))], 'vertical edge at (0.0, -39.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (8.0, 0.0))], 'horizontal edge at (8.0, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (16.0, -12.0))], 'vertical edge at (16.0, -12.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (25.0, -24.0))], 'horizontal edge at (25.0, -24.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (34.0, -32.0))], 'vertical edge at (34.0, -32.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (35.34719, -57.17887)), ('SKETCHSEGMENT', (33.234095, -61.71041))], 'equal length, edges at (35.34718952466606, -57.17886977834811) and (33.234094999999996, -61.710409999999996)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (8.0, 0.0)), ('SKETCHSEGMENT', (34.0, -32.0))], 'equal length, edges at (8.0, 0.0) and (34.0, -32.0)'), ('rel', 'sgPARALLEL', [('SKETCHSEGMENT', (53.794543, -60.210019)), ('SKETCHSEGMENT', (47.52329, -73.65877))], 'parallel, edges at (53.7945430987067, -60.21001911368019) and (47.52329, -73.65877)'), ('rel', 'sgPARALLEL', [('SKETCHSEGMENT', (47.52329, -73.65877)), ('SKETCHSEGMENT', (56.964179, -53.412709))], 'parallel, edges at (47.52329, -73.65877) and (56.964178636954436, -53.41270936466926)'), ('rel', 'sgPARALLEL', [('SKETCHSEGMENT', (35.34719, -57.17887)), ('SKETCHSEGMENT', (33.234095, -61.71041))], 'parallel, edges at (35.34718952466606, -57.17886977834811) and (33.234094999999996, -61.710409999999996)'), ('rel', 'sgPARALLEL', [('SKETCHSEGMENT', (33.234095, -61.71041)), ('SKETCHSEGMENT', (46.0, -45.59569))], 'parallel, edges at (33.234094999999996, -61.710409999999996) and (46.0000000629138, -45.59569002933718)'), ('rel', 'sgCOINCIDENT', [('SKETCHPOINT', (0.0, 0.0)), ('ORIGIN', None)], 'corner on the origin'), ('dim', 'any', [('SKETCHSEGMENT', (22.74947, -78.0))], (22.74947, -84.0), 'length of edge at (22.749470000000006, -78.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -39.0))], (-6.0, -39.0), 'length of edge at (0.0, -39.0)'), ('dim', 'any', [('SKETCHSEGMENT', (8.0, 0.0))], (8.0, 6.0), 'length of edge at (8.0, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (16.0, -12.0))], (22.0, -12.0), 'length of edge at (16.0, -12.0)'), ('dim', 'any', [('SKETCHSEGMENT', (25.0, -24.0))], (25.0, -18.0), 'length of edge at (25.0, -24.0)'), ('dim', 'H', [('SKETCHPOINT', (55.928357, -55.634039)), ('SKETCHPOINT', (51.660729, -64.786))], (53.794543, -70.786), 'horizontal extent of slanted edge at (53.7945430987067, -60.21001911368019)'), ('dim', 'V', [('SKETCHPOINT', (55.928357, -55.634039)), ('SKETCHPOINT', (51.660729, -64.786))], (45.660729, -60.210019), 'vertical extent of slanted edge at (53.7945430987067, -60.21001911368019)'), ('dim', 'H', [('SKETCHPOINT', (51.660729, -64.786)), ('SKETCHPOINT', (19.03365, -49.57174))], (35.34719, -73.786), 'horizontal extent of slanted edge at (35.34718952466606, -57.17886977834811)'), ('dim', 'V', [('SKETCHPOINT', (51.660729, -64.786)), ('SKETCHPOINT', (19.03365, -49.57174))], (10.03365, -57.17887), 'vertical extent of slanted edge at (35.34718952466606, -57.17886977834811)'), ('dim', 'H', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (16.92055, -54.10328))], (17.9771, -66.10328), 'horizontal extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'V', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (16.92055, -54.10328))], (4.92055, -51.83751), 'vertical extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'H', [('SKETCHPOINT', (49.54764, -69.31754)), ('SKETCHPOINT', (45.49894, -78.0))], (47.52329, -84.0), 'horizontal extent of slanted edge at (47.52329, -73.65877)')]],
         loops=[
         [
             ('line', (55.928357, -55.634039), (51.660729, -64.786)),
@@ -44,7 +44,7 @@ FEATURES = [
     dict(
         name="Boss 2 x 18 to 28", op="add", lo=18.0, hi=28.0, volume=69699.9082, centroid=(48.34855, 20.61778, 13.41844), holes=False,
         expect="fully defined",
-        plans=[[('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (8.0, -13.938))], 'vertical edge at (8.0, -13.938000383795297)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (4.0, 0.0))], 'horizontal edge at (4.0, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (0.0, -39.0))], 'vertical edge at (0.0, -39.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (22.74947, -78.0))], 'horizontal edge at (22.749470000000006, -78.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (35.347189, -57.17887)), ('SKETCHSEGMENT', (33.234095, -61.71041))], 'equal length, edges at (35.347189315504885, -57.17886968081463) and (33.234094999999996, -61.710409999999996)'), ('rel', 'sgCOINCIDENT', [('SKETCHPOINT', (0.0, 0.0)), ('ORIGIN', None)], 'corner on the origin'), ('dim', 'any', [('SKETCHSEGMENT', (8.0, -13.938))], (14.0, -13.938), 'length of edge at (8.0, -13.938000383795297)'), ('dim', 'any', [('SKETCHSEGMENT', (4.0, 0.0))], (4.0, 6.0), 'length of edge at (4.0, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -39.0))], (-6.0, -39.0), 'length of edge at (0.0, -39.0)'), ('dim', 'any', [('SKETCHSEGMENT', (22.74947, -78.0))], (22.74947, -84.0), 'length of edge at (22.749470000000006, -78.0)'), ('dim', 'H', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (19.03365, -49.57174))], (17.9771, -60.10328), 'horizontal extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'V', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (19.03365, -49.57174))], (10.92055, -51.83751), 'vertical extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'H', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (51.660729, -64.785999))], (35.347189, -70.785999), 'horizontal extent of slanted edge at (35.347189315504885, -57.17886968081463)'), ('dim', 'V', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (51.660729, -64.785999))], (13.03365, -57.17887), 'vertical extent of slanted edge at (35.347189315504885, -57.17886968081463)'), ('dim', 'H', [('SKETCHPOINT', (51.660729, -64.785999)), ('SKETCHPOINT', (57.999998, -51.19138))], (54.830363, -70.785999), 'horizontal extent of slanted edge at (54.83036347175791, -57.98868970314727)'), ('dim', 'V', [('SKETCHPOINT', (51.660729, -64.785999)), ('SKETCHPOINT', (57.999998, -51.19138))], (45.660729, -57.98869), 'vertical extent of slanted edge at (54.83036347175791, -57.98868970314727)'), ('dim', 'H', [('SKETCHPOINT', (57.999998, -51.19138)), ('SKETCHPOINT', (8.0, -27.876001))], (32.999999, -57.19138), 'horizontal extent of slanted edge at (32.999999156253025, -39.53369040612794)'), ('dim', 'V', [('SKETCHPOINT', (57.999998, -51.19138)), ('SKETCHPOINT', (8.0, -27.876001))], (2.0, -39.53369), 'vertical extent of slanted edge at (32.999999156253025, -39.53369040612794)'), ('dim', 'H', [('SKETCHPOINT', (45.49894, -78.0)), ('SKETCHPOINT', (49.54764, -69.31754))], (47.52329, -84.0), 'horizontal extent of slanted edge at (47.52329, -73.65877)')]],
+        plans=[[('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (8.0, -13.938))], 'vertical edge at (8.0, -13.938000383795297)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (4.0, 0.0))], 'horizontal edge at (4.0, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (0.0, -39.0))], 'vertical edge at (0.0, -39.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (22.74947, -78.0))], 'horizontal edge at (22.749470000000006, -78.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (35.347189, -57.17887)), ('SKETCHSEGMENT', (33.234095, -61.71041))], 'equal length, edges at (35.347189315504885, -57.17886968081463) and (33.234094999999996, -61.710409999999996)'), ('rel', 'sgPARALLEL', [('SKETCHSEGMENT', (35.347189, -57.17887)), ('SKETCHSEGMENT', (32.999999, -39.53369))], 'parallel, edges at (35.347189315504885, -57.17886968081463) and (32.999999156253025, -39.53369040612794)'), ('rel', 'sgPARALLEL', [('SKETCHSEGMENT', (32.999999, -39.53369)), ('SKETCHSEGMENT', (33.234095, -61.71041))], 'parallel, edges at (32.999999156253025, -39.53369040612794) and (33.234094999999996, -61.710409999999996)'), ('rel', 'sgPARALLEL', [('SKETCHSEGMENT', (54.830363, -57.98869)), ('SKETCHSEGMENT', (47.52329, -73.65877))], 'parallel, edges at (54.83036347175791, -57.98868970314727) and (47.52329, -73.65877)'), ('rel', 'sgCOINCIDENT', [('SKETCHPOINT', (0.0, 0.0)), ('ORIGIN', None)], 'corner on the origin'), ('dim', 'any', [('SKETCHSEGMENT', (8.0, -13.938))], (14.0, -13.938), 'length of edge at (8.0, -13.938000383795297)'), ('dim', 'any', [('SKETCHSEGMENT', (4.0, 0.0))], (4.0, 6.0), 'length of edge at (4.0, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -39.0))], (-6.0, -39.0), 'length of edge at (0.0, -39.0)'), ('dim', 'any', [('SKETCHSEGMENT', (22.74947, -78.0))], (22.74947, -84.0), 'length of edge at (22.749470000000006, -78.0)'), ('dim', 'H', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (19.03365, -49.57174))], (17.9771, -60.10328), 'horizontal extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'V', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (19.03365, -49.57174))], (10.92055, -51.83751), 'vertical extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'H', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (51.660729, -64.785999))], (35.347189, -73.785999), 'horizontal extent of slanted edge at (35.347189315504885, -57.17886968081463)'), ('dim', 'V', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (51.660729, -64.785999))], (10.03365, -57.17887), 'vertical extent of slanted edge at (35.347189315504885, -57.17886968081463)'), ('dim', 'H', [('SKETCHPOINT', (51.660729, -64.785999)), ('SKETCHPOINT', (57.999998, -51.19138))], (54.830363, -76.785999), 'horizontal extent of slanted edge at (54.83036347175791, -57.98868970314727)'), ('dim', 'V', [('SKETCHPOINT', (51.660729, -64.785999)), ('SKETCHPOINT', (57.999998, -51.19138))], (39.660729, -57.98869), 'vertical extent of slanted edge at (54.83036347175791, -57.98868970314727)')]],
         loops=[
         [
             ('line', (16.92055, -54.10328), (19.03365, -49.57174)),
@@ -64,9 +64,9 @@ FEATURES = [
 
 # ---- off-axis bosses and holes, after the prisms, each sketched on its start face (STL frame, mm) ----
 CYLINDERS = [
-    dict(name="Boss 1 dia 6 along (-3.4e-12, 0.906, -0.423)", op="add", pick=(7.0, 53.435724, -60.979509), centre=(7.0, 54.830364, -57.988693),
+    dict(name="Boss 1 dia 6 along (-3.4e-12, 0.906, -0.423)", op="add", pick=(7.0, 53.435724, -60.979509), normal=(0.0, 0.906307838, -0.422618152), centre=(7.0, 54.830364, -57.988693),
          dia=6.0, depth=6.000011, depth2=0.0, volume=69869.5544, centroid=(13.40285, 20.70745, -48.37503)),
-    dict(name="Boss 2 dia 6 along (-3.37e-12, 0.906, -0.423)", op="add", pick=(21.0, 53.435723, -60.979508), centre=(21.0, 54.830362, -57.988692),
+    dict(name="Boss 2 dia 6 along (-3.37e-12, 0.906, -0.423)", op="add", pick=(21.0, 53.435723, -60.979508), normal=(-0.0, 0.906307925, -0.422617965), centre=(21.0, 54.830362, -57.988692),
          dia=6.0, depth=6.000011, depth2=0.0, volume=70039.2005, centroid=(13.42125, 20.79669, -48.40139)),
 ]
 
@@ -238,9 +238,10 @@ class SW:
             circular = isinstance(loop, dict) and "centre" in loop and self.use_patterns
             first = len(self.ents)
             todo = expand(loop)
-            if linear:                           # the period and the rest; the copies by pattern
-                todo = todo[:len(loop["period"])] + todo[len(loop["period"]) * loop["count"]:]
-            elif circular:                       # the period; the copies by a circular pattern
+            # linear copies are drawn one by one and tied to the first by Equal and Parallel
+            # relations: in SolidWorks 2025 the copies of a sketch linear pattern made through the
+            # API did not follow a change of the seed's dimensions
+            if circular:                       # the period; the copies by a circular pattern
                 todo = todo[:len(loop["period"])]
             for e in todo:
                 if e[0] == "line":
@@ -265,10 +266,7 @@ class SW:
                     turn = (m[0] - s[0]) * (t[1] - s[1]) - (m[1] - s[1]) * (t[0] - s[0])
                     g = make(sm.CreateArc, xc, yc, 0.0, s[0], s[1], 0.0, t[0], t[1], 0.0, 1 if turn > 0 else -1)
                     self.ents.append(("arc", (s, t, (xc, yc), math.dist(s, (xc, yc)), m), g))
-            if linear:
-                patterns.append(([g for _, _, g in self.ents[first:first + len(loop["period"])]],
-                                 loop["count"], loop["step"]))
-            elif circular:
+            if circular:
                 circles.append((self.ents[first:first + len(loop["period"])], loop))
         for seed, count, step in patterns:
             self.sketch_pattern(seed, count, step)
@@ -751,6 +749,42 @@ class SW:
             return tuple(p)
         return tuple(sum(ROT[r][c] * p[c] for c in range(3)) for r in range(3))
 
+    def select_face(self, cy):
+        """Select the planar face the feature starts on. SelectByID2 with a point picks the first
+        face along the line of sight through the point (seen in SolidWorks 2025: a hole meant for
+        a side face was sketched on the top face), so the face is picked with a ray fired at the
+        point from just outside the face along its inward normal (SelectByRay), and the selected
+        face's normal is checked; SelectByID2 is the fall-back."""
+        ext = self.model.Extension
+        p = [v * MM for v in self.in_model_frame(cy["pick"])]
+        n = list(self.in_model_frame(cy["normal"]))
+        tried = []
+        for how in ("ray", "id"):
+            self.model.ClearSelection2(True)
+            try:
+                if how == "ray":
+                    q = [p[i] + 0.001 * n[i] for i in range(3)]          # 1 mm outside the face
+                    ok = ext.SelectByRay(q[0], q[1], q[2], -n[0], -n[1], -n[2], 0.0001, 2, False, 0, 0)
+                else:
+                    ok = ext.SelectByID2("", "FACE", p[0], p[1], p[2], False, 0, NOTHING, 0)
+            except Exception as ex:
+                tried.append(f"{how}: {type(ex).__name__}")
+                continue
+            if not ok:
+                tried.append(f"{how}: nothing selected")
+                continue
+            try:
+                fc = self.model.SelectionManager.GetSelectedObject6(1, -1)
+                fn = list(call0(fc, "Normal"))
+                if sum(a * b for a, b in zip(fn, n)) > math.cos(math.radians(1.0)):
+                    return
+                tried.append(f"{how}: face normal {tuple(round(v, 3) for v in fn)}")
+            except Exception as ex:                 # normal not readable: trust the ray pick
+                if how == "ray":
+                    return
+                tried.append(f"{how}: {type(ex).__name__}")
+        raise RuntimeError(f"{cy['name']}: could not select the start face at {cy['pick']} ({'; '.join(tried)})")
+
     def face_feature(self, cy):
         """Boss or hole along the normal of a planar face: the face is picked at a point next to
         the circle, the circle is placed through the face sketch's ModelToSketchTransform (in
@@ -758,10 +792,7 @@ class SW:
         and sketch y is +y), dimensioned, and extruded blind; both directions are tried against
         the expected volume and centre of mass."""
         ext, sm, fm = self.model.Extension, self.model.SketchManager, self.model.FeatureManager
-        x, y, z = (v * MM for v in self.in_model_frame(cy["pick"]))
-        self.model.ClearSelection2(True)
-        if not ext.SelectByID2("", "FACE", x, y, z, False, 0, NOTHING, 0):
-            raise RuntimeError(f"{cy['name']}: could not select the start face at {cy['pick']}")
+        self.select_face(cy)
         sm.InsertSketch(True)
         settle()
         sk = call0(self.model, "GetActiveSketch2")

@@ -20,9 +20,9 @@ HELPER_AB = (-40.629, -10.0)   # helper circle (a, b), outside the part
 # ---- features, in order: sketch loops (a, b in mm), levels, expected volume (mm^3) ----
 FEATURES = [
     dict(
-        name="Boss 1 z -80 to 5.43e-15", op="add", lo=-80.0, hi=0.0, volume=98478.5836, centroid=(0.00000, 13.36446, -40.00000), holes=False,
+        name="Boss 1 z -80 to 5.43e-15", op="add", lo=-80.0, hi=0.0, volume=98478.5794, centroid=(0.00000, 13.36446, -40.00000), holes=False,
         expect="fully defined",
-        plans=[[('centerline', 0, ((-0.0, -46.5), (0.0, 46.5)), 'centerline a = 0'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (28.79457, 35.0)), ('SKETCHPOINT', (-28.79457, 35.0)), ('SKETCHSEGMENT', (0.0, 41.85))], 'corners (28.794570000000004, 35.0) and (-28.794570000000004, 35.0) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (27.79457, 35.0)), ('SKETCHPOINT', (-27.794567, 35.0)), ('SKETCHSEGMENT', (0.0, 41.85))], 'corners (27.79457, 35.0) and (-27.79456699999999, 35.0) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (-30.62884, 0.0)), ('SKETCHPOINT', (30.62884, 0.0)), ('SKETCHSEGMENT', (0.0, 41.85))], 'corners (-30.62884, 0.0) and (30.62884, 0.0) symmetric'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (28.29457, 35.0))], 'horizontal edge at (28.29457, 35.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (25.72233, 5.0))], 'horizontal edge at (25.72233, 5.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (28.29457, 35.0)), ('SKETCHSEGMENT', (25.72233, 5.0))], 'equal length, edges at (28.29457, 35.0) and (25.72233, 5.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (27.00845, 20.0)), ('SKETCHSEGMENT', (24.436217, 20.0))], 'equal length, edges at (27.00845, 20.0) and (24.4362165, 20.0)'), ('dim', 'H', [('SKETCHPOINT', (25.22233, 5.0)), ('ORIGIN', None)], (12.611165, -3.0), 'x of corner (25.22233, 5.0)'), ('dim', 'V', [('SKETCHPOINT', (25.22233, 5.0)), ('ORIGIN', None)], (17.22233, 2.5), 'y of corner (25.22233, 5.0)'), ('dim', 'any', [('SKETCHSEGMENT', (28.29457, 35.0))], (28.29457, 41.0), 'length of edge at (28.29457, 35.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, 0.0))], (0.0, -6.0), 'length of edge at (0.0, 0.0)'), ('dim', 'H', [('SKETCHPOINT', (27.79457, 35.0)), ('SKETCHPOINT', (26.22233, 5.0))], (27.00845, -1.0), 'horizontal extent of slanted edge at (27.00845, 20.0)'), ('dim', 'V', [('SKETCHPOINT', (27.79457, 35.0)), ('SKETCHPOINT', (26.22233, 5.0))], (20.22233, 20.0), 'vertical extent of slanted edge at (27.00845, 20.0)'), ('dim', 'H', [('SKETCHPOINT', (25.22233, 5.0)), ('SKETCHPOINT', (23.650103, 35.0))], (24.436217, -1.0), 'horizontal extent of slanted edge at (24.4362165, 20.0)'), ('dim', 'V', [('SKETCHPOINT', (-28.79457, 35.0)), ('SKETCHPOINT', (-30.62884, 0.0))], (-36.62884, 17.5), 'vertical extent of slanted edge at (-29.711705000000002, 17.5)')]],
+        plans=[[('centerline', 0, ((-0.0, -46.5), (0.0, 46.5)), 'centerline a = 0'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (-28.794567, 35.0)), ('SKETCHPOINT', (28.79457, 35.0)), ('SKETCHSEGMENT', (0.0, 41.85))], 'corners (-28.794566999999994, 35.0) and (28.794570000000004, 35.0) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (-30.62884, 0.0)), ('SKETCHPOINT', (30.62884, 0.0)), ('SKETCHSEGMENT', (0.0, 41.85))], 'corners (-30.62884, 0.0) and (30.62884, 0.0) symmetric'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (-23.1501, 35.0))], 'horizontal edge at (-23.150099999999995, 35.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (-25.72234, 5.0))], 'horizontal edge at (-25.722339999999996, 5.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (-23.1501, 35.0)), ('SKETCHSEGMENT', (-25.72234, 5.0))], 'equal length, edges at (-23.150099999999995, 35.0) and (-25.722339999999996, 5.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (-25.72234, 5.0)), ('SKETCHSEGMENT', (-28.294567, 35.0))], 'equal length, edges at (-25.722339999999996, 5.0) and (-28.294566999999994, 35.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (-24.43622, 20.0)), ('SKETCHSEGMENT', (-27.008453, 20.0))], 'equal length, edges at (-24.436219999999995, 20.0) and (-27.008453499999995, 20.0)'), ('rel', 'sgPARALLEL', [('SKETCHSEGMENT', (-24.43622, 20.0)), ('SKETCHSEGMENT', (-29.711703, 17.5))], 'parallel, edges at (-24.436219999999995, 20.0) and (-29.7117035, 17.5)'), ('dim', 'H', [('SKETCHPOINT', (-25.22234, 5.0)), ('ORIGIN', None)], (-12.61117, -3.0), 'x of corner (-25.222339999999996, 5.0)'), ('dim', 'V', [('SKETCHPOINT', (-25.22234, 5.0)), ('ORIGIN', None)], (-33.22234, 2.5), 'y of corner (-25.222339999999996, 5.0)'), ('dim', 'V', [('SKETCHPOINT', (-23.6501, 35.0)), ('SKETCHPOINT', (-25.22234, 5.0))], (-31.22234, 20.0), 'vertical extent of slanted edge at (-24.436219999999995, 20.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, 0.0))], (0.0, -6.0), 'length of edge at (0.0, 0.0)')]],
         loops=[
         dict(count=11, step=(-5.144467, 0.0), period=[
             ('line', (28.79457, 35.0), (27.79457, 35.0)),
@@ -30,8 +30,8 @@ FEATURES = [
             ('line', (26.22233, 5.0), (25.22233, 5.0)),
             ('line', (25.22233, 5.0), (23.650103, 35.0)),
         ], rest=[
-            ('line', (-27.794567, 35.0), (-28.79457, 35.0)),
-            ('line', (-28.79457, 35.0), (-30.62884, 0.0)),
+            ('line', (-27.794567, 35.0), (-28.794567, 35.0)),
+            ('line', (-28.794567, 35.0), (-30.62884, 0.0)),
             ('line', (-30.62884, 0.0), (30.62884, 0.0)),
             ('line', (30.62884, 0.0), (28.79457, 35.0)),
         ]),
@@ -99,6 +99,12 @@ def model_point(a, b):
     p = [0.0, 0.0, 0.0]
     p[AXIS_I], p[AXIS_J] = a, b
     return p
+
+
+def seed_copy(E, p, N):
+    """Index of the pattern copy used as the seed: the one at the left (else bottom) end."""
+    a, b = tuple(E[0][1]), tuple(E[(N - 1) * p][1])
+    return N - 1 if (b[0], b[1]) < (a[0], a[1]) else 0
 
 
 def expand(loop):
@@ -211,8 +217,10 @@ class SW:
             circular = isinstance(loop, dict) and "centre" in loop and self.use_patterns
             first = len(self.ents)
             todo = expand(loop)
-            if linear:                           # the period and the rest; the copies by pattern
-                todo = todo[:len(loop["period"])] + todo[len(loop["period"]) * loop["count"]:]
+            if linear:                           # the seed copy and the rest; the others by pattern
+                p_, n_ = len(loop["period"]), loop["count"]
+                s_ = seed_copy(todo, p_, n_)
+                todo = todo[s_ * p_:(s_ + 1) * p_] + todo[p_ * n_:]
             elif circular:                       # the period; the copies by a circular pattern
                 todo = todo[:len(loop["period"])]
             for e in todo:
@@ -239,8 +247,8 @@ class SW:
                     g = make(sm.CreateArc, xc, yc, 0.0, s[0], s[1], 0.0, t[0], t[1], 0.0, 1 if turn > 0 else -1)
                     self.ents.append(("arc", (s, t, (xc, yc), math.dist(s, (xc, yc)), m), g))
             if linear:
-                patterns.append(([g for _, _, g in self.ents[first:first + len(loop["period"])]],
-                                 loop["count"], loop["step"]))
+                step = loop["step"] if s_ == 0 else tuple(-v for v in loop["step"])
+                patterns.append(([g for _, _, g in self.ents[first:first + p_]], n_, step))
             elif circular:
                 circles.append((self.ents[first:first + len(loop["period"])], loop))
         for seed, count, step in patterns:
@@ -591,15 +599,17 @@ class SW:
 
     def sketch_pattern(self, seed, count, step):
         """Repeat the period's entities count times by step (model mm) with a sketch linear
-        pattern (SketchManager.CreateLinearSketchStepAndRepeat). In SolidWorks 2025 the copies
-        share their end points with each other and with the rest of the outline (sw_probe8)."""
+        pattern (SketchManager.CreateLinearSketchStepAndRepeat) with its spacing and count
+        dimensions. In SolidWorks 2025 the copies share their end points with each other and with
+        the rest of the outline (sw_probe8), and follow changes of the seed only when the pattern
+        has its dimensions (sw_probe13)."""
         p0, p1 = self.to_sketch(0.0, 0.0), self.to_sketch(*step)
         dx, dy = p1[0] - p0[0], p1[1] - p0[1]
         self.model.ClearSelection2(True)
         ok = all(g.Select4(True, NOTHING) for g in seed)
         r = self.model.SketchManager.CreateLinearSketchStepAndRepeat(
             count, 1, math.hypot(dx, dy), 0.0, math.atan2(dy, dx), math.pi / 2, "",
-            False, False, False, False, False) if ok else False
+            True, False, False, True, False) if ok else False
         self.model.ClearSelection2(True)
         if not r:
             raise RuntimeError(f"sketch linear pattern of {len(seed)} entities x {count} was not created")
@@ -724,6 +734,42 @@ class SW:
             return tuple(p)
         return tuple(sum(ROT[r][c] * p[c] for c in range(3)) for r in range(3))
 
+    def select_face(self, cy):
+        """Select the planar face the feature starts on. SelectByID2 with a point picks the first
+        face along the line of sight through the point (seen in SolidWorks 2025: a hole meant for
+        a side face was sketched on the top face), so the face is picked with a ray fired at the
+        point from just outside the face along its inward normal (SelectByRay), and the selected
+        face's normal is checked; SelectByID2 is the fall-back."""
+        ext = self.model.Extension
+        p = [v * MM for v in self.in_model_frame(cy["pick"])]
+        n = list(self.in_model_frame(cy["normal"]))
+        tried = []
+        for how in ("ray", "id"):
+            self.model.ClearSelection2(True)
+            try:
+                if how == "ray":
+                    q = [p[i] + 0.001 * n[i] for i in range(3)]          # 1 mm outside the face
+                    ok = ext.SelectByRay(q[0], q[1], q[2], -n[0], -n[1], -n[2], 0.0001, 2, False, 0, 0)
+                else:
+                    ok = ext.SelectByID2("", "FACE", p[0], p[1], p[2], False, 0, NOTHING, 0)
+            except Exception as ex:
+                tried.append(f"{how}: {type(ex).__name__}")
+                continue
+            if not ok:
+                tried.append(f"{how}: nothing selected")
+                continue
+            try:
+                fc = self.model.SelectionManager.GetSelectedObject6(1, -1)
+                fn = list(call0(fc, "Normal"))
+                if sum(a * b for a, b in zip(fn, n)) > math.cos(math.radians(1.0)):
+                    return
+                tried.append(f"{how}: face normal {tuple(round(v, 3) for v in fn)}")
+            except Exception as ex:                 # normal not readable: trust the ray pick
+                if how == "ray":
+                    return
+                tried.append(f"{how}: {type(ex).__name__}")
+        raise RuntimeError(f"{cy['name']}: could not select the start face at {cy['pick']} ({'; '.join(tried)})")
+
     def face_feature(self, cy):
         """Boss or hole along the normal of a planar face: the face is picked at a point next to
         the circle, the circle is placed through the face sketch's ModelToSketchTransform (in
@@ -731,10 +777,7 @@ class SW:
         and sketch y is +y), dimensioned, and extruded blind; both directions are tried against
         the expected volume and centre of mass."""
         ext, sm, fm = self.model.Extension, self.model.SketchManager, self.model.FeatureManager
-        x, y, z = (v * MM for v in self.in_model_frame(cy["pick"]))
-        self.model.ClearSelection2(True)
-        if not ext.SelectByID2("", "FACE", x, y, z, False, 0, NOTHING, 0):
-            raise RuntimeError(f"{cy['name']}: could not select the start face at {cy['pick']}")
+        self.select_face(cy)
         sm.InsertSketch(True)
         settle()
         sk = call0(self.model, "GetActiveSketch2")

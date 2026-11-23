@@ -46,7 +46,7 @@ FEATURES = [
 
 # ---- off-axis bosses and holes, after the prisms, each sketched on its start face (STL frame, mm) ----
 CYLINDERS = [
-    dict(name="Hole 1 dia 4.99995 along (-1, -2.51e-06, -5.1e-06)", op="cut", pick=(25.0, 4.999995, 12.749999), centre=(25.0, 4.999995, 10.000025),
+    dict(name="Hole 1 dia 4.99995 along (-1, -2.51e-06, -5.1e-06)", op="cut", pick=(25.0, 4.999995, 12.749999), normal=(1.0, 0.0, -0.0), centre=(25.0, 4.999995, 10.000025),
          dia=4.999953, depth=13.466713, depth2=0.0, volume=28910.4514, centroid=(-0.45075, -0.04174, 10.00000)),
 ]
 
@@ -731,6 +731,42 @@ class SW:
             return tuple(p)
         return tuple(sum(ROT[r][c] * p[c] for c in range(3)) for r in range(3))
 
+    def select_face(self, cy):
+        """Select the planar face the feature starts on. SelectByID2 with a point picks the first
+        face along the line of sight through the point (seen in SolidWorks 2025: a hole meant for
+        a side face was sketched on the top face), so the face is picked with a ray fired at the
+        point from just outside the face along its inward normal (SelectByRay), and the selected
+        face's normal is checked; SelectByID2 is the fall-back."""
+        ext = self.model.Extension
+        p = [v * MM for v in self.in_model_frame(cy["pick"])]
+        n = list(self.in_model_frame(cy["normal"]))
+        tried = []
+        for how in ("ray", "id"):
+            self.model.ClearSelection2(True)
+            try:
+                if how == "ray":
+                    q = [p[i] + 0.001 * n[i] for i in range(3)]          # 1 mm outside the face
+                    ok = ext.SelectByRay(q[0], q[1], q[2], -n[0], -n[1], -n[2], 0.0001, 2, False, 0, 0)
+                else:
+                    ok = ext.SelectByID2("", "FACE", p[0], p[1], p[2], False, 0, NOTHING, 0)
+            except Exception as ex:
+                tried.append(f"{how}: {type(ex).__name__}")
+                continue
+            if not ok:
+                tried.append(f"{how}: nothing selected")
+                continue
+            try:
+                fc = self.model.SelectionManager.GetSelectedObject6(1, -1)
+                fn = list(call0(fc, "Normal"))
+                if sum(a * b for a, b in zip(fn, n)) > math.cos(math.radians(1.0)):
+                    return
+                tried.append(f"{how}: face normal {tuple(round(v, 3) for v in fn)}")
+            except Exception as ex:                 # normal not readable: trust the ray pick
+                if how == "ray":
+                    return
+                tried.append(f"{how}: {type(ex).__name__}")
+        raise RuntimeError(f"{cy['name']}: could not select the start face at {cy['pick']} ({'; '.join(tried)})")
+
     def face_feature(self, cy):
         """Boss or hole along the normal of a planar face: the face is picked at a point next to
         the circle, the circle is placed through the face sketch's ModelToSketchTransform (in
@@ -738,10 +774,7 @@ class SW:
         and sketch y is +y), dimensioned, and extruded blind; both directions are tried against
         the expected volume and centre of mass."""
         ext, sm, fm = self.model.Extension, self.model.SketchManager, self.model.FeatureManager
-        x, y, z = (v * MM for v in self.in_model_frame(cy["pick"]))
-        self.model.ClearSelection2(True)
-        if not ext.SelectByID2("", "FACE", x, y, z, False, 0, NOTHING, 0):
-            raise RuntimeError(f"{cy['name']}: could not select the start face at {cy['pick']}")
+        self.select_face(cy)
         sm.InsertSketch(True)
         settle()
         sk = call0(self.model, "GetActiveSketch2")
