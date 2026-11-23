@@ -18,6 +18,8 @@ import sys
 import tempfile
 import textwrap
 
+import math
+
 import numpy as np
 
 from . import brep_helpers as BH
@@ -108,7 +110,11 @@ def _max_distance(own, other, tol, n=800, seed=0):
     # distances to the boundary faces: to a solid, a point inside it is at distance 0
     own_s = cq.Compound.makeCompound(own.Faces()).wrapped
     other_s = cq.Compound.makeCompound(other.Faces()).wrapped
-    dmax = 0.0
+    # the exact distance can overestimate on a face merged by clean() with an irregular boundary
+    # (lever: one R16 cylinder face over two height ranges gave 1.7 mm for a point on it), so the
+    # smaller of it and the distance to a fine tessellation (deflection 0.05 tol) is taken
+    other_tm = shape_to_mesh(other, tolerance=0.05 * tol)
+    Q, D = [], []
     for p in P:
         v = BRepBuilderAPI_MakeVertex(gp_Pnt(*map(float, p))).Vertex()
         d0 = BRepExtrema_DistShapeShape(v, own_s)
@@ -117,8 +123,13 @@ def _max_distance(own, other, tol, n=800, seed=0):
         q = d0.PointOnShape2(1)
         d1 = BRepExtrema_DistShapeShape(BRepBuilderAPI_MakeVertex(q).Vertex(), other_s)
         if d1.IsDone():
-            dmax = max(dmax, d1.Value())
-    return dmax
+            Q.append((q.X(), q.Y(), q.Z()))
+            D.append(d1.Value())
+    if not Q:
+        return 0.0
+    from .core import closest_distance
+    dt = closest_distance(other_tm, np.array(Q))
+    return float(np.max(np.minimum(np.array(D), dt)))
 
 
 # ----------------------------------------------------------------------------- feature script
@@ -547,13 +558,18 @@ def stacked_script(p25, name, nd=4):
     def P(p):
         return f"P({f(p[0])}, {f(p[1])})"
 
-    def edges(loop):
+    def edges(loop, which=None):
         out = []
-        for e in loop.edges:
+        for e in (loop.edges if which is None else which):
             if e[0] == "line":
                 out.append(f"cf.segment({P(e[1])}, {P(e[2])})")
             elif e[0] == "arc":
                 out.append(f"Edge.makeThreePointArc({P(e[1])}, {P(e[2])}, {P(e[3])})")
+            elif e[0] == "ellipse":
+                deg = math.degrees(float(e[4]))
+                xdir = ("P(1, 0)" if abs(deg) < 1e-9 else
+                        f"P(math.cos(math.radians({f(deg)})), math.sin(math.radians({f(deg)})))")
+                out.append(f"Edge.makeEllipse({f(e[2])}, {f(e[3])}, {P(e[1])}, DIR, {xdir})")
             else:
                 out.append(f"Edge.makeCircle({f(e[2])}, {P(e[1])}, DIR)")
         return out
@@ -572,7 +588,7 @@ def stacked_script(p25, name, nd=4):
          f"applied in order;",
          f"each is an outline in the {axes[i]}{axes[j]} plane between two levels. Units: mm.",
          f"Run:  python {name}.py [out.step]\n\"\"\"\n",
-         "import sys\n", "from cadquery import Edge, Vector", "from cadquery import func as cf\n",
+         "import math\nimport sys\n", "from cadquery import Edge, Vector", "from cadquery import func as cf\n",
          "# ---- parameters ----------------------------------------------------------"]
     for z in zs:
         L.append(f"{zname[z]} = {f(z)}    # level along {axes[k]}")
@@ -636,6 +652,19 @@ def stacked_script(p25, name, nd=4):
             L.append(f"    e.rotate(Vector(*centre_{n}), Vector(*centre_{n}) + Vector(*DIR), 360.0 * m / count_{n})")
             L.append(f"    for m in range(count_{n}) for e in period_{n}")
             L.append("])")
+        elif getattr(ft["loop"], "linear", None) is not None:
+            p_, N_, v_ = ft["loop"].linear
+            E_ = ft["loop"].edges
+            L.append(f"count_{n} = {N_}                  # the period repeats {N_} times, each moved by step_{n}")
+            L.append(f"step_{n} = Vector(*{P(v_)})")
+            L.append(f"period_{n} = [")
+            L += [f"    {c}," for c in edges(ft["loop"], E_[:p_])]
+            L.append("]")
+            L.append(f"rest_{n} = [                     # the outline after the last copy, back to the start")
+            L += [f"    {c}," for c in edges(ft["loop"], E_[p_ * N_:])]
+            L.append("]")
+            L.append(f"outline_{n} = cf.wire(*[e.translate(step_{n} * m) for m in range(count_{n}) "
+                     f"for e in period_{n}], *rest_{n})")
         else:
             L.append(f"outline_{n} = cf.wire(")
             L += [f"    {c}," for c in edges(ft["loop"])]

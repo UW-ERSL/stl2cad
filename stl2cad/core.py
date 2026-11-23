@@ -47,12 +47,22 @@ def default_tolerance(mesh):
     return 5e-4 * float(np.linalg.norm(mesh.extents))
 
 
+def closest_distance(mesh, pts, chunk=500):
+    """Distance from each point to the mesh surface, queried in chunks: one trimesh query over
+    many points against long thin facets built candidate arrays of several GB (WedgeHoles)."""
+    pts = np.asarray(pts, float)
+    out = np.empty(len(pts))
+    for i in range(0, len(pts), chunk):
+        _, out[i:i + chunk], _ = trimesh.proximity.closest_point(mesh, pts[i:i + chunk])
+    return out
+
+
 def deviation(reference, model, n=30000, seed=0):
     """Two-sided surface deviation statistics between two meshes (mm)."""
     out = {}
     for name, a, b in (("ref_to_model", reference, model), ("model_to_ref", model, reference)):
         pts, _ = trimesh.sample.sample_surface_even(a, n, seed=seed)
-        _, d, _ = trimesh.proximity.closest_point(b, pts)
+        d = closest_distance(b, pts)
         out[name] = dict(mean=float(d.mean()), median=float(np.median(d)),
                          p95=float(np.percentile(d, 95)), max=float(d.max()))
     out["volume_ref"] = float(reference.volume)
@@ -62,8 +72,7 @@ def deviation(reference, model, n=30000, seed=0):
 
 def vertex_deviation(reference, model):
     """Distance from each vertex of `model` to `reference`, for color maps."""
-    _, d, _ = trimesh.proximity.closest_point(reference, model.vertices)
-    return d
+    return closest_distance(reference, model.vertices)
 
 
 def heal_via_step(shape):

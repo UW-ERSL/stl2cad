@@ -7,10 +7,10 @@ mkdir -p "$OUT"
 
 # file  units
 cat > "$OUT/parts.txt" <<'EOF'
-featuretype.stl in
+multipleFeatures.stl in
 angle_block.stl in
 idler_riser.stl in
-1002_tray_bottom.stl mm
+tray.stl mm
 plate_holes.stl mm
 Gear.STL mm
 AlcoaGrabCAD.stl in
@@ -26,6 +26,19 @@ CircularPlateHole.STL in
 HeatBlock.STL m
 C-bracket.STL m
 StepBlock.STL m
+slottedBlock.STL m
+WedgeHoles.stl mm
+CrossHoles.stl mm
+bottleopener.STL m
+lid.STL m
+hexspanner.STL m
+hexcap.STL m
+lever.STL m
+rack.STL m
+heatfin.STL m
+crossbar.STL m
+flange.STL m
+standoff.STL m
 EOF
 
 run_one() {

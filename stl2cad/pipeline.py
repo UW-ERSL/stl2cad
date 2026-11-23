@@ -185,19 +185,19 @@ def save(res, path, o, log=print, out_dir=None):
         else:
             log(f"script: not written ({msg})")
         res.report += f"\nscript: {kind + ' script, ' + msg if code else 'not written (' + msg + ')'}"
-    if (o.export_solidworks and res.mode == "exact" and res.extras.get("prism25") is not None
-            and res.extras["prism25"].get("cylinders")):
-        log("SolidWorks script: not written (off-axis bosses and holes are not yet supported by the "
-            "SolidWorks generator)")
-    elif o.export_solidworks and res.mode == "exact" and res.extras.get("prism25") is not None:
+    if o.export_solidworks and res.mode == "exact" and res.extras.get("prism25") is not None:
         from .swgen import solidworks_script, verify_with_standin
         t0 = time.time()
         swname = os.path.splitext(os.path.basename(path))[0] + "_solidworks"
-        code = solidworks_script(res.extras["prism25"], swname)
         tol_ = res.extras.get("tolerance", 0.1)
-        # both default-direction conventions for cuts and bosses must give the same part
-        ok1, m1 = verify_with_standin(code, res.shape, tol_, cut_reversed=True, boss_reversed=False)
-        ok2, m2 = verify_with_standin(code, res.shape, tol_, cut_reversed=False, boss_reversed=True)
+        try:
+            code = solidworks_script(res.extras["prism25"], swname)
+        except ValueError as e:                  # a feature the generator cannot express
+            code, ok1, ok2, m1 = None, False, False, str(e)
+        if code is not None:
+            # both default-direction conventions for cuts and bosses must give the same part
+            ok1, m1 = verify_with_standin(code, res.shape, tol_, cut_reversed=True, boss_reversed=False)
+            ok2, m2 = verify_with_standin(code, res.shape, tol_, cut_reversed=False, boss_reversed=True)
         if ok1 and ok2:
             f = os.path.join(out_dir, swname + ".py")
             with open(f, "w") as fh:

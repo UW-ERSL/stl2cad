@@ -27,13 +27,13 @@ GRIDS = MM_GRIDS
 
 def choose_grids(values, eps):
     """mm or inch grids for a part: the system in which more of its values lie within eps of a
-    0.1 mm or 0.01 in multiple (ties go to mm)."""
+    0.1 mm or 0.25 mm multiple, or of a 0.01 in multiple (ties go to mm)."""
     v = np.abs(np.asarray(values, float))
     v = v[v > eps]
     if not len(v):
         return MM_GRIDS
-    hit = lambda g: int(np.sum(np.abs(v - np.round(v / g) * g) <= eps))
-    return IN_GRIDS if hit(0.254) > hit(0.1) else MM_GRIDS
+    on = lambda g: np.abs(v - np.round(v / g) * g) <= eps
+    return IN_GRIDS if int(on(0.254).sum()) > int((on(0.1) | on(0.25)).sum()) else MM_GRIDS
 
 
 def nice(v, eps, grids=None):
@@ -164,6 +164,64 @@ def _junction(p, q, near, tol):
     return min(cand, key=lambda x: np.linalg.norm(x - near))
 
 
+def _tangent_line(n0, h0, pts):
+    """Line n.x = h tangent to each (point, signed radius) in pts (a radius 0 is a point on the
+    line), nearest to the line n0.x = h0; None if there is none. pts: [(c1, s1 r1), (c2, s2 r2)]."""
+    (c1, k1), (c2, k2) = pts
+    D = c1 - c2
+    dd = float(D @ D)
+    k = k1 - k2
+    if dd < 1e-18 or k * k > dd:
+        return None
+    w = np.array([-D[1], D[0]]) / np.sqrt(dd)
+    base = (k / dd) * D
+    t = np.sqrt(max(0.0, 1.0 - k * k / dd))
+    best = None
+    for n in (base + t * w, base - t * w):
+        h = float(n @ c1 - k1)
+        score = float(np.linalg.norm(n - n0)) + abs(h - h0)
+        if best is None or score < best[0]:
+            best = (score, n, h)
+    return best[1], best[2]
+
+
+def _tangent_slanted(pr, tol):
+    """A slanted line next to an arc, tangent to it within 2 tol, is made exactly tangent: the
+    common tangent of the two circles when arcs are on both sides, else the tangent from the line's
+    far end (kept fixed) to the circle. Each circle keeps the side of the line it was on."""
+    n = len(pr)
+    for m, p in enumerate(pr):
+        if p.kind != "line" or p.axis is not None:
+            continue
+        n0 = np.array([-p.d[1], p.d[0]])
+        h0 = float(n0 @ p.a)
+        prev, nxt = pr[m - 1], pr[(m + 1) % n]
+        touch = []
+        for q in (prev, nxt):
+            if q.kind == "arc":
+                dist = float(n0 @ q.c - h0)
+                if abs(abs(dist) - q.r) < 2 * tol:
+                    touch.append((q.c, np.sign(dist) * q.r))
+                    continue
+            touch.append(None)
+        if touch == [None, None]:
+            continue
+        if touch[0] is None:
+            touch[0] = (p.a, 0.0)                     # far end fixed
+        if touch[1] is None:
+            touch[1] = (p.b, 0.0)
+        r = _tangent_line(n0, h0, touch)
+        if r is None:
+            continue
+        nn, h = r
+        d = np.array([nn[1], -nn[0]])
+        if d @ p.d < 0:
+            d = -d
+        p.a = p.a - (nn @ p.a - h) * nn
+        p.b = p.b - (nn @ p.b - h) * nn
+        p.d = d
+
+
 def _dist_to_loop(P, edges):
     """Max over points P of the exact distance to the loop (segments, arcs, circles)."""
     P = np.asarray(P, float)
@@ -190,6 +248,9 @@ def _dist_to_loop(P, edges):
             ends = np.minimum(np.linalg.norm(P - np.asarray(e[1]), axis=1),
                               np.linalg.norm(P - np.asarray(e[3]), axis=1))
             dist = np.where(on, radial, ends)
+        elif e[0] == "ellipse":
+            from .prism25 import _ellipse_dist
+            dist = _ellipse_dist(P, np.asarray(e[1], float), e[2], e[3], e[4])
         else:
             dist = np.abs(np.linalg.norm(P - np.asarray(e[1]), axis=1) - e[2])
         best = np.minimum(best, dist)
@@ -210,6 +271,11 @@ def snap_loops(loops, points, tol, log=print):
             c, r = L.edges[0][1], L.edges[0][2]
             X.add(c[0]); Y.add(c[1]); R.add(r)
             parsed.append("circle")
+            continue
+        if len(L.edges) == 1 and L.edges[0][0] == "ellipse":
+            _, c, a, b, _ = L.edges[0]
+            X.add(c[0]); Y.add(c[1]); R.add(a); R.add(b)
+            parsed.append("ellipse")
             continue
         pr = _prims(L)
         if pr is None:
@@ -236,6 +302,20 @@ def snap_loops(loops, points, tol, log=print):
     for L, pr, P in zip(loops, parsed, points):
         if pr is None:
             out.append(L)
+            continue
+        if pr == "ellipse":
+            _, c, a, b, ang = L.edges[0]
+            # axis direction: whole degrees, which include the axis-parallel case
+            ang_s = np.radians(round(np.degrees(ang)))
+            if abs(ang_s - ang) * a > tol / 4:
+                ang_s = ang
+            new = Loop([("ellipse", np.array([_Pool.get(tx, c[0]), _Pool.get(ty, c[1])]),
+                         _Pool.get(tr, a), _Pool.get(tr, b), float(ang_s % np.pi))], L.area)
+            if _dist_to_loop(P, new.edges) < tol:
+                out.append(new)
+                n_snapped += 1
+            else:
+                out.append(L)
             continue
         if pr == "circle":
             c, r = L.edges[0][1], L.edges[0][2]
@@ -266,13 +346,18 @@ def snap_loops(loops, points, tol, log=print):
                 side = np.sign(p.c[k] - q.off) or 1.0
                 if abs(abs(p.c[k] - q.off) - p.r) < 2 * tol:
                     p.c[k] = q.off + side * p.r
+        _tangent_slanted(pr, tol)                        # slanted lines tangent to arcs
         old = [e[1] for e in L.edges]                    # old corners: start of each edge
         V = []
         for m in range(n):
             v = _junction(pr[m - 1], pr[m], np.asarray(old[m], float), tol)
             # a corner at a tangent junction is poorly placed by the fit (it can slide along the
             # tangent), so it may move further; the point-to-loop check below guards the shape
-            if v is None or np.linalg.norm(v - old[m]) > 10 * tol:
+            lim = 10 * tol
+            for q in (pr[m - 1], pr[m]):                 # a tangent corner slides about sqrt(2 r tol)
+                if q.kind == "arc" and {pr[m - 1].kind, pr[m].kind} == {"line", "arc"}:
+                    lim = max(lim, 3 * np.sqrt(2 * q.r * tol))
+            if v is None or np.linalg.norm(v - old[m]) > lim:
                 V = None
                 break
             V.append(v)

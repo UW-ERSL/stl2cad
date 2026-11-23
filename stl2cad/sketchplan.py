@@ -30,10 +30,18 @@ def _tangent(line_dir, corner, centre):
     return c < math.sin(math.radians(0.5))
 
 
-def plan_outline(edges, tag=""):
+def plan_outline(edges, tag="", linear=None, rotational=None):
     """edges: ("line", a, b) / ("arc", a, mid, b) in (a, b) sketch coordinates (mm).
+    linear: (p, N) when edges[:p N] are N copies of the first p edges made by a sketch linear
+    pattern: the copies then follow the period (each corner moved by the period's own end-to-start
+    offset), and no operation picks a copy, which the script did not draw.
+    rotational: (p, N, centre) when the edges are N copies of the first p turned about centre by a
+    sketch circular pattern; handled the same way.
     Returns (ops, fully_defined); ops as executed by the SolidWorks script."""
     n = len(edges)
+    p_, N_ = linear if linear is not None else (rotational[:2] if rotational is not None else (0, 0))
+    ok_e = lambda i: not (p_ <= i % n < p_ * N_)                       # edge drawn by the script
+    ok_c = lambda i: not (p_ < i % n < p_ * N_)                        # corner on a drawn edge
     V = np.array([np.asarray(e[1], float) for e in edges])            # corner i = start of edge i
     arcs = [i for i, e in enumerate(edges) if e[0] == "arc"]
     C = {i: _centre(*[np.asarray(q, float) for q in edges[i][1:]]) for i in arcs}
@@ -88,8 +96,62 @@ def plan_outline(edges, tag=""):
         f = lambda x, i=i: np.sum((corner(x, i) - centre(x, i)) ** 2) - np.sum((corner(x, i + 1) - centre(x, i)) ** 2)
         R = np.vstack([rows, jac([f])])
         rows, rank = R, np.linalg.matrix_rank(R, tol=1e-7 * max(1.0, np.abs(R).max()))
+    # copies of a sketch pattern follow the period
+    if linear is not None:
+        fs = [lambda x, m=m, j=j, a=a: (corner(x, m * p_ + j) - corner(x, j) - m * (corner(x, p_) - corner(x, 0)))[a]
+              for m in range(1, N_) for j in range(p_) for a in (0, 1)]
+        R = np.vstack([rows, jac(fs)])
+        rows, rank = R, np.linalg.matrix_rank(R, tol=1e-7 * max(1.0, np.abs(R).max()))
+    if rotational is not None:
+        c0 = np.asarray(rotational[2], float)
+
+        def turned(x, j, m):
+            t = 2 * np.pi * m / N_
+            q = corner(x, j) - c0
+            return c0 + np.array([np.cos(t) * q[0] - np.sin(t) * q[1], np.sin(t) * q[0] + np.cos(t) * q[1]])
+        fs = [lambda x, m=m, j=j, a=a: (corner(x, m * p_ + j) - turned(x, j, m))[a]
+              for m in range(1, N_) for j in range(p_) for a in (0, 1)]
+        R = np.vstack([rows, jac(fs)])
+        rows, rank = R, np.linalg.matrix_rank(R, tol=1e-7 * max(1.0, np.abs(R).max()))
+    # mirror symmetry about the sketch axes through the origin: a construction centerline per
+    # axis, mirrored corners tied with Symmetric relations, corners on the axis put on it
+    ext = float(np.abs(V).max()) if n else 1.0
+    for ax in (0, 1):
+        M = np.array([1.0, 1.0])
+        M[ax] = -1.0
+        part = {}
+        for i in range(n):
+            d = np.linalg.norm(V - V[i] * M, axis=1)
+            k = int(np.argmin(d))
+            if d[k] > 1e-6 * max(1.0, ext):
+                break
+            part[i] = k
+        else:
+            mids = [np.asarray(edges[i][2], float) for i in arcs]
+            if not all(any(np.linalg.norm(m * M - q) < 1e-6 * max(1.0, ext) for q in mids) for m in mids):
+                continue
+            Lc = 1.3 * ext + 1.0
+            a_ = np.zeros(2)
+            a_[1 - ax] = Lc                                  # along the axis line
+            cl = (tuple((-a_).tolist()), tuple(a_.tolist()))
+            pick = P(0.9 * a_)
+            ops.append(("centerline", ax, cl, f"{tag}centerline {'a' if ax == 0 else 'b'} = 0"))
+            for i, k in sorted(part.items()):
+                if not (ok_c(i) and ok_c(k)) or k < i:
+                    continue
+                if k == i:
+                    try_add([lambda x, i=i, ax=ax: corner(x, i)[ax]],
+                            ("rel", "sgCOINCIDENT", [("SKETCHPOINT", P(V[i])), ("SKETCHSEGMENT", pick)],
+                             f"{tag}corner {P(V[i])} on the centerline"))
+                else:
+                    try_add([lambda x, i=i, k=k, M=M, c=c_: (corner(x, k) - corner(x, i) * M)[c] for c_ in (0, 1)],
+                            ("rel", "sgSYMMETRIC", [("SKETCHPOINT", P(V[i])), ("SKETCHPOINT", P(V[k])),
+                                                    ("SKETCHSEGMENT", pick)],
+                             f"{tag}corners {P(V[i])} and {P(V[k])} symmetric"))
     # relations
     for i, k in enumerate(kinds):
+        if not ok_e(i):
+            continue
         if k == "H":
             try_add([lambda x, i=i: corner(x, i + 1)[1] - corner(x, i)[1]],
                     ("rel", "sgHORIZONTAL2D", [("SKETCHSEGMENT", mid(edges[i]))], f"{tag}horizontal edge at {P(mid(edges[i]))}"))
@@ -97,7 +159,9 @@ def plan_outline(edges, tag=""):
             try_add([lambda x, i=i: corner(x, i + 1)[0] - corner(x, i)[0]],
                     ("rel", "sgVERTICAL2D", [("SKETCHSEGMENT", mid(edges[i]))], f"{tag}vertical edge at {P(mid(edges[i]))}"))
     for i in range(n):                                          # tangency at corner i
-        p, q = i - 1, i
+        p, q = (i - 1) % n, i
+        if not (ok_e(p) and ok_e(q)):
+            continue
         kp, kq = kinds[p], kinds[q]
         if {kp, kq} != {"A"} and "A" in (kp, kq) and kp != kq:
             li, ai = (p, q) if kp != "A" else (q, p)
@@ -111,8 +175,35 @@ def plan_outline(edges, tag=""):
                     f = lambda x, i=i, li=li, ai=ai: (corner(x, i) - corner(x, li + 1)) @ (corner(x, i) - centre(x, ai))
                 try_add([f], ("rel", "sgTANGENT", [("SKETCHSEGMENT", mid(edges[li % n])), ("SKETCHSEGMENT", mid(edges[ai]))],
                               f"{tag}tangency at {P(V[i])}"))
+    # equal radii and equal lengths: one dimension drives each group (Equal relations to the
+    # group's first member, which is dimensioned below)
+    def group(vals):
+        gs = []
+        for i, v in vals:
+            for g in gs:
+                if abs(g[0][1] - v) < 1e-6 * max(1.0, abs(v)):
+                    g.append((i, v))
+                    break
+            else:
+                gs.append([(i, v)])
+        return [g for g in gs if len(g) > 1]
+    radius = lambda x, i: np.linalg.norm(corner(x, i) - centre(x, i))
+    length = lambda x, i: np.linalg.norm(corner(x, i + 1) - corner(x, i))
+    for g in group([(i, float(np.linalg.norm(V[i] - C[i]))) for i in arcs if ok_e(i)]):
+        i0 = g[0][0]
+        for i, _ in g[1:]:
+            try_add([lambda x, i=i, i0=i0: radius(x, i) - radius(x, i0)],
+                    ("rel", "sgSAMELENGTH", [("SKETCHSEGMENT", mid(edges[i0])), ("SKETCHSEGMENT", mid(edges[i]))],
+                     f"{tag}equal radius, arcs at {P(mid(edges[i0]))} and {P(mid(edges[i]))}"))
+    for g in group([(i, float(np.linalg.norm(V[(i + 1) % n] - V[i]))) for i in range(n)
+                    if kinds[i] != "A" and ok_e(i)]):
+        i0 = g[0][0]
+        for i, _ in g[1:]:
+            try_add([lambda x, i=i, i0=i0: length(x, i) - length(x, i0)],
+                    ("rel", "sgSAMELENGTH", [("SKETCHSEGMENT", mid(edges[i0])), ("SKETCHSEGMENT", mid(edges[i]))],
+                     f"{tag}equal length, edges at {P(mid(edges[i0]))} and {P(mid(edges[i]))}"))
     # position: corner nearest the origin
-    j = int(np.argmin(np.linalg.norm(V, axis=1)))
+    j = min((i for i in range(n) if ok_c(i)), key=lambda i: float(np.linalg.norm(V[i])))
     if np.linalg.norm(V[j]) < 1e-9:
         try_add([lambda x, j=j: corner(x, j)[0], lambda x, j=j: corner(x, j)[1]],
                 ("rel", "sgCOINCIDENT", [("SKETCHPOINT", P(V[j])), ("ORIGIN", None)], f"{tag}corner on the origin"))
@@ -126,13 +217,13 @@ def plan_outline(edges, tag=""):
     area = sum(V[i][0] * V[(i + 1) % n][1] - V[(i + 1) % n][0] * V[i][1] for i in range(n))
     out = 1.0 if area > 0 else -1.0
     # arc radii
-    for i in arcs:
+    for i in [i for i in arcs if ok_e(i)]:
         c, m = C[i], np.asarray(edges[i][2], float)
         try_add([lambda x, i=i: np.linalg.norm(corner(x, i) - centre(x, i))],
                 ("dim", "any", [("SKETCHSEGMENT", P(m))], P(m + (m - c)), f"{tag}radius of arc at {P(m)}"))
     # lengths of horizontal and vertical edges
     for i, k in enumerate(kinds):
-        if k in "HV":
+        if k in "HV" and ok_e(i):
             a, b = V[i], V[(i + 1) % n]
             d = b - a
             L = float(np.linalg.norm(d))
@@ -143,7 +234,7 @@ def plan_outline(edges, tag=""):
                     ("dim", "any", [("SKETCHSEGMENT", P(m))], P(t), f"{tag}length of edge at {P(m)}"))
     # slanted edges: horizontal and vertical distance between their ends
     for i, k in enumerate(kinds):
-        if k == "S":
+        if k == "S" and ok_e(i):
             a, b = V[i], V[(i + 1) % n]
             for axis, kind in ((0, "H"), (1, "V")):
                 text = ((a[0] + b[0]) / 2, min(a[1], b[1]) - 6) if kind == "H" else (min(a[0], b[0]) - 6, (a[1] + b[1]) / 2)
@@ -151,7 +242,7 @@ def plan_outline(edges, tag=""):
                         ("dim", kind, [("SKETCHPOINT", P(a)), ("SKETCHPOINT", P(b))], P(text),
                          f"{tag}{'horizontal' if kind == 'H' else 'vertical'} extent of slanted edge at {P(mid(edges[i]))}"))
     # last resort: corner positions from the origin
-    for i in range(n):
+    for i in [i for i in range(n) if ok_c(i)]:
         for axis, kind in ((0, "H"), (1, "V")):
             if rank >= nv:
                 break
