@@ -22,7 +22,7 @@ FEATURES = [
     dict(
         name="Boss 1 x -4.626e-16 to 18", op="add", lo=0.0, hi=18.0, volume=47702.4353, centroid=(46.75468, 20.50015, 9.00000), holes=False,
         expect="fully defined",
-        plans=[[('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (22.74947, -78.0))], 'horizontal edge at (22.749470000000006, -78.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (0.0, -39.0))], 'vertical edge at (0.0, -39.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (8.0, 0.0))], 'horizontal edge at (8.0, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (16.0, -12.0))], 'vertical edge at (16.0, -12.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (25.0, -24.0))], 'horizontal edge at (25.0, -24.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (34.0, -32.0))], 'vertical edge at (34.0, -32.0)'), ('rel', 'sgCOINCIDENT', [('SKETCHPOINT', (0.0, 0.0)), ('ORIGIN', None)], 'corner on the origin'), ('dim', 'any', [('SKETCHSEGMENT', (22.74947, -78.0))], (22.74947, -84.0), 'length of edge at (22.749470000000006, -78.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -39.0))], (-6.0, -39.0), 'length of edge at (0.0, -39.0)'), ('dim', 'any', [('SKETCHSEGMENT', (8.0, 0.0))], (8.0, 6.0), 'length of edge at (8.0, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (16.0, -12.0))], (22.0, -12.0), 'length of edge at (16.0, -12.0)'), ('dim', 'any', [('SKETCHSEGMENT', (25.0, -24.0))], (25.0, -18.0), 'length of edge at (25.0, -24.0)'), ('dim', 'any', [('SKETCHSEGMENT', (34.0, -32.0))], (40.0, -32.0), 'length of edge at (34.0, -32.0)'), ('dim', 'H', [('SKETCHPOINT', (55.928357, -55.634039)), ('SKETCHPOINT', (51.660729, -64.786))], (53.794543, -70.786), 'horizontal extent of slanted edge at (53.79454320519675, -60.21001916344929)'), ('dim', 'V', [('SKETCHPOINT', (55.928357, -55.634039)), ('SKETCHPOINT', (51.660729, -64.786))], (45.660729, -60.210019), 'vertical extent of slanted edge at (53.79454320519675, -60.21001916344929)'), ('dim', 'H', [('SKETCHPOINT', (51.660729, -64.786)), ('SKETCHPOINT', (19.03365, -49.57174))], (35.34719, -70.786), 'horizontal extent of slanted edge at (35.3471895302634, -57.178869780958195)'), ('dim', 'V', [('SKETCHPOINT', (51.660729, -64.786)), ('SKETCHPOINT', (19.03365, -49.57174))], (13.03365, -57.17887), 'vertical extent of slanted edge at (35.3471895302634, -57.178869780958195)'), ('dim', 'H', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (16.92055, -54.10328))], (17.9771, -60.10328), 'horizontal extent of slanted edge at (17.977099999999997, -51.83751)'), ('dim', 'V', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (16.92055, -54.10328))], (10.92055, -51.83751), 'vertical extent of slanted edge at (17.977099999999997, -51.83751)'), ('dim', 'H', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (49.54764, -69.31754))], (33.234095, -75.31754), 'horizontal extent of slanted edge at (33.234094999999996, -61.710409999999996)'), ('dim', 'V', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (49.54764, -69.31754))], (10.92055, -61.71041), 'vertical extent of slanted edge at (33.234094999999996, -61.710409999999996)'), ('dim', 'H', [('SKETCHPOINT', (49.54764, -69.31754)), ('SKETCHPOINT', (45.49894, -78.0))], (47.52329, -84.0), 'horizontal extent of slanted edge at (47.52329, -73.65877)'), ('dim', 'V', [('SKETCHPOINT', (49.54764, -69.31754)), ('SKETCHPOINT', (45.49894, -78.0))], (39.49894, -73.65877), 'vertical extent of slanted edge at (47.52329, -73.65877)'), ('dim', 'H', [('SKETCHPOINT', (34.0, -40.0)), ('SKETCHPOINT', (58.0, -51.19138))], (46.0, -57.19138), 'horizontal extent of slanted edge at (46.0000000629138, -45.59569002933718)'), ('dim', 'V', [('SKETCHPOINT', (34.0, -40.0)), ('SKETCHPOINT', (58.0, -51.19138))], (28.0, -45.59569), 'vertical extent of slanted edge at (46.0000000629138, -45.59569002933718)')]],
+        plans=[[('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (22.74947, -78.0))], 'horizontal edge at (22.749470000000006, -78.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (0.0, -39.0))], 'vertical edge at (0.0, -39.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (8.0, 0.0))], 'horizontal edge at (8.0, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (16.0, -12.0))], 'vertical edge at (16.0, -12.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (25.0, -24.0))], 'horizontal edge at (25.0, -24.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (34.0, -32.0))], 'vertical edge at (34.0, -32.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (35.34719, -57.17887)), ('SKETCHSEGMENT', (33.234095, -61.71041))], 'equal length, edges at (35.34718952466606, -57.17886977834811) and (33.234094999999996, -61.710409999999996)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (8.0, 0.0)), ('SKETCHSEGMENT', (34.0, -32.0))], 'equal length, edges at (8.0, 0.0) and (34.0, -32.0)'), ('rel', 'sgCOINCIDENT', [('SKETCHPOINT', (0.0, 0.0)), ('ORIGIN', None)], 'corner on the origin'), ('dim', 'any', [('SKETCHSEGMENT', (22.74947, -78.0))], (22.74947, -84.0), 'length of edge at (22.749470000000006, -78.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -39.0))], (-6.0, -39.0), 'length of edge at (0.0, -39.0)'), ('dim', 'any', [('SKETCHSEGMENT', (8.0, 0.0))], (8.0, 6.0), 'length of edge at (8.0, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (16.0, -12.0))], (22.0, -12.0), 'length of edge at (16.0, -12.0)'), ('dim', 'any', [('SKETCHSEGMENT', (25.0, -24.0))], (25.0, -18.0), 'length of edge at (25.0, -24.0)'), ('dim', 'H', [('SKETCHPOINT', (55.928357, -55.634039)), ('SKETCHPOINT', (51.660729, -64.786))], (53.794543, -70.786), 'horizontal extent of slanted edge at (53.7945430987067, -60.21001911368019)'), ('dim', 'V', [('SKETCHPOINT', (55.928357, -55.634039)), ('SKETCHPOINT', (51.660729, -64.786))], (45.660729, -60.210019), 'vertical extent of slanted edge at (53.7945430987067, -60.21001911368019)'), ('dim', 'H', [('SKETCHPOINT', (51.660729, -64.786)), ('SKETCHPOINT', (19.03365, -49.57174))], (35.34719, -70.786), 'horizontal extent of slanted edge at (35.34718952466606, -57.17886977834811)'), ('dim', 'V', [('SKETCHPOINT', (51.660729, -64.786)), ('SKETCHPOINT', (19.03365, -49.57174))], (13.03365, -57.17887), 'vertical extent of slanted edge at (35.34718952466606, -57.17886977834811)'), ('dim', 'H', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (16.92055, -54.10328))], (17.9771, -60.10328), 'horizontal extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'V', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (16.92055, -54.10328))], (10.92055, -51.83751), 'vertical extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'H', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (49.54764, -69.31754))], (33.234095, -75.31754), 'horizontal extent of slanted edge at (33.234094999999996, -61.710409999999996)'), ('dim', 'H', [('SKETCHPOINT', (49.54764, -69.31754)), ('SKETCHPOINT', (45.49894, -78.0))], (47.52329, -84.0), 'horizontal extent of slanted edge at (47.52329, -73.65877)'), ('dim', 'V', [('SKETCHPOINT', (49.54764, -69.31754)), ('SKETCHPOINT', (45.49894, -78.0))], (39.49894, -73.65877), 'vertical extent of slanted edge at (47.52329, -73.65877)'), ('dim', 'H', [('SKETCHPOINT', (34.0, -40.0)), ('SKETCHPOINT', (58.0, -51.19138))], (46.0, -57.19138), 'horizontal extent of slanted edge at (46.0000000629138, -45.59569002933718)'), ('dim', 'V', [('SKETCHPOINT', (34.0, -40.0)), ('SKETCHPOINT', (58.0, -51.19138))], (28.0, -45.59569), 'vertical extent of slanted edge at (46.0000000629138, -45.59569002933718)')]],
         loops=[
         [
             ('line', (55.928357, -55.634039), (51.660729, -64.786)),
@@ -44,7 +44,7 @@ FEATURES = [
     dict(
         name="Boss 2 x 18 to 28", op="add", lo=18.0, hi=28.0, volume=69699.9082, centroid=(48.34855, 20.61778, 13.41844), holes=False,
         expect="fully defined",
-        plans=[[('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (8.0, -13.938))], 'vertical edge at (8.0, -13.938000383795297)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (4.0, 0.0))], 'horizontal edge at (4.0, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (0.0, -39.0))], 'vertical edge at (0.0, -39.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (22.74947, -78.0))], 'horizontal edge at (22.749470000000006, -78.0)'), ('rel', 'sgCOINCIDENT', [('SKETCHPOINT', (0.0, 0.0)), ('ORIGIN', None)], 'corner on the origin'), ('dim', 'any', [('SKETCHSEGMENT', (8.0, -13.938))], (14.0, -13.938), 'length of edge at (8.0, -13.938000383795297)'), ('dim', 'any', [('SKETCHSEGMENT', (4.0, 0.0))], (4.0, 6.0), 'length of edge at (4.0, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -39.0))], (-6.0, -39.0), 'length of edge at (0.0, -39.0)'), ('dim', 'any', [('SKETCHSEGMENT', (22.74947, -78.0))], (22.74947, -84.0), 'length of edge at (22.749470000000006, -78.0)'), ('dim', 'H', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (19.03365, -49.57174))], (17.9771, -60.10328), 'horizontal extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'V', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (19.03365, -49.57174))], (10.92055, -51.83751), 'vertical extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'H', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (51.660729, -64.785999))], (35.347189, -70.785999), 'horizontal extent of slanted edge at (35.347189315504885, -57.17886968081463)'), ('dim', 'V', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (51.660729, -64.785999))], (13.03365, -57.17887), 'vertical extent of slanted edge at (35.347189315504885, -57.17886968081463)'), ('dim', 'H', [('SKETCHPOINT', (51.660729, -64.785999)), ('SKETCHPOINT', (57.999998, -51.19138))], (54.830363, -70.785999), 'horizontal extent of slanted edge at (54.83036347175791, -57.98868970314727)'), ('dim', 'V', [('SKETCHPOINT', (51.660729, -64.785999)), ('SKETCHPOINT', (57.999998, -51.19138))], (45.660729, -57.98869), 'vertical extent of slanted edge at (54.83036347175791, -57.98868970314727)'), ('dim', 'H', [('SKETCHPOINT', (57.999998, -51.19138)), ('SKETCHPOINT', (8.0, -27.876001))], (32.999999, -57.19138), 'horizontal extent of slanted edge at (32.999999156253025, -39.53369040612794)'), ('dim', 'V', [('SKETCHPOINT', (57.999998, -51.19138)), ('SKETCHPOINT', (8.0, -27.876001))], (2.0, -39.53369), 'vertical extent of slanted edge at (32.999999156253025, -39.53369040612794)'), ('dim', 'H', [('SKETCHPOINT', (45.49894, -78.0)), ('SKETCHPOINT', (49.54764, -69.31754))], (47.52329, -84.0), 'horizontal extent of slanted edge at (47.52329, -73.65877)'), ('dim', 'V', [('SKETCHPOINT', (45.49894, -78.0)), ('SKETCHPOINT', (49.54764, -69.31754))], (39.49894, -73.65877), 'vertical extent of slanted edge at (47.52329, -73.65877)')]],
+        plans=[[('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (8.0, -13.938))], 'vertical edge at (8.0, -13.938000383795297)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (4.0, 0.0))], 'horizontal edge at (4.0, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (0.0, -39.0))], 'vertical edge at (0.0, -39.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (22.74947, -78.0))], 'horizontal edge at (22.749470000000006, -78.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (35.347189, -57.17887)), ('SKETCHSEGMENT', (33.234095, -61.71041))], 'equal length, edges at (35.347189315504885, -57.17886968081463) and (33.234094999999996, -61.710409999999996)'), ('rel', 'sgCOINCIDENT', [('SKETCHPOINT', (0.0, 0.0)), ('ORIGIN', None)], 'corner on the origin'), ('dim', 'any', [('SKETCHSEGMENT', (8.0, -13.938))], (14.0, -13.938), 'length of edge at (8.0, -13.938000383795297)'), ('dim', 'any', [('SKETCHSEGMENT', (4.0, 0.0))], (4.0, 6.0), 'length of edge at (4.0, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -39.0))], (-6.0, -39.0), 'length of edge at (0.0, -39.0)'), ('dim', 'any', [('SKETCHSEGMENT', (22.74947, -78.0))], (22.74947, -84.0), 'length of edge at (22.749470000000006, -78.0)'), ('dim', 'H', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (19.03365, -49.57174))], (17.9771, -60.10328), 'horizontal extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'V', [('SKETCHPOINT', (16.92055, -54.10328)), ('SKETCHPOINT', (19.03365, -49.57174))], (10.92055, -51.83751), 'vertical extent of slanted edge at (17.9771, -51.83751)'), ('dim', 'H', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (51.660729, -64.785999))], (35.347189, -70.785999), 'horizontal extent of slanted edge at (35.347189315504885, -57.17886968081463)'), ('dim', 'V', [('SKETCHPOINT', (19.03365, -49.57174)), ('SKETCHPOINT', (51.660729, -64.785999))], (13.03365, -57.17887), 'vertical extent of slanted edge at (35.347189315504885, -57.17886968081463)'), ('dim', 'H', [('SKETCHPOINT', (51.660729, -64.785999)), ('SKETCHPOINT', (57.999998, -51.19138))], (54.830363, -70.785999), 'horizontal extent of slanted edge at (54.83036347175791, -57.98868970314727)'), ('dim', 'V', [('SKETCHPOINT', (51.660729, -64.785999)), ('SKETCHPOINT', (57.999998, -51.19138))], (45.660729, -57.98869), 'vertical extent of slanted edge at (54.83036347175791, -57.98868970314727)'), ('dim', 'H', [('SKETCHPOINT', (57.999998, -51.19138)), ('SKETCHPOINT', (8.0, -27.876001))], (32.999999, -57.19138), 'horizontal extent of slanted edge at (32.999999156253025, -39.53369040612794)'), ('dim', 'V', [('SKETCHPOINT', (57.999998, -51.19138)), ('SKETCHPOINT', (8.0, -27.876001))], (2.0, -39.53369), 'vertical extent of slanted edge at (32.999999156253025, -39.53369040612794)'), ('dim', 'H', [('SKETCHPOINT', (45.49894, -78.0)), ('SKETCHPOINT', (49.54764, -69.31754))], (47.52329, -84.0), 'horizontal extent of slanted edge at (47.52329, -73.65877)')]],
         loops=[
         [
             ('line', (16.92055, -54.10328), (19.03365, -49.57174)),
@@ -65,9 +65,9 @@ FEATURES = [
 # ---- off-axis bosses and holes, after the prisms, each sketched on its start face (STL frame, mm) ----
 CYLINDERS = [
     dict(name="Boss 1 dia 6 along (-3.4e-12, 0.906, -0.423)", op="add", pick=(7.0, 53.435724, -60.979509), centre=(7.0, 54.830364, -57.988693),
-         dia=6.0, depth=6.000011, volume=69869.5544, centroid=(13.40285, 20.70745, -48.37503)),
+         dia=6.0, depth=6.000011, depth2=0.0, volume=69869.5544, centroid=(13.40285, 20.70745, -48.37503)),
     dict(name="Boss 2 dia 6 along (-3.37e-12, 0.906, -0.423)", op="add", pick=(21.0, 53.435723, -60.979508), centre=(21.0, 54.830362, -57.988692),
-         dia=6.0, depth=6.000011, volume=70039.2005, centroid=(13.42125, 20.79669, -48.40139)),
+         dia=6.0, depth=6.000011, depth2=0.0, volume=70039.2005, centroid=(13.42125, 20.79669, -48.40139)),
 ]
 
 # ---- SolidWorks helpers (pywin32) -------------------------------------------------------------
@@ -132,6 +132,14 @@ def expand(loop):
     """Edges of a loop; a pattern is one period turned COUNT times about its centre."""
     if isinstance(loop, list):
         return loop
+    if "step" in loop:                     # linear pattern: COUNT copies of the period, then the rest
+        (dx, dy), n = loop["step"], loop["count"]
+        out = [(e[0],) + tuple((p[0] + m * dx, p[1] + m * dy) for p in e[1:])
+               for m in range(n) for e in loop["period"]] + [tuple(e) for e in loop["rest"]]
+        for m in range(1, len(out)):       # identical shared vertices, so the outline is closed
+            out[m] = (out[m][0], out[m - 1][-1]) + tuple(out[m][2:])
+        out[-1] = tuple(out[-1][:-1]) + (out[0][1],)
+        return out
     (cx, cy), n = loop["centre"], loop["count"]
     out = []
     for m in range(n):
@@ -159,6 +167,8 @@ class SW:
             self.input_dim_pref = None
         self.turned_back = False
         self.ents, self._picked = [], []
+        self.linkable = []                       # (R or D, value mm, dimension name) for linking
+        self.use_patterns = True
         self.model = call0(self.app, "NewPart")
         if self.model is None:                   # no default part template set: use it explicitly
             template = self.app.GetUserPreferenceStringValue(8)      # swDefaultTemplatePart
@@ -221,8 +231,18 @@ class SW:
         p0 = self.to_sketch(*HELPER_AB)          # away from the part, so selections do not hit it
         helper = sm.CreateCircleByRadius(p0[0], p0[1], 0.0, HELPER_R * MM)    # may return None
         self.ents = []                           # (kind, sketch geometry (m), entity) as drawn
+        patterns = []                            # (entities of the period, count, step) to repeat
+        circles = []                             # (recorded period entities, loop) to turn
         for loop in loops:
-            for e in expand(loop):
+            linear = isinstance(loop, dict) and "step" in loop
+            circular = isinstance(loop, dict) and "centre" in loop and self.use_patterns
+            first = len(self.ents)
+            todo = expand(loop)
+            if linear:                           # the period and the rest; the copies by pattern
+                todo = todo[:len(loop["period"])] + todo[len(loop["period"]) * loop["count"]:]
+            elif circular:                       # the period; the copies by a circular pattern
+                todo = todo[:len(loop["period"])]
+            for e in todo:
                 if e[0] == "line":
                     (x1, y1), (x2, y2) = self.to_sketch(*e[1]), self.to_sketch(*e[2])
                     g = make(sm.CreateLine, x1, y1, 0.0, x2, y2, 0.0)
@@ -231,17 +251,35 @@ class SW:
                     (xc, yc) = self.to_sketch(*e[1])
                     g = make(sm.CreateCircleByRadius, xc, yc, 0.0, e[2] * MM)
                     self.ents.append(("circle", ((xc, yc), e[2] * MM), g))
+                elif e[0] == "ellipse":
+                    (cx, cy), a, b, ang = e[1], e[2], e[3], e[4]
+                    u = (math.cos(ang), math.sin(ang))
+                    pc = self.to_sketch(cx, cy)
+                    pa = self.to_sketch(cx + a * u[0], cy + a * u[1])
+                    pb = self.to_sketch(cx - b * u[1], cy + b * u[0])
+                    g = make(sm.CreateEllipse, pc[0], pc[1], 0.0, pa[0], pa[1], 0.0, pb[0], pb[1], 0.0)
+                    self.ents.append(("ellipse", (pc, pa, pb), g))
                 else:
                     s, m, t = (self.to_sketch(*p) for p in e[1:])
                     xc, yc = circle_centre(s, m, t)
                     turn = (m[0] - s[0]) * (t[1] - s[1]) - (m[1] - s[1]) * (t[0] - s[0])
                     g = make(sm.CreateArc, xc, yc, 0.0, s[0], s[1], 0.0, t[0], t[1], 0.0, 1 if turn > 0 else -1)
                     self.ents.append(("arc", (s, t, (xc, yc), math.dist(s, (xc, yc)), m), g))
+            if linear:
+                patterns.append(([g for _, _, g in self.ents[first:first + len(loop["period"])]],
+                                 loop["count"], loop["step"]))
+            elif circular:
+                circles.append((self.ents[first:first + len(loop["period"])], loop))
+        for seed, count, step in patterns:
+            self.sketch_pattern(seed, count, step)
+        for ents, loop in circles:
+            self.circular_pattern(ents, loop)
         sm.AddToDB = False
         sm.DisplayWhenAdded = True
         if helper is not None:
             self.remove_helper(helper)
         self.dimension_holes(loops)              # every full circle: diameter and position
+        self.dimension_ellipses()                # centre, axis direction, semi-axes
         for plan in plans or []:
             self.apply_plan(plan)
         self.region_report(add_to_db)
@@ -309,6 +347,7 @@ class SW:
         origin. Entities are selected by coordinates (empty name), as the API help advises for
         dimensioning. A failure is reported, not fatal: the geometry is already complete."""
         ext = self.model.Extension
+        first = []                               # (radius, entity) of the first circle of each size
         for loop in loops:
             e = expand(loop)[0]
             if e[0] != "circle":
@@ -316,11 +355,24 @@ class SW:
             cx, cy = self.to_sketch(*e[1])
             r = e[2] * MM
             tag = f"hole at ({e[1][0]:g}, {e[1][1]:g})"
+            g = next((t[2] for t in self.ents if t[0] == "circle" and math.dist(t[1][0], (cx, cy)) < 1e-9
+                      and abs(t[1][1] - r) < 1e-12), None)
+            same = next((h for rr, h in first if abs(rr - r) < 1e-9 * max(1.0, r / MM)), None)
             try:
-                self.model.ClearSelection2(True)
-                ok = ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
-                d = self.model.AddDimension2(cx + 1.6 * r, cy + 1.6 * r, 0.0) if ok else None
-                self._count(d, tag + " diameter")
+                if same is not None and g is not None:   # same size as an earlier circle: Equal
+                    self.model.ClearSelection2(True)
+                    if same.Select4(False, NOTHING) and g.Select4(True, NOTHING):
+                        self.model.SketchAddConstraints("sgSAMELENGTH")
+                        self.rels_ok += 1
+                    else:
+                        self.rels_failed.append(tag + " equal diameter (selection)")
+                else:
+                    if g is not None:
+                        first.append((r, g))
+                    self.model.ClearSelection2(True)
+                    ok = ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
+                    d = self.model.AddDimension2(cx + 1.6 * r, cy + 1.6 * r, 0.0) if ok else None
+                    self._count(d, tag + " diameter")
                 for kind, tx, ty in (("H", cx / 2, cy - 3 * r), ("V", cx - 3 * r, cy / 2)):
                     if abs(cx if kind == "H" else cy) < 1e-9:
                         continue                 # centre on the origin's line: no distance needed
@@ -332,6 +384,59 @@ class SW:
                         d = (self.model.AddHorizontalDimension2(tx, ty, 0.0) if kind == "H"
                              else self.model.AddVerticalDimension2(tx, ty, 0.0))
                     self._count(d, tag + (" x" if kind == "H" else " y") + " position")
+            except Exception as ex:
+                self.dims_failed.append(f"{tag}: {type(ex).__name__}: {ex}")
+        self.model.ClearSelection2(True)
+
+    def dimension_ellipses(self):
+        """Each ellipse fully defined: centre on the origin (Coincident) or dimensioned from it,
+        the major axis Horizontal or Vertical (relation between the centre and the major-axis
+        point), and the semi-axes as distances from the centre to the axis points. The points
+        are the ellipse's own (GetCenterPoint2, GetMajorPoint2, GetMinorPoint2), selected
+        directly. A failure is reported, not fatal."""
+        ext = self.model.Extension
+        for kind, (pc, pa, pb), g in [t for t in self.ents if t[0] == "ellipse"]:
+            tag = f"ellipse at ({pc[0] / MM:g}, {pc[1] / MM:g})"
+            try:
+                c, ma, mi = (call0(g, n) for n in ("GetCenterPoint2", "GetMajorPoint2", "GetMinorPoint2"))
+
+                def pick(*pts):
+                    self.model.ClearSelection2(True)
+                    ok = True
+                    for n, p in enumerate(pts):
+                        if p == "origin":
+                            ok = ok and ext.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0,
+                                                        n > 0, 0, NOTHING, 0)
+                        else:
+                            ok = ok and p.Select4(n > 0, NOTHING)
+                    return ok
+
+                def rel(name, what, *pts):
+                    if pick(*pts):
+                        self.model.SketchAddConstraints(name)
+                        self.rels_ok += 1
+                    else:
+                        self.rels_failed.append(tag + " " + what)
+                if math.hypot(*pc) < 1e-9:
+                    rel("sgCOINCIDENT", "centre on the origin", c, "origin")
+                else:
+                    for k_, (tx, ty) in (("H", (pc[0] / 2, pc[1] - 0.005)), ("V", (pc[0] - 0.005, pc[1] / 2))):
+                        if abs(pc[0] if k_ == "H" else pc[1]) < 1e-9:
+                            continue
+                        d = None
+                        if pick(c, "origin"):
+                            d = (self.model.AddHorizontalDimension2(tx, ty, 0.0) if k_ == "H"
+                                 else self.model.AddVerticalDimension2(tx, ty, 0.0))
+                        self._count(d, tag + (" x" if k_ == "H" else " y") + " of the centre")
+                dx, dy = pa[0] - pc[0], pa[1] - pc[1]
+                if abs(dy) < 1e-9 * max(1.0, abs(dx)):
+                    rel("sgHORIZONTALPOINTS2D", "major axis horizontal", c, ma)
+                elif abs(dx) < 1e-9 * max(1.0, abs(dy)):
+                    rel("sgVERTICALPOINTS2D", "major axis vertical", c, ma)
+                for p, q, what in ((ma, pa, "major"), (mi, pb, "minor")):
+                    d = self.model.AddDimension2((pc[0] + q[0]) / 2 + 0.003, (pc[1] + q[1]) / 2 + 0.003, 0.0) \
+                        if pick(c, p) else None
+                    self._count(d, f"{tag} {what} semi-axis")
             except Exception as ex:
                 self.dims_failed.append(f"{tag}: {type(ex).__name__}: {ex}")
         self.model.ClearSelection2(True)
@@ -362,15 +467,19 @@ class SW:
         if typ == "SKETCHSEGMENT":
             best = None
             for kind, geo, g in self.ents:
-                if kind == "line":
+                if kind in ("line", "cline"):
                     (ax, ay), (bx, by) = geo
                     dx, dy = bx - ax, by - ay
                     t = max(0.0, min(1.0, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)))
                     d = math.dist(P, (ax + t * dx, ay + t * dy))
+                    if kind == "cline":          # a centerline only where no outline edge is
+                        d += 0.5 * tol
                 elif kind == "arc":
                     d = abs(math.dist(P, geo[2]) - geo[3])
-                else:
+                elif kind == "circle":
                     d = abs(math.dist(P, geo[0]) - geo[1])
+                else:
+                    continue
                 if d < tol and (best is None or d < best[0]):
                     best = (d, g)
             return None if best is None else best[1]
@@ -424,9 +533,111 @@ class SW:
         except Exception as ex:
             self.dims_failed.append(f"{what}: {type(ex).__name__}: {ex}")
 
+    def centerline(self, ends, what):
+        """Construction centerline through the sketch origin along a symmetry axis (ends in model
+        mm), fixed by a Horizontal or Vertical relation, the origin at its middle, and its length."""
+        (x1, y1), (x2, y2) = self.to_sketch(*ends[0]), self.to_sketch(*ends[1])
+        sm = self.model.SketchManager
+        g = sm.CreateCenterLine(x1, y1, 0.0, x2, y2, 0.0)
+        if g is None:
+            self.rels_failed.append(what + " (not created)")
+            return
+        self.ents.append(("cline", ((x1, y1), (x2, y2)), g))
+        rel = "sgVERTICAL2D" if abs(x2 - x1) < abs(y2 - y1) else "sgHORIZONTAL2D"
+        try:
+            self.model.ClearSelection2(True)
+            if g.Select4(False, NOTHING):
+                self.model.SketchAddConstraints(rel)
+                self.rels_ok += 1
+            self.model.ClearSelection2(True)
+            ok = self.model.Extension.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, False, 0,
+                                                  NOTHING, 0) and g.Select4(True, NOTHING)
+            if ok:
+                self.model.SketchAddConstraints("sgATMIDDLE")
+                self.rels_ok += 1
+            else:
+                self.rels_failed.append(what + " middle on the origin (selection)")
+            self.model.ClearSelection2(True)
+            d = self.model.AddDimension2(x2 + 0.002, y2 + 0.002, 0.0) if g.Select4(False, NOTHING) else None
+            self._count(d, what + " length")
+        except Exception as ex:
+            self.rels_failed.append(f"{what}: {type(ex).__name__}: {ex}")
+        self.model.ClearSelection2(True)
+
+    def circular_pattern(self, ents, loop):
+        """Turn the period's entities COUNT times about the loop centre with a sketch circular
+        pattern (SketchManager.CreateCircularSketchStepAndRepeat). SolidWorks 2025 (sw_probe10-12)
+        puts the pattern centre at the centre of the seed's bounding box plus ArcRadius at
+        ArcAngle (radians, 0..2 pi); the copies then share end points. If the call is refused, the
+        copies are drawn one by one."""
+        xs, ys = [], []
+        for kind, geo, g in ents:
+            if kind == "line":
+                xs += [geo[0][0], geo[1][0]]
+                ys += [geo[0][1], geo[1][1]]
+            else:                                # arc: ends plus the axis extremes it sweeps
+                s, t, c, r, m = geo
+                xs += [s[0], t[0]]
+                ys += [s[1], t[1]]
+                a0, a1 = math.atan2(s[1] - c[1], s[0] - c[0]), math.atan2(t[1] - c[1], t[0] - c[0])
+                am = math.atan2(m[1] - c[1], m[0] - c[0])
+                sw_ = (a1 - a0) % (2 * math.pi)
+                ccw = (am - a0) % (2 * math.pi) < sw_
+                for k in range(4):
+                    ang = k * math.pi / 2
+                    d = (ang - a0) % (2 * math.pi) if ccw else (a0 - ang) % (2 * math.pi)
+                    if d < (sw_ if ccw else 2 * math.pi - sw_):
+                        xs.append(c[0] + r * math.cos(ang))
+                        ys.append(c[1] + r * math.sin(ang))
+        bc = ((max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2)
+        cx, cy = self.to_sketch(*loop["centre"])
+        R, A = math.hypot(cx - bc[0], cy - bc[1]), math.atan2(cy - bc[1], cx - bc[0]) % (2 * math.pi)
+        n = loop["count"]
+        p0, p1 = self.to_sketch(0.0, 0.0), self.to_sketch(1.0, 0.0)
+        q1 = self.to_sketch(0.0, 1.0)
+        turn = 1.0 if (p1[0] - p0[0]) * (q1[1] - p0[1]) - (p1[1] - p0[1]) * (q1[0] - p0[0]) > 0 else -1.0
+        self.model.ClearSelection2(True)
+        ok = all(g.Select4(True, NOTHING) for _, _, g in ents)
+        r = self.model.SketchManager.CreateCircularSketchStepAndRepeat(
+            R, A, n, turn * 2 * math.pi / n, True, "", False, False, False) if ok else False
+        self.model.ClearSelection2(True)
+        if r:
+            print(f"  circular pattern: {len(ents)} entities x {n}")
+            return
+        print(f"  circular pattern refused; drawing the {n - 1} copies")
+        sm = self.model.SketchManager
+        for e in expand(loop)[len(loop["period"]):]:
+            if e[0] == "line":
+                (x1, y1), (x2, y2) = self.to_sketch(*e[1]), self.to_sketch(*e[2])
+                make(sm.CreateLine, x1, y1, 0.0, x2, y2, 0.0)
+            else:
+                s_, m_, t_ = (self.to_sketch(*q) for q in e[1:])
+                xc, yc = circle_centre(s_, m_, t_)
+                tn = (m_[0] - s_[0]) * (t_[1] - s_[1]) - (m_[1] - s_[1]) * (t_[0] - s_[0])
+                make(sm.CreateArc, xc, yc, 0.0, s_[0], s_[1], 0.0, t_[0], t_[1], 0.0, 1 if tn > 0 else -1)
+
+    def sketch_pattern(self, seed, count, step):
+        """Repeat the period's entities count times by step (model mm) with a sketch linear
+        pattern (SketchManager.CreateLinearSketchStepAndRepeat). In SolidWorks 2025 the copies
+        share their end points with each other and with the rest of the outline (sw_probe8)."""
+        p0, p1 = self.to_sketch(0.0, 0.0), self.to_sketch(*step)
+        dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+        self.model.ClearSelection2(True)
+        ok = all(g.Select4(True, NOTHING) for g in seed)
+        r = self.model.SketchManager.CreateLinearSketchStepAndRepeat(
+            count, 1, math.hypot(dx, dy), 0.0, math.atan2(dy, dx), math.pi / 2, "",
+            False, False, False, False, False) if ok else False
+        self.model.ClearSelection2(True)
+        if not r:
+            raise RuntimeError(f"sketch linear pattern of {len(seed)} entities x {count} was not created")
+        print(f"  sketch pattern: {len(seed)} entities x {count}, step {math.hypot(dx, dy) / MM:g} mm")
+
     def apply_plan(self, plan):
         """Relations and dimensions planned by stl2cad for one outline, in order."""
         for op in plan:
+            if op[0] == "centerline":
+                self.centerline(op[2], op[3])
+                continue
             if op[0] == "rel":
                 _, rel, picks, what = op
                 self._relation(rel, picks, what)
@@ -449,8 +660,39 @@ class SW:
     def _count(self, d, what):
         if d is None:
             self.dims_failed.append(what)
-        else:
-            self.dims_ok += 1
+            return
+        self.dims_ok += 1
+        if "radius" in what or "diameter" in what:   # candidates for linking across sketches
+            try:
+                dd = d.GetDimension2(0)
+                name = "@".join(str(dd.FullName).split("@")[:2])         # D1@Sketch2
+                self.linkable.append(("R" if "radius" in what else "D", float(dd.SystemValue) / MM, name))
+            except Exception:
+                pass
+
+    def link_dimensions(self):
+        """Equal radii and equal diameters in different sketches driven by one global variable each
+        (Equation Manager, Add2; sw_probe11: the dimensions follow after a rebuild). A failure is
+        reported, not fatal."""
+        groups = {}
+        for kind, val, name in self.linkable:
+            groups.setdefault((kind, round(val, 6)), []).append(name)
+        groups = {k: sorted(set(v)) for k, v in groups.items() if len(set(v)) > 1}
+        if not groups:
+            return "linked dimensions: none (no equal radius or diameter in two sketches)"
+        try:
+            em = call0(self.model, "GetEquationMgr")
+            n = 0
+            for (kind, val), names in sorted(groups.items()):
+                var = f"{'radius' if kind == 'R' else 'dia'}_{val:g}".replace(".", "_").replace("-", "m")
+                em.Add2(-1, f'"{var}" = {val:g}', True)
+                for nm in names:
+                    em.Add2(-1, f'"{nm}" = "{var}"', True)
+                    n += 1
+            call0(self.model, "EditRebuild3")
+            return f"linked dimensions: {n} in {len(groups)} global variable(s)"
+        except Exception as ex:
+            return f"linked dimensions: failed ({type(ex).__name__}: {ex})"
 
     def remove_helper(self, seg):
         """Delete the helper circle; if that fails, make it construction geometry, which
@@ -560,7 +802,8 @@ class SW:
             self.model.ClearSelection2(True)
             sk.Select2(False, 0)
             if cy["op"] == "add":
-                f = fm.FeatureExtrusion3(True, False, rev, 0, 0, h, 0.0, False, False, False, False,
+                h2 = cy.get("depth2", 0.0) * MM          # a boss through the body: both directions
+                f = fm.FeatureExtrusion3(h2 <= 0, False, rev, 0, 0, h, h2, False, False, False, False,
                                          0.0, 0.0, False, False, False, False, True, True, True,
                                          0, 0.0, False)
             else:
@@ -572,7 +815,7 @@ class SW:
                 continue
             v, c = self.mass()
             print(f"  try reverse={rev}: volume {v:.3f} mm^3, centre of mass ({c[0]:.3f}, {c[1]:.3f}, {c[2]:.3f}) mm")
-            if abs(v - expected) <= 1e-4 * expected + 1e-3 and math.dist(c, centroid) <= 1e-4 * SIZE + 1e-4:
+            if abs(v - expected) <= 1e-4 * expected + 1e-3 and math.dist(c, centroid) <= 1e-5 * SIZE + 1e-4:
                 f.Name = cy["name"]
                 return v
             self.model.ClearSelection2(True)
@@ -619,7 +862,7 @@ class SW:
             dc = math.dist(c, centroid)
             print(f"  try reverse={rev} flip_start={flip}: volume {v:.3f} mm^3, centre of mass "
                   f"({c[0]:.3f}, {c[1]:.3f}, {c[2]:.3f}) mm")
-            if abs(v - expected) <= 1e-4 * expected + 1e-3 and dc <= 1e-4 * SIZE + 1e-4:
+            if abs(v - expected) <= 1e-4 * expected + 1e-3 and dc <= 1e-5 * SIZE + 1e-4:
                 f.Name = name
                 return v
             self.model.ClearSelection2(True)
@@ -686,6 +929,11 @@ def build():
     for cy in CYLINDERS:
         v = sw.face_feature(cy)
         print(f"{cy['name']}: volume {v:.3f} mm^3 (expected {cy['volume']:.3f})")
+    v0 = sw.mass()[0]
+    print(sw.link_dimensions())
+    v1 = sw.mass()[0]
+    if abs(v1 - v0) > 1e-4 * v0 + 1e-3:
+        raise RuntimeError(f"linking dimensions changed the volume from {v0:.3f} to {v1:.3f} mm^3")
     print(f"dimensions: {sw.dims_ok} added" + (f", {len(sw.dims_failed)} failed: {sw.dims_failed}" if sw.dims_failed else ""))
     print(f"relations: {sw.rels_ok} added" + (f", {len(sw.rels_failed)} failed: {sw.rels_failed}" if sw.rels_failed else ""))
     print("sketch status: " + ", ".join(sw.status))

@@ -13,9 +13,9 @@ PLANE_NAME = "Front Plane"
 PLANE_INDEX = 0                 # its position among the template planes
 ROT = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]   # STL frame -> build frame (extrusion axis z -> z)
 ROT_BACK = (0.0, 0.0, 0.0)   # rotation (rad) about x, y, z back to the STL frame
-FINAL_CENTROID = (0.00011, 0.00017, 0.73835)   # STL frame, mm
-SIZE = 116.255                  # part diagonal (mm), scale of the centre-of-mass check
-HELPER_AB = (-66.001, -25.5)   # helper circle (a, b), outside the part
+FINAL_CENTROID = (-0.00000, 0.00000, 0.73901)   # STL frame, mm
+SIZE = 116.253                  # part diagonal (mm), scale of the centre-of-mass check
+HELPER_AB = (-66.0, -25.5)   # helper circle (a, b), outside the part
 
 # ---- features, in order: sketch loops (a, b in mm), levels, expected volume (mm^3) ----
 FEATURES = [
@@ -40,59 +40,57 @@ FEATURES = [
         ],
     ),
     dict(
-        name="Boss 3 z 0 to 2.5", op="add", lo=0.0, hi=2.5, volume=8056.9954, centroid=(0.00023, 0.00008, 1.23929), holes=False,
+        name="Boss 3 z 0 to 2.5", op="add", lo=0.0, hi=2.5, volume=8061.2916, centroid=(-0.00000, -0.00000, 1.23930), holes=False,
         expect="fully defined",
-        plans=[[('rel', 'sgTANGENT', [('SKETCHSEGMENT', (-0.210802, 15.488153)), ('SKETCHSEGMENT', (45.795131, 14.933932))], 'tangency at (43.81393997835646, 15.500079346329098)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (-55.987908, -0.216798)), ('SKETCHSEGMENT', (-55.433931, 5.295127))], 'tangency at (-56.00096620184421, 3.3139382953555385)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.210802, -15.488153)), ('SKETCHSEGMENT', (-45.795131, -14.933932))], 'tangency at (-43.81393997835646, -15.500079346329098)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (55.987908, 0.216798)), ('SKETCHSEGMENT', (55.433931, -5.295127))], 'tangency at (56.00096620184421, -3.3139382953555385)'), ('dim', 'H', [('SKETCHPOINT', (43.81394, 15.500079)), ('ORIGIN', None)], (21.90697, 7.500079), 'x of corner (43.81393997835646, 15.500079346329098)'), ('dim', 'V', [('SKETCHPOINT', (43.81394, 15.500079)), ('ORIGIN', None)], (35.81394, 7.75004), 'y of corner (43.81393997835646, 15.500079346329098)'), ('dim', 'any', [('SKETCHSEGMENT', (47.637653, 12.16231))], (37.693969, 7.936584), 'radius of arc at (47.63765319521424, 12.162309537842503)'), ('dim', 'any', [('SKETCHSEGMENT', (45.795131, 14.933932))], (47.776506, 18.118015), 'radius of arc at (45.79513088237792, 14.933931748023326)'), ('dim', 'any', [('SKETCHSEGMENT', (-46.274348, 14.580005))], (-48.734745, 17.41), 'radius of arc at (-46.274347591729885, 14.580005177589943)'), ('dim', 'any', [('SKETCHSEGMENT', (-50.17492, 8.643806))], (-44.188815, 1.660478), 'radius of arc at (-50.174919635306665, 8.64380622145633)'), ('dim', 'any', [('SKETCHSEGMENT', (-55.433931, 5.295127))], (-58.619959, 7.278737), 'radius of arc at (-55.43393145925239, 5.2951266868869)'), ('dim', 'any', [('SKETCHSEGMENT', (-55.080007, -5.774343))], (-57.91001, -8.234741), 'radius of arc at (-55.08000691070295, -5.774343078205368)'), ('dim', 'any', [('SKETCHSEGMENT', (-49.143807, -9.674919))], (-42.160468, -3.688805), 'radius of arc at (-49.14380707531488, -9.674919439539568)'), ('dim', 'any', [('SKETCHSEGMENT', (-45.795131, -14.933932))], (-47.776504, -18.118011), 'radius of arc at (-45.79513088237792, -14.933931748023326)'), ('dim', 'any', [('SKETCHSEGMENT', (46.274348, -14.580005))], (48.734745, -17.41), 'radius of arc at (46.274347591729885, -14.580005177589943)'), ('dim', 'any', [('SKETCHSEGMENT', (50.17492, -8.643806))], (44.188815, -1.660478), 'radius of arc at (50.174919635306665, -8.64380622145633)'), ('dim', 'any', [('SKETCHSEGMENT', (55.433931, -5.295127))], (58.619959, -7.278737), 'radius of arc at (55.43393145925239, -5.2951266868869)'), ('dim', 'any', [('SKETCHSEGMENT', (55.080007, 5.774343))], (57.91001, 8.234741), 'radius of arc at (55.08000691070295, 5.774343078205368)'), ('dim', 'any', [('SKETCHSEGMENT', (50.747931, 8.191391))], (45.495856, 0.882772), 'radius of arc at (50.74793066797143, 8.191390929527536)'), ('dim', 'H', [('SKETCHPOINT', (43.81394, 15.500079)), ('SKETCHPOINT', (-44.235544, 15.476226))], (-0.210802, 9.476226), 'horizontal extent of slanted edge at (-0.21080187665214112, 15.48815291380261)'), ('dim', 'V', [('SKETCHPOINT', (43.81394, 15.500079)), ('SKETCHPOINT', (-44.235544, 15.476226))], (-50.235544, 15.488153), 'vertical extent of slanted edge at (-0.21080187665214112, 15.48815291380261)'), ('dim', 'H', [('SKETCHPOINT', (-56.000966, 3.313938)), ('SKETCHPOINT', (-55.97485, -3.747534))], (-55.987908, -9.747534), 'horizontal extent of slanted edge at (-55.98790805272664, -0.21679801708345625)'), ('dim', 'V', [('SKETCHPOINT', (-56.000966, 3.313938)), ('SKETCHPOINT', (-55.97485, -3.747534))], (-62.000966, -0.216798), 'vertical extent of slanted edge at (-55.98790805272664, -0.21679801708345625)'), ('dim', 'H', [('SKETCHPOINT', (-43.81394, -15.500079)), ('SKETCHPOINT', (44.235544, -15.476226))], (0.210802, -21.500079), 'horizontal extent of slanted edge at (0.21080187665214112, -15.48815291380261)'), ('dim', 'V', [('SKETCHPOINT', (-43.81394, -15.500079)), ('SKETCHPOINT', (44.235544, -15.476226))], (-49.81394, -15.488153), 'vertical extent of slanted edge at (0.21080187665214112, -15.48815291380261)'), ('dim', 'H', [('SKETCHPOINT', (56.000966, -3.313938)), ('SKETCHPOINT', (55.97485, 3.747534))], (55.987908, -9.313938), 'horizontal extent of slanted edge at (55.98790805272664, 0.21679801708345625)'), ('dim', 'V', [('SKETCHPOINT', (56.000966, -3.313938)), ('SKETCHPOINT', (55.97485, 3.747534))], (49.97485, 0.216798), 'vertical extent of slanted edge at (55.98790805272664, 0.21679801708345625)'), ('dim', 'H', [('SKETCHPOINT', (48.689123, 10.251087)), ('ORIGIN', None)], (24.344561, 2.251087), 'x of corner (48.68912271155816, 10.251087025846855)'), ('dim', 'V', [('SKETCHPOINT', (48.689123, 10.251087)), ('ORIGIN', None)], (40.689123, 5.125544), 'y of corner (48.68912271155816, 10.251087025846855)'), ('dim', 'H', [('SKETCHPOINT', (47.225985, 13.305781)), ('ORIGIN', None)], (23.612993, 5.305781), 'x of corner (47.225985123174645, 13.305781000890446)'), ('dim', 'H', [('SKETCHPOINT', (-47.442437, 12.696853)), ('ORIGIN', None)], (-23.721218, 4.696853), 'x of corner (-47.44243650462986, 12.696853253295306)'), ('dim', 'V', [('SKETCHPOINT', (-47.442437, 12.696853)), ('ORIGIN', None)], (-55.442437, 6.348427), 'y of corner (-47.44243650462986, 12.696853253295306)'), ('dim', 'H', [('SKETCHPOINT', (-53.749764, 6.750978)), ('ORIGIN', None)], (-26.874882, -1.249022), 'x of corner (-53.74976361803746, 6.750978441748486)'), ('dim', 'V', [('SKETCHPOINT', (-53.749764, 6.750978)), ('ORIGIN', None)], (-61.749764, 3.375489), 'y of corner (-53.74976361803746, 6.750978441748486)'), ('dim', 'H', [('SKETCHPOINT', (-56.000966, 3.313938)), ('ORIGIN', None)], (-28.000483, -4.686062), 'x of corner (-56.00096620184421, 3.3139382953555385)'), ('dim', 'H', [('SKETCHPOINT', (-53.196825, -6.942444)), ('ORIGIN', None)], (-26.598412, -14.942444), 'x of corner (-53.196824880044744, -6.942443869529831)'), ('dim', 'V', [('SKETCHPOINT', (-53.196825, -6.942444)), ('ORIGIN', None)], (-61.196825, -3.471222), 'y of corner (-53.196824880044744, -6.942443869529831)'), ('dim', 'H', [('SKETCHPOINT', (-47.250982, -13.249749)), ('ORIGIN', None)], (-23.625491, -21.249749), 'x of corner (-47.25098177684847, -13.249749403858493)'), ('dim', 'V', [('SKETCHPOINT', (-47.250982, -13.249749)), ('ORIGIN', None)], (-55.250982, -6.624875), 'y of corner (-47.25098177684847, -13.249749403858493)'), ('dim', 'H', [('SKETCHPOINT', (-43.81394, -15.500079)), ('ORIGIN', None)], (-21.90697, -23.500079), 'x of corner (-43.81393997835646, -15.500079346329098)'), ('dim', 'H', [('SKETCHPOINT', (47.442437, -12.696853)), ('ORIGIN', None)], (23.721218, -20.696853), 'x of corner (47.44243650462986, -12.696853253295306)'), ('dim', 'V', [('SKETCHPOINT', (47.442437, -12.696853)), ('ORIGIN', None)], (39.442437, -6.348427), 'y of corner (47.44243650462986, -12.696853253295306)'), ('dim', 'H', [('SKETCHPOINT', (53.749764, -6.750978)), ('ORIGIN', None)], (26.874882, -14.750978), 'x of corner (53.74976361803746, -6.750978441748486)'), ('dim', 'V', [('SKETCHPOINT', (53.749764, -6.750978)), ('ORIGIN', None)], (45.749764, -3.375489), 'y of corner (53.74976361803746, -6.750978441748486)'), ('dim', 'H', [('SKETCHPOINT', (56.000966, -3.313938)), ('ORIGIN', None)], (28.000483, -11.313938), 'x of corner (56.00096620184421, -3.3139382953555385)'), ('dim', 'H', [('SKETCHPOINT', (53.351503, 6.898519)), ('ORIGIN', None)], (26.675752, -1.101481), 'x of corner (53.351503403000486, 6.898519308038774)'), ('dim', 'V', [('SKETCHPOINT', (53.351503, 6.898519)), ('ORIGIN', None)], (45.351503, 3.44926), 'y of corner (53.351503403000486, 6.898519308038774)')]],
+        plans=[[('centerline', 0, ((-0.0, -73.8), (0.0, 73.8)), 'centerline a = 0'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (-43.8, -15.5)), ('SKETCHPOINT', (43.8, -15.5)), ('SKETCHSEGMENT', (0.0, 66.42))], 'corners (-43.800000000000004, -15.5) and (43.800000000000004, -15.5) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (47.36687, -12.878207)), ('SKETCHPOINT', (-47.36687, -12.878207)), ('SKETCHSEGMENT', (0.0, 66.42))], 'corners (47.36686967456513, -12.878206953025465) and (-47.36686967456513, -12.878206953025465) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (53.373246, -6.875281)), ('SKETCHPOINT', (-53.373246, -6.875281)), ('SKETCHSEGMENT', (0.0, 66.42))], 'corners (53.37324621430753, -6.875281120282998) and (-53.37324621430753, -6.875281120282998) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (56.0, -3.3)), ('SKETCHPOINT', (-56.0, -3.3)), ('SKETCHSEGMENT', (0.0, 66.42))], 'corners (56.0, -3.3000000000000003) and (-56.0, -3.3000000000000003) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (56.0, 3.3)), ('SKETCHPOINT', (-56.0, 3.3)), ('SKETCHSEGMENT', (0.0, 66.42))], 'corners (56.0, 3.3000000000000003) and (-56.0, 3.3000000000000003) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (53.373246, 6.875281)), ('SKETCHPOINT', (-53.373246, 6.875281)), ('SKETCHSEGMENT', (0.0, 66.42))], 'corners (53.37324621430753, 6.875281120282998) and (-53.37324621430753, 6.875281120282998) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (47.36687, 12.878207)), ('SKETCHPOINT', (-47.36687, 12.878207)), ('SKETCHSEGMENT', (0.0, 66.42))], 'corners (47.36686967456513, 12.878206953025465) and (-47.36686967456513, 12.878206953025465) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (43.8, 15.5)), ('SKETCHPOINT', (-43.8, 15.5)), ('SKETCHSEGMENT', (0.0, 66.42))], 'corners (43.800000000000004, 15.5) and (-43.800000000000004, 15.5) symmetric'), ('centerline', 1, ((-73.8, -0.0), (73.8, 0.0)), 'centerline b = 0'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (-43.8, -15.5)), ('SKETCHPOINT', (-43.8, 15.5)), ('SKETCHSEGMENT', (66.42, 0.0))], 'corners (-43.800000000000004, -15.5) and (-43.800000000000004, 15.5) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (47.36687, -12.878207)), ('SKETCHPOINT', (47.36687, 12.878207)), ('SKETCHSEGMENT', (66.42, 0.0))], 'corners (47.36686967456513, -12.878206953025465) and (47.36686967456513, 12.878206953025465) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (53.373246, -6.875281)), ('SKETCHPOINT', (53.373246, 6.875281)), ('SKETCHSEGMENT', (66.42, 0.0))], 'corners (53.37324621430753, -6.875281120282998) and (53.37324621430753, 6.875281120282998) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (56.0, -3.3)), ('SKETCHPOINT', (56.0, 3.3)), ('SKETCHSEGMENT', (66.42, 0.0))], 'corners (56.0, -3.3000000000000003) and (56.0, 3.3000000000000003) symmetric'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, -15.5)), ('SKETCHSEGMENT', (-46.036827, -14.759835))], 'tangency at (-43.800000000000004, -15.5)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, -15.5)), ('SKETCHSEGMENT', (46.036827, -14.759835))], 'tangency at (43.800000000000004, -15.5)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (56.0, 0.0)), ('SKETCHSEGMENT', (55.259838, -5.536823))], 'tangency at (56.0, -3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (56.0, 0.0)), ('SKETCHSEGMENT', (55.259838, 5.536823))], 'tangency at (56.0, 3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, 15.5)), ('SKETCHSEGMENT', (46.036827, 14.759835))], 'tangency at (43.800000000000004, 15.5)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, 15.5)), ('SKETCHSEGMENT', (-46.036827, 14.759835))], 'tangency at (-43.800000000000004, 15.5)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (-56.0, 0.0)), ('SKETCHSEGMENT', (-55.259838, 5.536823))], 'tangency at (-56.0, 3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (-56.0, 0.0)), ('SKETCHSEGMENT', (-55.259838, -5.536823))], 'tangency at (-56.0, -3.3000000000000003)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (49.634623, -9.134627)), ('SKETCHSEGMENT', (49.634623, 9.134627))], 'equal radius, arcs at (49.634623484730064, -9.1346271077643) and (49.634623484730064, 9.1346271077643)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (49.634623, -9.134627)), ('SKETCHSEGMENT', (-49.634623, 9.134627))], 'equal radius, arcs at (49.634623484730064, -9.1346271077643) and (-49.634623484730064, 9.1346271077643)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (49.634623, -9.134627)), ('SKETCHSEGMENT', (-49.634623, -9.134627))], 'equal radius, arcs at (49.634623484730064, -9.1346271077643) and (-49.634623484730064, -9.1346271077643)'), ('dim', 'H', [('SKETCHPOINT', (-43.8, -15.5)), ('ORIGIN', None)], (-21.9, -23.5), 'x of corner (-43.800000000000004, -15.5)'), ('dim', 'V', [('SKETCHPOINT', (-43.8, -15.5)), ('ORIGIN', None)], (-51.8, -7.75), 'y of corner (-43.800000000000004, -15.5)'), ('dim', 'any', [('SKETCHSEGMENT', (46.036827, -14.759835))], (48.265953, -17.746399), 'radius of arc at (46.036826703918955, -14.759834928469514)'), ('dim', 'any', [('SKETCHSEGMENT', (49.634623, -9.134627))], (43.169632, -2.65966), 'radius of arc at (49.634623484730064, -9.1346271077643)'), ('dim', 'any', [('SKETCHSEGMENT', (55.259838, -5.536823))], (58.263378, -7.771562), 'radius of arc at (55.25983779690134, -5.53682284420204)'), ('dim', 'any', [('SKETCHSEGMENT', (56.0, 0.0))], (62.0, 0.0), 'length of edge at (56.0, 0.0)'), ('dim', 'H', [('SKETCHPOINT', (47.36687, -12.878207)), ('ORIGIN', None)], (23.683435, -20.878207), 'x of corner (47.36686967456513, -12.878206953025465)'), ('dim', 'H', [('SKETCHPOINT', (53.373246, -6.875281)), ('ORIGIN', None)], (26.686623, -14.875281), 'x of corner (53.37324621430753, -6.875281120282998)'), ('dim', 'V', [('SKETCHPOINT', (53.373246, -6.875281)), ('ORIGIN', None)], (45.373246, -3.437641), 'y of corner (53.37324621430753, -6.875281120282998)')]],
         loops=[
         [
-            ('arc', (48.689123, 10.251087), (47.637653, 12.16231), (47.225985, 13.305781)),
-            ('arc', (47.225985, 13.305781), (45.795131, 14.933932), (43.81394, 15.500079)),
-            ('line', (43.81394, 15.500079), (-44.235544, 15.476226)),
-            ('arc', (-44.235544, 15.476226), (-46.274348, 14.580005), (-47.442437, 12.696853)),
-            ('arc', (-47.442437, 12.696853), (-50.17492, 8.643806), (-53.749764, 6.750978)),
-            ('arc', (-53.749764, 6.750978), (-55.433931, 5.295127), (-56.000966, 3.313938)),
-            ('line', (-56.000966, 3.313938), (-55.97485, -3.747534)),
-            ('arc', (-55.97485, -3.747534), (-55.080007, -5.774343), (-53.196825, -6.942444)),
-            ('arc', (-53.196825, -6.942444), (-49.143807, -9.674919), (-47.250982, -13.249749)),
-            ('arc', (-47.250982, -13.249749), (-45.795131, -14.933932), (-43.81394, -15.500079)),
-            ('line', (-43.81394, -15.500079), (44.235544, -15.476226)),
-            ('arc', (44.235544, -15.476226), (46.274348, -14.580005), (47.442437, -12.696853)),
-            ('arc', (47.442437, -12.696853), (50.17492, -8.643806), (53.749764, -6.750978)),
-            ('arc', (53.749764, -6.750978), (55.433931, -5.295127), (56.000966, -3.313938)),
-            ('line', (56.000966, -3.313938), (55.97485, 3.747534)),
-            ('arc', (55.97485, 3.747534), (55.080007, 5.774343), (53.351503, 6.898519)),
-            ('arc', (53.351503, 6.898519), (50.747931, 8.191391), (48.689123, 10.251087)),
+            ('line', (-43.8, -15.5), (43.8, -15.5)),
+            ('arc', (43.8, -15.5), (46.036827, -14.759835), (47.36687, -12.878207)),
+            ('arc', (47.36687, -12.878207), (49.634623, -9.134627), (53.373246, -6.875281)),
+            ('arc', (53.373246, -6.875281), (55.259838, -5.536823), (56.0, -3.3)),
+            ('line', (56.0, -3.3), (56.0, 3.3)),
+            ('arc', (56.0, 3.3), (55.259838, 5.536823), (53.373246, 6.875281)),
+            ('arc', (53.373246, 6.875281), (49.634623, 9.134627), (47.36687, 12.878207)),
+            ('arc', (47.36687, 12.878207), (46.036827, 14.759835), (43.8, 15.5)),
+            ('line', (43.8, 15.5), (-43.8, 15.5)),
+            ('arc', (-43.8, 15.5), (-46.036827, 14.759835), (-47.36687, 12.878207)),
+            ('arc', (-47.36687, 12.878207), (-49.634623, 9.134627), (-53.373246, 6.875281)),
+            ('arc', (-53.373246, 6.875281), (-55.259838, 5.536823), (-56.0, 3.3)),
+            ('line', (-56.0, 3.3), (-56.0, -3.3)),
+            ('arc', (-56.0, -3.3), (-55.259838, -5.536823), (-53.373246, -6.875281)),
+            ('arc', (-53.373246, -6.875281), (-49.634623, -9.134627), (-47.36687, -12.878207)),
+            ('arc', (-47.36687, -12.878207), (-46.036827, -14.759835), (-43.8, -15.5)),
         ],
         ],
     ),
     dict(
-        name="Cut 1 z 1.25 to 2.5", op="cut", lo=1.25, hi=2.5, volume=4456.3282, centroid=(0.00011, 0.00017, 0.72564), holes=False,
+        name="Cut 1 z 1.25 to 2.5", op="cut", lo=1.25, hi=2.5, volume=4461.2368, centroid=(-0.00000, -0.00000, 0.72631), holes=False,
         expect="fully defined",
-        plans=[[('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (0.0, -14.25))], 'horizontal edge at (0.0, -14.25)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (-54.75, 0.0))], 'vertical edge at (-54.75, 0.0)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (0.0, 14.25))], 'horizontal edge at (0.0, 14.25)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (54.75, 0.0))], 'vertical edge at (54.75, 0.0)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (52.818456, -5.751909)), ('SKETCHSEGMENT', (48.18853, -8.863478))], 'tangency at (52.54398073421195, -5.850210839893866)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, -14.25)), ('SKETCHSEGMENT', (45.294195, -13.75434))], 'tangency at (43.800000000000004, -14.25)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, -14.25)), ('SKETCHSEGMENT', (-45.448163, -13.629777))], 'tangency at (-43.800000000000004, -14.25)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (-54.75, 0.0)), ('SKETCHSEGMENT', (-54.254338, -4.794198))], 'tangency at (-54.75, -3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (-54.75, 0.0)), ('SKETCHSEGMENT', (-54.129775, 4.948164))], 'tangency at (-54.75, 3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, 14.25)), ('SKETCHSEGMENT', (-45.294195, 13.75434))], 'tangency at (-43.800000000000004, 14.25)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, 14.25)), ('SKETCHSEGMENT', (45.448163, 13.629777))], 'tangency at (43.800000000000004, 14.25)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (54.75, 0.0)), ('SKETCHSEGMENT', (54.254338, 4.794198))], 'tangency at (54.75, 3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (54.75, 0.0)), ('SKETCHSEGMENT', (54.129775, -4.948164))], 'tangency at (54.75, -3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (52.818456, -5.751909)), ('SKETCHSEGMENT', (54.129775, -4.948164))], 'tangency at (53.09293152824099, -5.6536071122210085)'), ('dim', 'H', [('SKETCHPOINT', (43.8, -14.25)), ('ORIGIN', None)], (21.9, -22.25), 'x of corner (43.800000000000004, -14.25)'), ('dim', 'V', [('SKETCHPOINT', (43.8, -14.25)), ('ORIGIN', None)], (35.8, -7.125), 'y of corner (43.800000000000004, -14.25)'), ('dim', 'any', [('SKETCHSEGMENT', (48.18853, -8.863478))], (40.377059, -2.226955), 'radius of arc at (48.188529622578415, -8.86347752639494)'), ('dim', 'any', [('SKETCHSEGMENT', (45.294195, -13.75434))], (46.799878, -15.79331), 'radius of arc at (45.29419535440886, -13.754340351053928)'), ('dim', 'any', [('SKETCHSEGMENT', (-45.448163, -13.629777))], (-47.096325, -15.509553), 'radius of arc at (-45.44816256676708, -13.629776623300696)'), ('dim', 'any', [('SKETCHSEGMENT', (-48.752158, -8.252153))], (-41.473734, -0.953495), 'radius of arc at (-48.7521579928392, -8.252152992837434)'), ('dim', 'any', [('SKETCHSEGMENT', (-54.254338, -4.794198))], (-56.293307, -6.299883), 'radius of arc at (-54.25433843825926, -4.794197920262382)'), ('dim', 'any', [('SKETCHSEGMENT', (-54.129775, 4.948164))], (-56.009551, 6.596328), 'radius of arc at (-54.129775380956396, 4.94816398369526)'), ('dim', 'any', [('SKETCHSEGMENT', (-48.752158, 8.252153))], (-41.453505, 0.973723), 'radius of arc at (-48.7521579928392, 8.252152992837434)'), ('dim', 'any', [('SKETCHSEGMENT', (-45.294195, 13.75434))], (-46.799878, 15.79331), 'radius of arc at (-45.29419535440886, 13.754340351053928)'), ('dim', 'any', [('SKETCHSEGMENT', (45.448163, 13.629777))], (47.096325, 15.509553), 'radius of arc at (45.44816256676708, 13.629776623300696)'), ('dim', 'any', [('SKETCHSEGMENT', (48.752158, 8.252153))], (41.473734, 0.953495), 'radius of arc at (48.75215799283921, 8.252152992837432)'), ('dim', 'any', [('SKETCHSEGMENT', (54.254338, 4.794198))], (56.293307, 6.299883), 'radius of arc at (54.25433843825926, 4.794197920262382)'), ('dim', 'any', [('SKETCHSEGMENT', (54.129775, -4.948164))], (56.009551, -6.596328), 'radius of arc at (54.129775380956396, -4.94816398369526)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, -14.25))], (0.0, -20.25), 'length of edge at (0.0, -14.25)'), ('dim', 'any', [('SKETCHSEGMENT', (-54.75, 0.0))], (-60.75, 0.0), 'length of edge at (-54.75, 0.0)'), ('dim', 'any', [('SKETCHSEGMENT', (0.0, 14.25))], (0.0, 20.25), 'length of edge at (0.0, 14.25)'), ('dim', 'any', [('SKETCHSEGMENT', (54.75, 0.0))], (60.75, 0.0), 'length of edge at (54.75, 0.0)'), ('dim', 'H', [('SKETCHPOINT', (53.092932, -5.653607)), ('SKETCHPOINT', (52.543981, -5.850211))], (52.818456, -11.850211), 'horizontal extent of slanted edge at (52.81845613122647, -5.751908976057438)'), ('dim', 'V', [('SKETCHPOINT', (53.092932, -5.653607)), ('SKETCHPOINT', (52.543981, -5.850211))], (46.543981, -5.751909), 'vertical extent of slanted edge at (52.81845613122647, -5.751908976057438)'), ('dim', 'H', [('SKETCHPOINT', (52.543981, -5.850211)), ('ORIGIN', None)], (26.27199, -13.850211), 'x of corner (52.54398073421195, -5.850210839893866)'), ('dim', 'V', [('SKETCHPOINT', (52.543981, -5.850211)), ('ORIGIN', None)], (44.543981, -2.925105), 'y of corner (52.54398073421195, -5.850210839893866)'), ('dim', 'H', [('SKETCHPOINT', (-46.189659, -12.484526)), ('ORIGIN', None)], (-23.09483, -20.484526), 'x of corner (-46.189659178051755, -12.484526386696235)'), ('dim', 'H', [('SKETCHPOINT', (-52.988442, -5.702397)), ('ORIGIN', None)], (-26.494221, -13.702397), 'x of corner (-52.98844181454544, -5.702397369987819)'), ('dim', 'V', [('SKETCHPOINT', (-52.988442, -5.702397)), ('ORIGIN', None)], (-60.988442, -2.851199), 'y of corner (-52.98844181454544, -5.702397369987819)'), ('dim', 'H', [('SKETCHPOINT', (-54.75, -3.3)), ('ORIGIN', None)], (-27.375, -11.3), 'x of corner (-54.75, -3.3000000000000003)'), ('dim', 'H', [('SKETCHPOINT', (-52.984526, 5.689659)), ('ORIGIN', None)], (-26.492263, -2.310341), 'x of corner (-52.98452638669624, 5.689659178051752)'), ('dim', 'H', [('SKETCHPOINT', (-46.202397, 12.488442)), ('ORIGIN', None)], (-23.101199, 4.488442), 'x of corner (-46.20239736998782, 12.488441814545435)'), ('dim', 'V', [('SKETCHPOINT', (-46.202397, 12.488442)), ('ORIGIN', None)], (-54.202397, 6.244221), 'y of corner (-46.20239736998782, 12.488441814545435)'), ('dim', 'H', [('SKETCHPOINT', (-43.8, 14.25)), ('ORIGIN', None)], (-21.9, 6.25), 'x of corner (-43.800000000000004, 14.25)'), ('dim', 'H', [('SKETCHPOINT', (46.189659, 12.484526)), ('ORIGIN', None)], (23.09483, 4.484526), 'x of corner (46.189659178051755, 12.484526386696235)'), ('dim', 'H', [('SKETCHPOINT', (52.988442, 5.702397)), ('ORIGIN', None)], (26.494221, -2.297603), 'x of corner (52.98844181454544, 5.702397369987819)')]],
+        plans=[[('centerline', 0, ((-0.0, -72.149), (0.0, 72.149)), 'centerline a = 0'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (-43.8, 14.25)), ('SKETCHPOINT', (43.8, 14.25)), ('SKETCHSEGMENT', (0.0, 64.9341))], 'corners (-43.800000000000004, 14.25) and (43.800000000000004, 14.25) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (46.196028, 12.486484)), ('SKETCHPOINT', (-46.196028, 12.486484)), ('SKETCHSEGMENT', (0.0, 64.9341))], 'corners (46.19602827401979, 12.486484100620835) and (-46.19602827401979, 12.486484100620835) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (52.97094, 5.697737)), ('SKETCHPOINT', (-52.97094, 5.697737)), ('SKETCHSEGMENT', (0.0, 64.9341))], 'corners (52.97094002160637, 5.6977369399463305) and (-52.97094002160637, 5.6977369399463305) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (54.73, 3.3)), ('SKETCHPOINT', (-54.73, 3.3)), ('SKETCHSEGMENT', (0.0, 64.9341))], 'corners (54.730000000000004, 3.3000000000000003) and (-54.730000000000004, 3.3000000000000003) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (54.73, -3.3)), ('SKETCHPOINT', (-54.73, -3.3)), ('SKETCHSEGMENT', (0.0, 64.9341))], 'corners (54.730000000000004, -3.3000000000000003) and (-54.730000000000004, -3.3000000000000003) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (52.97094, -5.697737)), ('SKETCHPOINT', (-52.97094, -5.697737)), ('SKETCHSEGMENT', (0.0, 64.9341))], 'corners (52.97094002160637, -5.6977369399463305) and (-52.97094002160637, -5.6977369399463305) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (46.196028, -12.486484)), ('SKETCHPOINT', (-46.196028, -12.486484)), ('SKETCHSEGMENT', (0.0, 64.9341))], 'corners (46.19602827401979, -12.486484100620835) and (-46.19602827401979, -12.486484100620835) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (43.8, -14.25)), ('SKETCHPOINT', (-43.8, -14.25)), ('SKETCHSEGMENT', (0.0, 64.9341))], 'corners (43.800000000000004, -14.25) and (-43.800000000000004, -14.25) symmetric'), ('centerline', 1, ((-72.149, -0.0), (72.149, 0.0)), 'centerline b = 0'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (-43.8, 14.25)), ('SKETCHPOINT', (-43.8, -14.25)), ('SKETCHSEGMENT', (64.9341, 0.0))], 'corners (-43.800000000000004, 14.25) and (-43.800000000000004, -14.25) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (46.196028, 12.486484)), ('SKETCHPOINT', (46.196028, -12.486484)), ('SKETCHSEGMENT', (64.9341, 0.0))], 'corners (46.19602827401979, 12.486484100620835) and (46.19602827401979, -12.486484100620835) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (52.97094, 5.697737)), ('SKETCHPOINT', (52.97094, -5.697737)), ('SKETCHSEGMENT', (64.9341, 0.0))], 'corners (52.97094002160637, 5.6977369399463305) and (52.97094002160637, -5.6977369399463305) symmetric'), ('rel', 'sgSYMMETRIC', [('SKETCHPOINT', (54.73, 3.3)), ('SKETCHPOINT', (54.73, -3.3)), ('SKETCHSEGMENT', (64.9341, 0.0))], 'corners (54.730000000000004, 3.3000000000000003) and (54.730000000000004, -3.3000000000000003) symmetric'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, 14.25)), ('SKETCHSEGMENT', (-45.294195, 13.75434))], 'tangency at (-43.800000000000004, 14.25)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, 14.25)), ('SKETCHSEGMENT', (45.294195, 13.75434))], 'tangency at (43.800000000000004, 14.25)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (54.73, 0.0)), ('SKETCHSEGMENT', (54.241391, 4.78469))], 'tangency at (54.730000000000004, 3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (54.73, 0.0)), ('SKETCHSEGMENT', (54.241391, -4.78469))], 'tangency at (54.730000000000004, -3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, -14.25)), ('SKETCHSEGMENT', (45.294195, -13.75434))], 'tangency at (43.800000000000004, -14.25)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (0.0, -14.25)), ('SKETCHSEGMENT', (-45.294195, -13.75434))], 'tangency at (-43.800000000000004, -14.25)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (-54.73, 0.0)), ('SKETCHSEGMENT', (-54.241391, -4.78469))], 'tangency at (-54.730000000000004, -3.3000000000000003)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (-54.73, 0.0)), ('SKETCHSEGMENT', (-54.241391, 4.78469))], 'tangency at (-54.730000000000004, 3.3000000000000003)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (48.752158, 8.252153)), ('SKETCHSEGMENT', (48.752158, -8.252153))], 'equal radius, arcs at (48.7521579928392, 8.252152992837434) and (48.7521579928392, -8.252152992837434)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (48.752158, 8.252153)), ('SKETCHSEGMENT', (-48.752158, -8.252153))], 'equal radius, arcs at (48.7521579928392, 8.252152992837434) and (-48.7521579928392, -8.252152992837434)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (48.752158, 8.252153)), ('SKETCHSEGMENT', (-48.752158, 8.252153))], 'equal radius, arcs at (48.7521579928392, 8.252152992837434) and (-48.7521579928392, 8.252152992837434)'), ('dim', 'H', [('SKETCHPOINT', (-43.8, 14.25)), ('ORIGIN', None)], (-21.9, 6.25), 'x of corner (-43.800000000000004, 14.25)'), ('dim', 'V', [('SKETCHPOINT', (-43.8, 14.25)), ('ORIGIN', None)], (-51.8, 7.125), 'y of corner (-43.800000000000004, 14.25)'), ('dim', 'any', [('SKETCHSEGMENT', (45.294195, 13.75434))], (46.794103, 15.7759), 'radius of arc at (45.29419535440886, 13.754340351053928)'), ('dim', 'any', [('SKETCHSEGMENT', (48.752158, 8.252153))], (41.452108, 0.956655), 'radius of arc at (48.7521579928392, 8.252152992837434)'), ('dim', 'any', [('SKETCHSEGMENT', (54.241391, 4.78469))], (56.277595, 6.277546), 'radius of arc at (54.24139139446941, 4.784690088285906)'), ('dim', 'any', [('SKETCHSEGMENT', (54.73, 0.0))], (60.73, 0.0), 'length of edge at (54.730000000000004, 0.0)'), ('dim', 'H', [('SKETCHPOINT', (46.196028, 12.486484)), ('ORIGIN', None)], (23.098014, 4.486484), 'x of corner (46.19602827401979, 12.486484100620835)'), ('dim', 'H', [('SKETCHPOINT', (52.97094, 5.697737)), ('ORIGIN', None)], (26.48547, -2.302263), 'x of corner (52.97094002160637, 5.6977369399463305)'), ('dim', 'V', [('SKETCHPOINT', (52.97094, 5.697737)), ('ORIGIN', None)], (44.97094, 2.848868), 'y of corner (52.97094002160637, 5.6977369399463305)')]],
         loops=[
         [
-            ('arc', (52.543981, -5.850211), (48.18853, -8.863478), (46.202397, -12.488442)),
-            ('arc', (46.202397, -12.488442), (45.294195, -13.75434), (43.8, -14.25)),
-            ('line', (43.8, -14.25), (-43.8, -14.25)),
-            ('arc', (-43.8, -14.25), (-45.448163, -13.629777), (-46.189659, -12.484526)),
-            ('arc', (-46.189659, -12.484526), (-48.752158, -8.252153), (-52.988442, -5.702397)),
-            ('arc', (-52.988442, -5.702397), (-54.254338, -4.794198), (-54.75, -3.3)),
-            ('line', (-54.75, -3.3), (-54.75, 3.3)),
-            ('arc', (-54.75, 3.3), (-54.129775, 4.948164), (-52.984526, 5.689659)),
-            ('arc', (-52.984526, 5.689659), (-48.752158, 8.252153), (-46.202397, 12.488442)),
-            ('arc', (-46.202397, 12.488442), (-45.294195, 13.75434), (-43.8, 14.25)),
             ('line', (-43.8, 14.25), (43.8, 14.25)),
-            ('arc', (43.8, 14.25), (45.448163, 13.629777), (46.189659, 12.484526)),
-            ('arc', (46.189659, 12.484526), (48.752158, 8.252153), (52.988442, 5.702397)),
-            ('arc', (52.988442, 5.702397), (54.254338, 4.794198), (54.75, 3.3)),
-            ('line', (54.75, 3.3), (54.75, -3.3)),
-            ('arc', (54.75, -3.3), (54.129775, -4.948164), (53.092932, -5.653607)),
-            ('line', (53.092932, -5.653607), (52.543981, -5.850211)),
+            ('arc', (43.8, 14.25), (45.294195, 13.75434), (46.196028, 12.486484)),
+            ('arc', (46.196028, 12.486484), (48.752158, 8.252153), (52.97094, 5.697737)),
+            ('arc', (52.97094, 5.697737), (54.241391, 4.78469), (54.73, 3.3)),
+            ('line', (54.73, 3.3), (54.73, -3.3)),
+            ('arc', (54.73, -3.3), (54.241391, -4.78469), (52.97094, -5.697737)),
+            ('arc', (52.97094, -5.697737), (48.752158, -8.252153), (46.196028, -12.486484)),
+            ('arc', (46.196028, -12.486484), (45.294195, -13.75434), (43.8, -14.25)),
+            ('line', (43.8, -14.25), (-43.8, -14.25)),
+            ('arc', (-43.8, -14.25), (-45.294195, -13.75434), (-46.196028, -12.486484)),
+            ('arc', (-46.196028, -12.486484), (-48.752158, -8.252153), (-52.97094, -5.697737)),
+            ('arc', (-52.97094, -5.697737), (-54.241391, -4.78469), (-54.73, -3.3)),
+            ('line', (-54.73, -3.3), (-54.73, 3.3)),
+            ('arc', (-54.73, 3.3), (-54.241391, 4.78469), (-52.97094, 5.697737)),
+            ('arc', (-52.97094, 5.697737), (-48.752158, 8.252153), (-46.196028, 12.486484)),
+            ('arc', (-46.196028, 12.486484), (-45.294195, 13.75434), (-43.8, 14.25)),
         ],
         ],
     ),
     dict(
-        name="Boss 4 z 1.25 to 1.875", op="add", lo=1.25, hi=1.875, volume=4483.9398, centroid=(-0.28931, 0.00017, 0.73080), holes=False,
+        name="Boss 4 z 1.25 to 1.875", op="add", lo=1.25, hi=1.875, volume=4488.8484, centroid=(-0.28910, -0.00000, 0.73145), holes=False,
         expect="fully defined",
         plans=[],
         loops=[
@@ -102,7 +100,7 @@ FEATURES = [
         ],
     ),
     dict(
-        name="Boss 5 z 1.25 to 1.875", op="add", lo=1.25, hi=1.875, volume=4511.5515, centroid=(0.00011, 0.00017, 0.73589), holes=False,
+        name="Boss 5 z 1.25 to 1.875", op="add", lo=1.25, hi=1.875, volume=4516.4601, centroid=(-0.00000, -0.00000, 0.73653), holes=False,
         expect="fully defined",
         plans=[],
         loops=[
@@ -112,7 +110,7 @@ FEATURES = [
         ],
     ),
     dict(
-        name="Holes 1 (dia 5) z -0.625 to 1.875", op="cut", lo=-0.625, hi=1.875, volume=4413.3767, centroid=(0.00011, 0.00017, 0.73835), holes=True,
+        name="Holes 1 (dia 5) z -0.625 to 1.875", op="cut", lo=-0.625, hi=1.875, volume=4418.2853, centroid=(-0.00000, 0.00000, 0.73901), holes=True,
         expect="fully defined",
         plans=[],
         loops=[
@@ -192,6 +190,14 @@ def expand(loop):
     """Edges of a loop; a pattern is one period turned COUNT times about its centre."""
     if isinstance(loop, list):
         return loop
+    if "step" in loop:                     # linear pattern: COUNT copies of the period, then the rest
+        (dx, dy), n = loop["step"], loop["count"]
+        out = [(e[0],) + tuple((p[0] + m * dx, p[1] + m * dy) for p in e[1:])
+               for m in range(n) for e in loop["period"]] + [tuple(e) for e in loop["rest"]]
+        for m in range(1, len(out)):       # identical shared vertices, so the outline is closed
+            out[m] = (out[m][0], out[m - 1][-1]) + tuple(out[m][2:])
+        out[-1] = tuple(out[-1][:-1]) + (out[0][1],)
+        return out
     (cx, cy), n = loop["centre"], loop["count"]
     out = []
     for m in range(n):
@@ -219,6 +225,8 @@ class SW:
             self.input_dim_pref = None
         self.turned_back = False
         self.ents, self._picked = [], []
+        self.linkable = []                       # (R or D, value mm, dimension name) for linking
+        self.use_patterns = True
         self.model = call0(self.app, "NewPart")
         if self.model is None:                   # no default part template set: use it explicitly
             template = self.app.GetUserPreferenceStringValue(8)      # swDefaultTemplatePart
@@ -281,8 +289,18 @@ class SW:
         p0 = self.to_sketch(*HELPER_AB)          # away from the part, so selections do not hit it
         helper = sm.CreateCircleByRadius(p0[0], p0[1], 0.0, HELPER_R * MM)    # may return None
         self.ents = []                           # (kind, sketch geometry (m), entity) as drawn
+        patterns = []                            # (entities of the period, count, step) to repeat
+        circles = []                             # (recorded period entities, loop) to turn
         for loop in loops:
-            for e in expand(loop):
+            linear = isinstance(loop, dict) and "step" in loop
+            circular = isinstance(loop, dict) and "centre" in loop and self.use_patterns
+            first = len(self.ents)
+            todo = expand(loop)
+            if linear:                           # the period and the rest; the copies by pattern
+                todo = todo[:len(loop["period"])] + todo[len(loop["period"]) * loop["count"]:]
+            elif circular:                       # the period; the copies by a circular pattern
+                todo = todo[:len(loop["period"])]
+            for e in todo:
                 if e[0] == "line":
                     (x1, y1), (x2, y2) = self.to_sketch(*e[1]), self.to_sketch(*e[2])
                     g = make(sm.CreateLine, x1, y1, 0.0, x2, y2, 0.0)
@@ -291,17 +309,35 @@ class SW:
                     (xc, yc) = self.to_sketch(*e[1])
                     g = make(sm.CreateCircleByRadius, xc, yc, 0.0, e[2] * MM)
                     self.ents.append(("circle", ((xc, yc), e[2] * MM), g))
+                elif e[0] == "ellipse":
+                    (cx, cy), a, b, ang = e[1], e[2], e[3], e[4]
+                    u = (math.cos(ang), math.sin(ang))
+                    pc = self.to_sketch(cx, cy)
+                    pa = self.to_sketch(cx + a * u[0], cy + a * u[1])
+                    pb = self.to_sketch(cx - b * u[1], cy + b * u[0])
+                    g = make(sm.CreateEllipse, pc[0], pc[1], 0.0, pa[0], pa[1], 0.0, pb[0], pb[1], 0.0)
+                    self.ents.append(("ellipse", (pc, pa, pb), g))
                 else:
                     s, m, t = (self.to_sketch(*p) for p in e[1:])
                     xc, yc = circle_centre(s, m, t)
                     turn = (m[0] - s[0]) * (t[1] - s[1]) - (m[1] - s[1]) * (t[0] - s[0])
                     g = make(sm.CreateArc, xc, yc, 0.0, s[0], s[1], 0.0, t[0], t[1], 0.0, 1 if turn > 0 else -1)
                     self.ents.append(("arc", (s, t, (xc, yc), math.dist(s, (xc, yc)), m), g))
+            if linear:
+                patterns.append(([g for _, _, g in self.ents[first:first + len(loop["period"])]],
+                                 loop["count"], loop["step"]))
+            elif circular:
+                circles.append((self.ents[first:first + len(loop["period"])], loop))
+        for seed, count, step in patterns:
+            self.sketch_pattern(seed, count, step)
+        for ents, loop in circles:
+            self.circular_pattern(ents, loop)
         sm.AddToDB = False
         sm.DisplayWhenAdded = True
         if helper is not None:
             self.remove_helper(helper)
         self.dimension_holes(loops)              # every full circle: diameter and position
+        self.dimension_ellipses()                # centre, axis direction, semi-axes
         for plan in plans or []:
             self.apply_plan(plan)
         self.region_report(add_to_db)
@@ -369,6 +405,7 @@ class SW:
         origin. Entities are selected by coordinates (empty name), as the API help advises for
         dimensioning. A failure is reported, not fatal: the geometry is already complete."""
         ext = self.model.Extension
+        first = []                               # (radius, entity) of the first circle of each size
         for loop in loops:
             e = expand(loop)[0]
             if e[0] != "circle":
@@ -376,11 +413,24 @@ class SW:
             cx, cy = self.to_sketch(*e[1])
             r = e[2] * MM
             tag = f"hole at ({e[1][0]:g}, {e[1][1]:g})"
+            g = next((t[2] for t in self.ents if t[0] == "circle" and math.dist(t[1][0], (cx, cy)) < 1e-9
+                      and abs(t[1][1] - r) < 1e-12), None)
+            same = next((h for rr, h in first if abs(rr - r) < 1e-9 * max(1.0, r / MM)), None)
             try:
-                self.model.ClearSelection2(True)
-                ok = ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
-                d = self.model.AddDimension2(cx + 1.6 * r, cy + 1.6 * r, 0.0) if ok else None
-                self._count(d, tag + " diameter")
+                if same is not None and g is not None:   # same size as an earlier circle: Equal
+                    self.model.ClearSelection2(True)
+                    if same.Select4(False, NOTHING) and g.Select4(True, NOTHING):
+                        self.model.SketchAddConstraints("sgSAMELENGTH")
+                        self.rels_ok += 1
+                    else:
+                        self.rels_failed.append(tag + " equal diameter (selection)")
+                else:
+                    if g is not None:
+                        first.append((r, g))
+                    self.model.ClearSelection2(True)
+                    ok = ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
+                    d = self.model.AddDimension2(cx + 1.6 * r, cy + 1.6 * r, 0.0) if ok else None
+                    self._count(d, tag + " diameter")
                 for kind, tx, ty in (("H", cx / 2, cy - 3 * r), ("V", cx - 3 * r, cy / 2)):
                     if abs(cx if kind == "H" else cy) < 1e-9:
                         continue                 # centre on the origin's line: no distance needed
@@ -392,6 +442,59 @@ class SW:
                         d = (self.model.AddHorizontalDimension2(tx, ty, 0.0) if kind == "H"
                              else self.model.AddVerticalDimension2(tx, ty, 0.0))
                     self._count(d, tag + (" x" if kind == "H" else " y") + " position")
+            except Exception as ex:
+                self.dims_failed.append(f"{tag}: {type(ex).__name__}: {ex}")
+        self.model.ClearSelection2(True)
+
+    def dimension_ellipses(self):
+        """Each ellipse fully defined: centre on the origin (Coincident) or dimensioned from it,
+        the major axis Horizontal or Vertical (relation between the centre and the major-axis
+        point), and the semi-axes as distances from the centre to the axis points. The points
+        are the ellipse's own (GetCenterPoint2, GetMajorPoint2, GetMinorPoint2), selected
+        directly. A failure is reported, not fatal."""
+        ext = self.model.Extension
+        for kind, (pc, pa, pb), g in [t for t in self.ents if t[0] == "ellipse"]:
+            tag = f"ellipse at ({pc[0] / MM:g}, {pc[1] / MM:g})"
+            try:
+                c, ma, mi = (call0(g, n) for n in ("GetCenterPoint2", "GetMajorPoint2", "GetMinorPoint2"))
+
+                def pick(*pts):
+                    self.model.ClearSelection2(True)
+                    ok = True
+                    for n, p in enumerate(pts):
+                        if p == "origin":
+                            ok = ok and ext.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0,
+                                                        n > 0, 0, NOTHING, 0)
+                        else:
+                            ok = ok and p.Select4(n > 0, NOTHING)
+                    return ok
+
+                def rel(name, what, *pts):
+                    if pick(*pts):
+                        self.model.SketchAddConstraints(name)
+                        self.rels_ok += 1
+                    else:
+                        self.rels_failed.append(tag + " " + what)
+                if math.hypot(*pc) < 1e-9:
+                    rel("sgCOINCIDENT", "centre on the origin", c, "origin")
+                else:
+                    for k_, (tx, ty) in (("H", (pc[0] / 2, pc[1] - 0.005)), ("V", (pc[0] - 0.005, pc[1] / 2))):
+                        if abs(pc[0] if k_ == "H" else pc[1]) < 1e-9:
+                            continue
+                        d = None
+                        if pick(c, "origin"):
+                            d = (self.model.AddHorizontalDimension2(tx, ty, 0.0) if k_ == "H"
+                                 else self.model.AddVerticalDimension2(tx, ty, 0.0))
+                        self._count(d, tag + (" x" if k_ == "H" else " y") + " of the centre")
+                dx, dy = pa[0] - pc[0], pa[1] - pc[1]
+                if abs(dy) < 1e-9 * max(1.0, abs(dx)):
+                    rel("sgHORIZONTALPOINTS2D", "major axis horizontal", c, ma)
+                elif abs(dx) < 1e-9 * max(1.0, abs(dy)):
+                    rel("sgVERTICALPOINTS2D", "major axis vertical", c, ma)
+                for p, q, what in ((ma, pa, "major"), (mi, pb, "minor")):
+                    d = self.model.AddDimension2((pc[0] + q[0]) / 2 + 0.003, (pc[1] + q[1]) / 2 + 0.003, 0.0) \
+                        if pick(c, p) else None
+                    self._count(d, f"{tag} {what} semi-axis")
             except Exception as ex:
                 self.dims_failed.append(f"{tag}: {type(ex).__name__}: {ex}")
         self.model.ClearSelection2(True)
@@ -422,15 +525,19 @@ class SW:
         if typ == "SKETCHSEGMENT":
             best = None
             for kind, geo, g in self.ents:
-                if kind == "line":
+                if kind in ("line", "cline"):
                     (ax, ay), (bx, by) = geo
                     dx, dy = bx - ax, by - ay
                     t = max(0.0, min(1.0, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy)))
                     d = math.dist(P, (ax + t * dx, ay + t * dy))
+                    if kind == "cline":          # a centerline only where no outline edge is
+                        d += 0.5 * tol
                 elif kind == "arc":
                     d = abs(math.dist(P, geo[2]) - geo[3])
-                else:
+                elif kind == "circle":
                     d = abs(math.dist(P, geo[0]) - geo[1])
+                else:
+                    continue
                 if d < tol and (best is None or d < best[0]):
                     best = (d, g)
             return None if best is None else best[1]
@@ -484,9 +591,111 @@ class SW:
         except Exception as ex:
             self.dims_failed.append(f"{what}: {type(ex).__name__}: {ex}")
 
+    def centerline(self, ends, what):
+        """Construction centerline through the sketch origin along a symmetry axis (ends in model
+        mm), fixed by a Horizontal or Vertical relation, the origin at its middle, and its length."""
+        (x1, y1), (x2, y2) = self.to_sketch(*ends[0]), self.to_sketch(*ends[1])
+        sm = self.model.SketchManager
+        g = sm.CreateCenterLine(x1, y1, 0.0, x2, y2, 0.0)
+        if g is None:
+            self.rels_failed.append(what + " (not created)")
+            return
+        self.ents.append(("cline", ((x1, y1), (x2, y2)), g))
+        rel = "sgVERTICAL2D" if abs(x2 - x1) < abs(y2 - y1) else "sgHORIZONTAL2D"
+        try:
+            self.model.ClearSelection2(True)
+            if g.Select4(False, NOTHING):
+                self.model.SketchAddConstraints(rel)
+                self.rels_ok += 1
+            self.model.ClearSelection2(True)
+            ok = self.model.Extension.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, False, 0,
+                                                  NOTHING, 0) and g.Select4(True, NOTHING)
+            if ok:
+                self.model.SketchAddConstraints("sgATMIDDLE")
+                self.rels_ok += 1
+            else:
+                self.rels_failed.append(what + " middle on the origin (selection)")
+            self.model.ClearSelection2(True)
+            d = self.model.AddDimension2(x2 + 0.002, y2 + 0.002, 0.0) if g.Select4(False, NOTHING) else None
+            self._count(d, what + " length")
+        except Exception as ex:
+            self.rels_failed.append(f"{what}: {type(ex).__name__}: {ex}")
+        self.model.ClearSelection2(True)
+
+    def circular_pattern(self, ents, loop):
+        """Turn the period's entities COUNT times about the loop centre with a sketch circular
+        pattern (SketchManager.CreateCircularSketchStepAndRepeat). SolidWorks 2025 (sw_probe10-12)
+        puts the pattern centre at the centre of the seed's bounding box plus ArcRadius at
+        ArcAngle (radians, 0..2 pi); the copies then share end points. If the call is refused, the
+        copies are drawn one by one."""
+        xs, ys = [], []
+        for kind, geo, g in ents:
+            if kind == "line":
+                xs += [geo[0][0], geo[1][0]]
+                ys += [geo[0][1], geo[1][1]]
+            else:                                # arc: ends plus the axis extremes it sweeps
+                s, t, c, r, m = geo
+                xs += [s[0], t[0]]
+                ys += [s[1], t[1]]
+                a0, a1 = math.atan2(s[1] - c[1], s[0] - c[0]), math.atan2(t[1] - c[1], t[0] - c[0])
+                am = math.atan2(m[1] - c[1], m[0] - c[0])
+                sw_ = (a1 - a0) % (2 * math.pi)
+                ccw = (am - a0) % (2 * math.pi) < sw_
+                for k in range(4):
+                    ang = k * math.pi / 2
+                    d = (ang - a0) % (2 * math.pi) if ccw else (a0 - ang) % (2 * math.pi)
+                    if d < (sw_ if ccw else 2 * math.pi - sw_):
+                        xs.append(c[0] + r * math.cos(ang))
+                        ys.append(c[1] + r * math.sin(ang))
+        bc = ((max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2)
+        cx, cy = self.to_sketch(*loop["centre"])
+        R, A = math.hypot(cx - bc[0], cy - bc[1]), math.atan2(cy - bc[1], cx - bc[0]) % (2 * math.pi)
+        n = loop["count"]
+        p0, p1 = self.to_sketch(0.0, 0.0), self.to_sketch(1.0, 0.0)
+        q1 = self.to_sketch(0.0, 1.0)
+        turn = 1.0 if (p1[0] - p0[0]) * (q1[1] - p0[1]) - (p1[1] - p0[1]) * (q1[0] - p0[0]) > 0 else -1.0
+        self.model.ClearSelection2(True)
+        ok = all(g.Select4(True, NOTHING) for _, _, g in ents)
+        r = self.model.SketchManager.CreateCircularSketchStepAndRepeat(
+            R, A, n, turn * 2 * math.pi / n, True, "", False, False, False) if ok else False
+        self.model.ClearSelection2(True)
+        if r:
+            print(f"  circular pattern: {len(ents)} entities x {n}")
+            return
+        print(f"  circular pattern refused; drawing the {n - 1} copies")
+        sm = self.model.SketchManager
+        for e in expand(loop)[len(loop["period"]):]:
+            if e[0] == "line":
+                (x1, y1), (x2, y2) = self.to_sketch(*e[1]), self.to_sketch(*e[2])
+                make(sm.CreateLine, x1, y1, 0.0, x2, y2, 0.0)
+            else:
+                s_, m_, t_ = (self.to_sketch(*q) for q in e[1:])
+                xc, yc = circle_centre(s_, m_, t_)
+                tn = (m_[0] - s_[0]) * (t_[1] - s_[1]) - (m_[1] - s_[1]) * (t_[0] - s_[0])
+                make(sm.CreateArc, xc, yc, 0.0, s_[0], s_[1], 0.0, t_[0], t_[1], 0.0, 1 if tn > 0 else -1)
+
+    def sketch_pattern(self, seed, count, step):
+        """Repeat the period's entities count times by step (model mm) with a sketch linear
+        pattern (SketchManager.CreateLinearSketchStepAndRepeat). In SolidWorks 2025 the copies
+        share their end points with each other and with the rest of the outline (sw_probe8)."""
+        p0, p1 = self.to_sketch(0.0, 0.0), self.to_sketch(*step)
+        dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+        self.model.ClearSelection2(True)
+        ok = all(g.Select4(True, NOTHING) for g in seed)
+        r = self.model.SketchManager.CreateLinearSketchStepAndRepeat(
+            count, 1, math.hypot(dx, dy), 0.0, math.atan2(dy, dx), math.pi / 2, "",
+            False, False, False, False, False) if ok else False
+        self.model.ClearSelection2(True)
+        if not r:
+            raise RuntimeError(f"sketch linear pattern of {len(seed)} entities x {count} was not created")
+        print(f"  sketch pattern: {len(seed)} entities x {count}, step {math.hypot(dx, dy) / MM:g} mm")
+
     def apply_plan(self, plan):
         """Relations and dimensions planned by stl2cad for one outline, in order."""
         for op in plan:
+            if op[0] == "centerline":
+                self.centerline(op[2], op[3])
+                continue
             if op[0] == "rel":
                 _, rel, picks, what = op
                 self._relation(rel, picks, what)
@@ -509,8 +718,39 @@ class SW:
     def _count(self, d, what):
         if d is None:
             self.dims_failed.append(what)
-        else:
-            self.dims_ok += 1
+            return
+        self.dims_ok += 1
+        if "radius" in what or "diameter" in what:   # candidates for linking across sketches
+            try:
+                dd = d.GetDimension2(0)
+                name = "@".join(str(dd.FullName).split("@")[:2])         # D1@Sketch2
+                self.linkable.append(("R" if "radius" in what else "D", float(dd.SystemValue) / MM, name))
+            except Exception:
+                pass
+
+    def link_dimensions(self):
+        """Equal radii and equal diameters in different sketches driven by one global variable each
+        (Equation Manager, Add2; sw_probe11: the dimensions follow after a rebuild). A failure is
+        reported, not fatal."""
+        groups = {}
+        for kind, val, name in self.linkable:
+            groups.setdefault((kind, round(val, 6)), []).append(name)
+        groups = {k: sorted(set(v)) for k, v in groups.items() if len(set(v)) > 1}
+        if not groups:
+            return "linked dimensions: none (no equal radius or diameter in two sketches)"
+        try:
+            em = call0(self.model, "GetEquationMgr")
+            n = 0
+            for (kind, val), names in sorted(groups.items()):
+                var = f"{'radius' if kind == 'R' else 'dia'}_{val:g}".replace(".", "_").replace("-", "m")
+                em.Add2(-1, f'"{var}" = {val:g}', True)
+                for nm in names:
+                    em.Add2(-1, f'"{nm}" = "{var}"', True)
+                    n += 1
+            call0(self.model, "EditRebuild3")
+            return f"linked dimensions: {n} in {len(groups)} global variable(s)"
+        except Exception as ex:
+            return f"linked dimensions: failed ({type(ex).__name__}: {ex})"
 
     def remove_helper(self, seg):
         """Delete the helper circle; if that fails, make it construction geometry, which
@@ -620,7 +860,8 @@ class SW:
             self.model.ClearSelection2(True)
             sk.Select2(False, 0)
             if cy["op"] == "add":
-                f = fm.FeatureExtrusion3(True, False, rev, 0, 0, h, 0.0, False, False, False, False,
+                h2 = cy.get("depth2", 0.0) * MM          # a boss through the body: both directions
+                f = fm.FeatureExtrusion3(h2 <= 0, False, rev, 0, 0, h, h2, False, False, False, False,
                                          0.0, 0.0, False, False, False, False, True, True, True,
                                          0, 0.0, False)
             else:
@@ -632,7 +873,7 @@ class SW:
                 continue
             v, c = self.mass()
             print(f"  try reverse={rev}: volume {v:.3f} mm^3, centre of mass ({c[0]:.3f}, {c[1]:.3f}, {c[2]:.3f}) mm")
-            if abs(v - expected) <= 1e-4 * expected + 1e-3 and math.dist(c, centroid) <= 1e-4 * SIZE + 1e-4:
+            if abs(v - expected) <= 1e-4 * expected + 1e-3 and math.dist(c, centroid) <= 1e-5 * SIZE + 1e-4:
                 f.Name = cy["name"]
                 return v
             self.model.ClearSelection2(True)
@@ -679,7 +920,7 @@ class SW:
             dc = math.dist(c, centroid)
             print(f"  try reverse={rev} flip_start={flip}: volume {v:.3f} mm^3, centre of mass "
                   f"({c[0]:.3f}, {c[1]:.3f}, {c[2]:.3f}) mm")
-            if abs(v - expected) <= 1e-4 * expected + 1e-3 and dc <= 1e-4 * SIZE + 1e-4:
+            if abs(v - expected) <= 1e-4 * expected + 1e-3 and dc <= 1e-5 * SIZE + 1e-4:
                 f.Name = name
                 return v
             self.model.ClearSelection2(True)
@@ -746,6 +987,11 @@ def build():
     for cy in CYLINDERS:
         v = sw.face_feature(cy)
         print(f"{cy['name']}: volume {v:.3f} mm^3 (expected {cy['volume']:.3f})")
+    v0 = sw.mass()[0]
+    print(sw.link_dimensions())
+    v1 = sw.mass()[0]
+    if abs(v1 - v0) > 1e-4 * v0 + 1e-3:
+        raise RuntimeError(f"linking dimensions changed the volume from {v0:.3f} to {v1:.3f} mm^3")
     print(f"dimensions: {sw.dims_ok} added" + (f", {len(sw.dims_failed)} failed: {sw.dims_failed}" if sw.dims_failed else ""))
     print(f"relations: {sw.rels_ok} added" + (f", {len(sw.rels_failed)} failed: {sw.rels_failed}" if sw.rels_failed else ""))
     print("sketch status: " + ", ".join(sw.status))
