@@ -87,6 +87,10 @@ class Segment:
         return self._pts[i]
 
     def GetCenterPoint2(self):
+        if self.edge[0] == "circle":
+            if not hasattr(self, "_c"):
+                self._c = SketchPoint(self.sm.model, self.edge[1])
+            return self._c
         return self._pt(0)
 
     def GetMajorPoint2(self):
@@ -408,16 +412,54 @@ class Extension:
         b = self.model.body
         if b is None:
             return MassProperty(0.0, (0.0, 0.0, 0.0))
-        c = b.Center()
-        return MassProperty(b.Volume() / K ** 3, (c.x / K, c.y / K, c.z / K))   # m^3, m
+        from stl2cad.core import mass_props          # accurate, as SolidWorks
+        v, c = mass_props(b)
+        return MassProperty(v / K ** 3, tuple(x / K for x in c))   # m^3, m
 
     def DeleteSelection2(self, opt):
         f = self.model.selected
-        assert f is self.model.features[-1] and f.kind in ("Extrusion", "ProfileFeature", "MoveCopyBody")
+        assert f is self.model.features[-1] and f.kind in ("Extrusion", "ProfileFeature", "MoveCopyBody", "Revolve")
         self.model.features.pop()
-        if f.kind in ("Extrusion", "MoveCopyBody"):
+        if f.kind in ("Extrusion", "MoveCopyBody", "Revolve"):
             self.model.body = f.data["before"]
         return True
+
+
+def _loops(edges):
+    """Closed wires of the edges, grouped by shared end points (Wire.combine joined edges of
+    separate contours into one wire with a 53 mm vertex tolerance)."""
+    key = lambda p: tuple(round(x, 6) for x in p.toTuple())
+    ends = [(key(e.startPoint()), key(e.endPoint())) for e in edges]
+    left, out = set(range(len(edges))), []
+    while left:
+        comp, todo = set(), [left.pop()]
+        while todo:
+            i = todo.pop()
+            comp.add(i)
+            for j in list(left):
+                if set(ends[i]) & set(ends[j]):
+                    left.discard(j)
+                    todo.append(j)
+        out.append(cq.Wire.assembleEdges([edges[i] for i in sorted(comp)]))
+    return out
+
+
+def _turn(shape, axis, ang):
+    """Shape turned by ang (rad) about the axis through the origin; a quarter turn is applied as an
+    exact matrix (a rotation by angle leaves 1e-16 tilts, and OCC booleans then fail between
+    coaxial cylinders)."""
+    q = ang / (math.pi / 2)
+    if abs(q - round(q)) > 1e-12:
+        return shape.rotate(cq.Vector(0, 0, 0), cq.Vector(*axis), math.degrees(ang))
+    from OCP.gp import gp_Trsf
+    from OCP.BRepBuilderAPI import BRepBuilderAPI_Transform
+    c, s_ = [1, 0, -1, 0][int(round(q)) % 4], [0, 1, 0, -1][int(round(q)) % 4]
+    x, y, z = axis
+    K_ = np.array([[0, -z, y], [z, 0, -x], [-y, x, 0]], float)
+    R = np.eye(3) + s_ * K_ + (1 - c) * (K_ @ K_)
+    t = gp_Trsf()
+    t.SetValues(*R[0], 0.0, *R[1], 0.0, *R[2], 0.0)
+    return cq.Shape.cast(BRepBuilderAPI_Transform(shape.wrapped, t, True).Shape())
 
 
 def _boolean(a, b, cut):
@@ -428,20 +470,38 @@ def _boolean(a, b, cut):
     def run(tol, clean=True, glue=False):
         r = a.cut(b, tol=tol) if cut else a.fuse(b, tol=tol, glue=glue)
         return r.clean() if clean else r
-    common = a.intersect(b).Volume()
-    want = a.Volume() - common if cut else a.Volume() + b.Volume() - common
-    good = lambda r: r.isValid() and abs(r.Volume() - want) <= 1e-6 * max(1.0, abs(want))
-    r = run(None)
-    if good(r):
+    want = None
+    for t_ in (None, 1e-5, 1e-4):                  # the identity's common part, fuzzy if need be
+        try:
+            common = a.intersect(b, tol=t_).Volume()
+            want = a.Volume() - common if cut else a.Volume() + b.Volume() - common
+            break
+        except Exception:
+            continue
+
+    def good(r):
+        try:
+            return r.isValid() and (want is None or abs(r.Volume() - want) <= 1e-6 * max(1.0, abs(want)))
+        except Exception:
+            return False
+    try:
+        r = run(None)
+    except Exception:
+        r = None
+    if r is not None and good(r):
         return r
     for tol, cl, gl in ((None, False, False), (None, True, True), (1e-5, True, False), (1e-5, False, False),
                         (1e-4, True, False), (1e-3, True, False)):
-        r2 = run(tol, cl, gl and not cut)  # near-coincident faces (a boss on a flange's end arc)
+        try:
+            r2 = run(tol, cl, gl and not cut)  # near-coincident faces (a boss on a flange's end arc)
+        except Exception:
+            continue
         if good(r2):
             return r2
         r2 = r2.fix()
         if good(r2):
             return r2
+        r = r if r is not None else r2
     return r
 
 
@@ -520,7 +580,16 @@ class FeatureManager:
         sk = m.selected.data
         u, v, n = (np.array(a, float) for a in sk.frame)
         o = sk.offset * n
-        P = lambda q: cq.Vector(*(K * (np.asarray(q, float)[0] * u + np.asarray(q, float)[1] * v + o)))
+        seen = []
+
+        def canon(q):                                # end points within 1e-9 m are one point
+            q = np.asarray(q, float)
+            for w in seen:
+                if np.linalg.norm(w - q) < 1e-9:
+                    return w
+            seen.append(q)
+            return q
+        P = lambda q: cq.Vector(*np.round(K * (canon(q)[0] * u + canon(q)[1] * v + o), 9))
         axes = [seg for seg in sk.edges if not seg.deleted and seg.ConstructionGeometry and seg.edge[0] == "line"
                 and getattr(seg, "centerline", False)]
         if len(axes) != 1:
@@ -536,12 +605,23 @@ class FeatureManager:
                 es.append(cq.Edge.makeThreePointArc(P(e[1]), P(e[2]), P(e[3])))
             else:
                 es.append(cq.Edge.makeCircle(K * e[2], P(e[1]), cq.Vector(*n)))
-        wires = sorted(cq.Wire.combine(es), key=lambda w: -cq.Face.makeFromWires(w, []).Area())
-        face = cq.Face.makeFromWires(wires[0], wires[1:])
+        wires = sorted(_loops(es), key=lambda w: -cq.Face.makeFromWires(w, []).Area())
+        # disjoint contours are separate regions; a contour inside another is its hole
+        outers = []
+        for w in wires:
+            f_ = cq.Face.makeFromWires(w, [])
+            host = next((o for o in outers if o[0].distance(cq.Vertex.makeVertex(*f_.Center().toTuple())) < 1e-9), None)
+            if host is None:
+                outers.append((f_, w, []))
+            else:
+                host[2].append(w)
         a, b = axes[0].edge[1], axes[0].edge[2]
-        body = cq.Solid.revolve(face, math.degrees(a1), P(a), P(b))
         before = m.body
-        m.body = body if before is None else _boolean(before, body, cut=bool(cut))
+        body = before
+        for _, w, holes in outers:                  # one region at a time (coincident faces)
+            part = cq.Solid.revolve(cq.Face.makeFromWires(w, holes), math.degrees(a1), P(a), P(b))
+            body = part if body is None else _boolean(body, part, cut=bool(cut))
+        m.body = body
         f = Feature(m, "Revolve", dict(before=before))
         m.features.append(f)
         LAST["features"] = m.features
@@ -574,7 +654,14 @@ class FeatureManager:
         for ang, axis in zip((ax, ay, az), order):
             if ang:
                 sgn = -1 if os.environ.get("SWMOCK_ROT_SIGN") == "-1" else 1
-                b = b.rotate(cq.Vector(0, 0, 0), cq.Vector(*axis), sgn * math.degrees(ang))
+                b = _turn(b, axis, sgn * ang)
+        # translation: the vector itself (default), or a direction times TransDist
+        if os.environ.get("SWMOCK_TRANS", "vector") == "unit":
+            t = (tx * td, ty * td, tz * td)
+        else:
+            t = (tx, ty, tz)
+        if any(t):
+            b = b.translate(cq.Vector(*(v * K for v in t)))
         m.body = b
         f = Feature(m, "MoveCopyBody", dict(before=before))
         m.features.append(f)
@@ -633,6 +720,14 @@ class Model:
                 return Dim()
         return DDim()
 
+    def Parameter(self, name):
+        class D:
+            SystemValue = 0.0
+        return D()
+
+    def EditUndo2(self, steps):
+        return True
+
     def GetEquationMgr(self):
         if not hasattr(self, "_eq"):
             class EqMgr:
@@ -645,6 +740,10 @@ class Model:
 
                 def GetCount(self):
                     return len(self.eqs)
+
+                def Delete(self, i):
+                    del self.eqs[i]
+                    return 1
             self._eq = EqMgr()
         return self._eq
 

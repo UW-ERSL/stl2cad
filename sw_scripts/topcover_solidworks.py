@@ -68,23 +68,25 @@ CYLINDERS = [
 # moved so that each axis is the y axis, the profile (a = distance from the axis, b = level) is sketched
 # on the Front Plane and revolved about a vertical centerline at x = 0, and the body is moved back ----
 REV_TURN = None   # centre of mass once y is along y (mm)
-REV_DONE = (0.00000, 3.26182, -0.00000)   # centre of mass after the revolved features, STL frame (mm)
+REV_DONE = (0.00000, 3.26182, 0.00000)   # centre of mass after the revolved features, STL frame (mm)
 REVOLVES = [
-    dict(shift=(-0.00000, 0.00000, -0.00000), before=(-0.00000, 1.50000, 0.00000), after=(0.00000, 3.25533, 0.00000), steps=[
+    dict(shift=(-0.00000, 0.00000, -0.00000), before=(-0.00000, 1.50000, 0.00000), after=(0.00000, 3.25533, -0.00000), steps=[
         dict(
-            name="Revolved Boss 1 about (0, 0, 0) along y", op="add", volume=9687.2216, centroid=(0.00000, 3.25533, 0.00000), helper=(7.0, -10.0),
+            name="Revolved Boss 1 about (0, 0, 0) along y", op="add", volume=9687.2216, centroid=(0.00000, 3.25533, -0.00000), helper=(7.0, -10.0),
             expect="fully defined",
-            plans=[[('centerline', 0, ((0.0, -15.846), (0.0, 15.846)), 'revolve axis a = 0'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (7.0, 9.92))], 'vertical edge at (7.0, 9.92)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (22.5, 1.5))], 'vertical edge at (22.5, 1.5)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (13.786387, 4.560457)), ('SKETCHSEGMENT', (19.421824, 0.542764))], 'tangency at (16.71832016776095, 2.1027412461558157)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (13.786387, 4.560457)), ('SKETCHSEGMENT', (9.050536, 8.058732))], 'tangency at (10.854453221492701, 7.018172502562791)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (15.713613, 6.859543)), ('SKETCHSEGMENT', (10.076593, 10.877811))], 'tangency at (12.78167983223905, 9.317258753844186)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (15.713613, 6.859543)), ('SKETCHSEGMENT', (20.447874, 3.361846))], 'tangency at (18.645546778507303, 4.401827497437211)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (19.421824, 0.542764)), ('SKETCHSEGMENT', (10.076593, 10.877811))], 'equal radius, arcs at (19.421824396931726, 0.5427643430802238) and (10.076593499332809, 10.877811326806901)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (9.050536, 8.058732)), ('SKETCHSEGMENT', (20.447874, 3.361846))], 'equal radius, arcs at (9.050536347853662, 8.058732187835396) and (20.44787385488615, 3.3618461989282187)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (13.786387, 4.560457)), ('SKETCHSEGMENT', (15.713613, 6.859543))], 'equal length, edges at (13.786386694626826, 4.5604568743593035) and (15.713613305373176, 6.859543125640698)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (7.0, 9.92)), ('SKETCHSEGMENT', (22.5, 1.5))], 'equal length, edges at (7.0, 9.92) and (22.5, 1.5)'), ('dim', 'H', [('SKETCHPOINT', (7.0, 8.42)), ('ORIGIN', None)], (3.5, 0.42), 'x of corner (7.0, 8.42)'), ('dim', 'V', [('SKETCHPOINT', (7.0, 8.42)), ('ORIGIN', None)], (-1.0, 4.21), 'y of corner (7.0, 8.42)'), ('dim', 'any', [('SKETCHSEGMENT', (19.421824, 0.542764))], (16.343649, -7.914471), 'radius of arc at (19.421824396931726, 0.5427643430802238)'), ('dim', 'any', [('SKETCHSEGMENT', (9.050536, 8.058732))], (11.101073, 13.697464), 'radius of arc at (9.050536347853662, 8.058732187835396)'), ('dim', 'any', [('SKETCHSEGMENT', (7.0, 9.92))], (1.0, 9.92), 'length of edge at (7.0, 9.92)'), ('dim', 'H', [('SKETCHPOINT', (16.71832, 2.102741)), ('SKETCHPOINT', (10.854453, 7.018173))], (13.786387, -3.897259), 'horizontal extent of slanted edge at (13.786386694626826, 4.5604568743593035)'), ('dim', 'V', [('SKETCHPOINT', (16.71832, 2.102741)), ('SKETCHPOINT', (10.854453, 7.018173))], (4.854453, 4.560457), 'vertical extent of slanted edge at (13.786386694626826, 4.5604568743593035)'), ('dim', 'H', [('SKETCHPOINT', (22.5, 0.0)), ('ORIGIN', None)], (11.25, -8.0), 'x of corner (22.5, 0.0)'), ('dim', 'H', [('SKETCHPOINT', (16.71832, 2.102741)), ('ORIGIN', None)], (8.35916, -5.897259), 'x of corner (16.71832016776095, 2.1027412461558157)'), ('dim', 'H', [('SKETCHPOINT', (12.78168, 9.317259)), ('ORIGIN', None)], (6.39084, 1.317259), 'x of corner (12.78167983223905, 9.317258753844186)')]],
+            plans=[[('centerline', 0, ((0.0, -15.846), (0.0, 15.846)), 'revolve axis a = 0'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (23.25, 3.0))], 'horizontal edge at (23.25, 3.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (24.0, 1.5))], 'vertical edge at (24.0, 1.5)'), ('rel', 'sgHORIZONTAL2D', [('SKETCHSEGMENT', (23.25, 0.0))], 'horizontal edge at (23.25, 0.0)'), ('rel', 'sgVERTICAL2D', [('SKETCHSEGMENT', (7.0, 9.92))], 'vertical edge at (7.0, 9.92)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (15.713613, 6.859543)), ('SKETCHSEGMENT', (10.076593, 10.877811))], 'tangency at (12.78167983223905, 9.317258753844186)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (15.713613, 6.859543)), ('SKETCHSEGMENT', (20.447874, 3.361846))], 'tangency at (18.645546778507303, 4.401827497437211)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (23.25, 3.0)), ('SKETCHSEGMENT', (20.447874, 3.361846))], 'tangency at (22.5, 3.0)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (23.25, 0.0)), ('SKETCHSEGMENT', (19.421824, 0.542764))], 'tangency at (22.5, 0.0)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (13.786387, 4.560457)), ('SKETCHSEGMENT', (19.421824, 0.542764))], 'tangency at (16.71832016776095, 2.1027412461558157)'), ('rel', 'sgTANGENT', [('SKETCHSEGMENT', (13.786387, 4.560457)), ('SKETCHSEGMENT', (9.050536, 8.058732))], 'tangency at (10.854453221492701, 7.018172502562791)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (10.076593, 10.877811)), ('SKETCHSEGMENT', (19.421824, 0.542764))], 'equal radius, arcs at (10.076593499332809, 10.877811326806901) and (19.421824396931722, 0.5427643430802256)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (20.447874, 3.361846)), ('SKETCHSEGMENT', (9.050536, 8.058732))], 'equal radius, arcs at (20.44787385488615, 3.3618461989282187) and (9.050536347853662, 8.058732187835396)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (15.713613, 6.859543)), ('SKETCHSEGMENT', (13.786387, 4.560457))], 'equal length, edges at (15.713613305373176, 6.859543125640698) and (13.786386694626826, 4.5604568743593035)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (23.25, 3.0)), ('SKETCHSEGMENT', (23.25, 0.0))], 'equal length, edges at (23.25, 3.0) and (23.25, 0.0)'), ('rel', 'sgSAMELENGTH', [('SKETCHSEGMENT', (24.0, 1.5)), ('SKETCHSEGMENT', (7.0, 9.92))], 'equal length, edges at (24.0, 1.5) and (7.0, 9.92)'), ('dim', 'H', [('SKETCHPOINT', (7.0, 8.42)), ('ORIGIN', None)], (3.5, 0.42), 'x of corner (7.0, 8.42)'), ('dim', 'V', [('SKETCHPOINT', (7.0, 8.42)), ('ORIGIN', None)], (-1.0, 4.21), 'y of corner (7.0, 8.42)'), ('dim', 'any', [('SKETCHSEGMENT', (10.076593, 10.877811))], (13.153187, 19.335623), 'radius of arc at (10.076593499332809, 10.877811326806901)'), ('dim', 'any', [('SKETCHSEGMENT', (20.447874, 3.361846))], (18.395748, -2.276308), 'radius of arc at (20.44787385488615, 3.3618461989282187)'), ('dim', 'any', [('SKETCHSEGMENT', (23.25, 3.0))], (23.25, 9.0), 'length of edge at (23.25, 3.0)'), ('dim', 'any', [('SKETCHSEGMENT', (24.0, 1.5))], (30.0, 1.5), 'length of edge at (24.0, 1.5)'), ('dim', 'H', [('SKETCHPOINT', (12.78168, 9.317259)), ('SKETCHPOINT', (18.645547, 4.401827))], (15.713613, -1.598173), 'horizontal extent of slanted edge at (15.713613305373176, 6.859543125640698)'), ('dim', 'V', [('SKETCHPOINT', (12.78168, 9.317259)), ('SKETCHPOINT', (18.645547, 4.401827))], (6.78168, 6.859543), 'vertical extent of slanted edge at (15.713613305373176, 6.859543125640698)'), ('dim', 'H', [('SKETCHPOINT', (12.78168, 9.317259)), ('ORIGIN', None)], (6.39084, 1.317259), 'x of corner (12.78167983223905, 9.317258753844186)')]],
             loops=[
             [
+            ('arc', (7.0, 11.42), (10.076593499, 10.877811327), (12.781679832, 9.317258754)),
+            ('line', (12.781679832, 9.317258754), (18.645546779, 4.401827497)),
+            ('arc', (18.645546779, 4.401827497), (20.447873855, 3.361846199), (22.5, 3.0)),
+            ('line', (22.5, 3.0), (24.0, 3.0)),
+            ('line', (24.0, 3.0), (24.0, 0.0)),
+            ('line', (24.0, 0.0), (22.5, 0.0)),
             ('arc', (22.5, 0.0), (19.421824397, 0.542764343), (16.718320168, 2.102741246)),
             ('line', (16.718320168, 2.102741246), (10.854453221, 7.018172503)),
             ('arc', (10.854453221, 7.018172503), (9.050536348, 8.058732188), (7.0, 8.42)),
             ('line', (7.0, 8.42), (7.0, 11.42)),
-            ('arc', (7.0, 11.42), (10.076593499, 10.877811327), (12.781679832, 9.317258754)),
-            ('line', (12.781679832, 9.317258754), (18.645546779, 4.401827497)),
-            ('arc', (18.645546779, 4.401827497), (20.447873855, 3.361846199), (22.5, 3.0)),
-            ('line', (22.5, 3.0), (22.5, 0.0)),
         ],
             ],
         ),
@@ -103,7 +105,7 @@ REVOLVES = [
             ],
         ),
     ]),
-    dict(shift=(-26.50000, 0.00000, 19.00000), before=(-26.55814, 3.25694, 18.95832), after=(-0.11653, 3.25856, -0.00000), steps=[
+    dict(shift=(-26.50000, 0.00000, 19.00000), before=(-26.55814, 3.25694, 18.95832), after=(-0.11653, 3.25856, 0.00000), steps=[
         dict(
             name="Revolved Cut 3 about (26.5, 0, -19) along y", op="cut", volume=9644.8101, centroid=(-26.61653, 3.25856, 19.00000), helper=(2.5, -8.5),
             expect="fully defined",
@@ -131,7 +133,7 @@ REVOLVES = [
             ],
         ),
     ]),
-    dict(shift=(26.50000, 0.00000, -19.00000), before=(26.44161, 3.26018, -18.95813), after=(0.00000, 3.26182, -0.00000), steps=[
+    dict(shift=(26.50000, 0.00000, -19.00000), before=(26.44161, 3.26018, -18.95813), after=(0.00000, 3.26182, 0.00000), steps=[
         dict(
             name="Revolved Cut 5 about (-26.5, 0, 19) along y", op="cut", volume=9602.3986, centroid=(26.50000, 3.26182, -19.00000), helper=(2.5, -8.5),
             expect="fully defined",
@@ -458,14 +460,21 @@ class SW:
                     if g is not None:
                         first.append((r, g))
                     self.model.ClearSelection2(True)
-                    ok = ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
+                    ok = (g is not None and g.Select4(False, NOTHING)) or \
+                        ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
                     d = self.model.AddDimension2(cx + 1.6 * r, cy + 1.6 * r, 0.0) if ok else None
                     self._count(d, tag + " diameter")
                 for kind, tx, ty in (("H", cx / 2, cy - 3 * r), ("V", cx - 3 * r, cy / 2)):
                     if abs(cx if kind == "H" else cy) < 1e-9:
                         continue                 # centre on the origin's line: no distance needed
                     self.model.ClearSelection2(True)
-                    ok1 = ext.SelectByID2("", "SKETCHPOINT", cx, cy, 0.0, False, 0, NOTHING, 0)
+                    ok1 = False
+                    try:                         # the circle's own centre point, else by coordinates
+                        c_ = call0(g, "GetCenterPoint2") if g is not None else None
+                        ok1 = c_ is not None and c_.Select4(False, NOTHING)
+                    except Exception:
+                        pass
+                    ok1 = ok1 or ext.SelectByID2("", "SKETCHPOINT", cx, cy, 0.0, False, 0, NOTHING, 0)
                     ok2 = ext.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, True, 0, NOTHING, 0)
                     d = None
                     if ok1 and ok2:
@@ -723,7 +732,9 @@ class SW:
         print(f"  sketch pattern: {len(seed)} entities x {count}, step {math.hypot(dx, dy) / MM:g} mm")
 
     def apply_plan(self, plan):
-        """Relations and dimensions planned by stl2cad for one outline, in order."""
+        """Relations and dimensions planned by stl2cad for one outline, in order. The drawn
+        geometry is exact, so no planned operation may move it: one that does (it acted on the
+        wrong entity) is undone and reported."""
         for op in plan:
             if op[0] == "centerline":
                 self.centerline(op[2], op[3])
@@ -734,7 +745,40 @@ class SW:
             else:
                 _, kind, picks, text, what = op
                 self._dimension(picks, text, kind, what)
+            moved = self._moved()
+            if moved:
+                try:
+                    self.model.EditUndo2(1)
+                except Exception as ex:
+                    print(f"  undo failed: {type(ex).__name__}: {ex}")
+                still = self._moved()
+                print(f"  '{op[-1]}' moved the sketch ({moved}); undone"
+                      + (f", but the sketch is still moved ({still})" if still else ""))
+                (self.rels_failed if op[0] == "rel" else self.dims_failed).append(op[-1] + " (moved the sketch, undone)")
+                if op[0] == "rel":
+                    self.rels_ok -= 1
+                if still:
+                    break
         self.model.ClearSelection2(True)
+
+    def _moved(self, tol=1e-6):
+        """A drawn line or arc whose end points are no longer where they were drawn (m): a short
+        description, or None."""
+        for kind, geo, g in self.ents:
+            if kind not in ("line", "arc"):
+                continue
+            try:
+                ends = [call0(g, "GetStartPoint2"), call0(g, "GetEndPoint2")]
+                P = [(p.X, p.Y) for p in ends]
+            except Exception:
+                return None                          # not readable: no check
+            want = (geo[0], geo[1])
+            off = min(max(math.dist(P[0], want[0]), math.dist(P[1], want[1])),
+                      max(math.dist(P[0], want[1]), math.dist(P[1], want[0])))
+            if off > tol:
+                return (f"{kind} from ({want[0][0] / MM:.4f}, {want[0][1] / MM:.4f}) moved by "
+                        f"{off / MM:.4f} mm")
+        return None
 
     def report_status(self):
         """Constrained status of the sketch just closed, if SolidWorks returns it."""
@@ -756,7 +800,10 @@ class SW:
             try:
                 dd = d.GetDimension2(0)
                 name = "@".join(str(dd.FullName).split("@")[:2])         # D1@Sketch2
-                self.linkable.append(("R" if "radius" in what else "D", float(dd.SystemValue) / MM, name))
+                if not self.direct:              # revolve profiles: re-solving one by an equation
+                    # turned topcover's dish into a huge body in SolidWorks 2025; equal radii there
+                    # are coincidences, not design intent
+                    self.linkable.append(("R" if "radius" in what else "D", float(dd.SystemValue) / MM, name))
             except Exception:
                 pass
 
@@ -772,6 +819,7 @@ class SW:
             return "linked dimensions: none (no equal radius or diameter in two sketches)"
         try:
             em = call0(self.model, "GetEquationMgr")
+            self.n_equations = call0(em, "GetCount")     # equations before linking
             n = 0
             for (kind, val), names in sorted(groups.items()):
                 var = f"{'radius' if kind == 'R' else 'dia'}_{val:g}".replace(".", "_").replace("-", "m")
@@ -779,10 +827,24 @@ class SW:
                 for nm in names:
                     em.Add2(-1, f'"{nm}" = "{var}"', True)
                     n += 1
+            self.linked = [(nm, val) for (kind, val), names in groups.items() for nm in names]
             call0(self.model, "EditRebuild3")
             return f"linked dimensions: {n} in {len(groups)} global variable(s)"
         except Exception as ex:
             return f"linked dimensions: failed ({type(ex).__name__}: {ex})"
+
+    def unlink_dimensions(self):
+        """Delete the equations link_dimensions added (from the last), restore the linked
+        dimensions' values, and rebuild."""
+        em = call0(self.model, "GetEquationMgr")
+        for idx in range(call0(em, "GetCount") - 1, getattr(self, "n_equations", 0) - 1, -1):
+            em.Delete(idx)
+        for nm, val in getattr(self, "linked", []):  # an equation leaves its value behind
+            try:
+                self.model.Parameter(nm).SystemValue = val * MM
+            except Exception as ex:
+                print(f"  could not restore {nm}: {type(ex).__name__}: {ex}")
+        call0(self.model, "EditRebuild3")
 
     def remove_helper(self, seg):
         """Delete the helper circle; if that fails, make it construction geometry, which
@@ -935,23 +997,43 @@ class SW:
         q = [v * MM for v in self.in_model_frame(cy["centre"])]
         cx, cyy = (sum(q[r] * A[3 * r + i] for r in range(3)) + A[9 + i] for i in range(2))
         r = cy["dia"] / 2 * MM
-        sm.CreateCircleByRadius(cx, cyy, 0.0, r)
+        circ = sm.CreateCircleByRadius(cx, cyy, 0.0, r)
         tag = cy["name"]
+
+        def to_model(sx, sy):
+            """Sketch point (m) -> model point (m): the inverse of the transform above (selection
+            and dimension placement take model coordinates; on a face sketch they differ)."""
+            v = (sx - A[9], sy - A[10], -A[11])
+            return tuple(sum(v[i] * A[3 * r_ + i] for i in range(3)) for r_ in range(3))
+
+        def pick_circle(append):
+            if circ is not None and circ.Select4(append, NOTHING):
+                return True
+            return ext.SelectByID2("", "SKETCHSEGMENT", *to_model(cx + r, cyy), append, 0, NOTHING, 0)
+
+        def pick_centre(append):
+            try:
+                c = call0(circ, "GetCenterPoint2")
+                if c is not None and c.Select4(append, NOTHING):
+                    return True
+            except Exception:
+                pass
+            return ext.SelectByID2("", "SKETCHPOINT", *to_model(cx, cyy), append, 0, NOTHING, 0)
         try:
             self.model.ClearSelection2(True)
-            ok = ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cyy, 0.0, False, 0, NOTHING, 0)
-            self._count(self.model.AddDimension2(cx + 1.6 * r, cyy + 1.6 * r, 0.0) if ok else None,
+            ok = pick_circle(False)
+            self._count(self.model.AddDimension2(*to_model(cx + 1.6 * r, cyy + 1.6 * r)) if ok else None,
                         tag + " diameter")
             for kind, tx, ty in (("H", cx / 2, cyy - 3 * r), ("V", cx - 3 * r, cyy / 2)):
                 if abs(cx if kind == "H" else cyy) < 1e-9:
                     continue
                 self.model.ClearSelection2(True)
-                ok1 = ext.SelectByID2("", "SKETCHPOINT", cx, cyy, 0.0, False, 0, NOTHING, 0)
+                ok1 = pick_centre(False)
                 ok2 = ext.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, True, 0, NOTHING, 0)
                 d = None
                 if ok1 and ok2:
-                    d = (self.model.AddHorizontalDimension2(tx, ty, 0.0) if kind == "H"
-                         else self.model.AddVerticalDimension2(tx, ty, 0.0))
+                    d = (self.model.AddHorizontalDimension2(*to_model(tx, ty)) if kind == "H"
+                         else self.model.AddVerticalDimension2(*to_model(tx, ty)))
                 self._count(d, tag + (" x" if kind == "H" else " y") + " position on the face")
         except Exception as ex:
             self.dims_failed.append(f"{tag}: {type(ex).__name__}: {ex}")
@@ -1036,7 +1118,7 @@ class SW:
         if nothing == len(tries):
             raise NoFeature(name)
         self.dump_sketch(sk)
-        raise RuntimeError(f"{name}: no extrusion direction gives the expected volume {expected:.3f} mm^3 "
+        raise WrongShape(f"{name}: no extrusion direction gives the expected volume {expected:.3f} mm^3 "
                            f"and centre of mass {centroid}")
 
 
@@ -1068,7 +1150,11 @@ class SW:
             self.model.ClearSelection2(True)
             f.Select2(False, 0)
             self.model.Extension.DeleteSelection2(0)
-        raise RuntimeError(f"{name}: no Revolve feature gives the expected volume {expected:.3f} mm^3")
+        raise WrongShape(f"{name}: no Revolve feature gives the expected volume {expected:.3f} mm^3")
+
+
+class WrongShape(RuntimeError):
+    """The feature was made, but no direction gives the expected volume and centre of mass."""
 
 
 class NoFeature(Exception):
@@ -1112,12 +1198,16 @@ def build_step(sw, st):
             else:
                 v = sw.feature(sk, st["op"], st["lo"], st["hi"], st["volume"], st["centroid"], st["name"])
             break
-        except NoFeature:
+        except (NoFeature, WrongShape) as ex:
+            # a planned relation or dimension can pick the wrong entity (picks by coordinates
+            # depend on the view scale): the sketch is drawn again without them
             sw.dump_sketch(sk, everything=True)
             if m == len(modes) - 1:
+                if isinstance(ex, WrongShape):
+                    raise
                 raise RuntimeError(f"{st['name']}: SolidWorks makes no feature from the sketch")
             nxt = modes[m + 1]
-            print(f"  no feature; drawing the sketch again ({'AddToDB' if nxt[0] else 'normal mode'}, "
+            print(f"  {'wrong shape' if isinstance(ex, WrongShape) else 'no feature'}; drawing the sketch again ({'AddToDB' if nxt[0] else 'normal mode'}, "
                   f"{'with' if nxt[1] else 'without'} relations and dimensions)")
             sw.model.ClearSelection2(True)
             sk.Select2(False, 0)
@@ -1162,7 +1252,12 @@ def build():
     print(sw.link_dimensions())
     v1 = sw.mass()[0]
     if abs(v1 - v0) > 1e-4 * v0 + 1e-3:
-        raise RuntimeError(f"linking dimensions changed the volume from {v0:.3f} to {v1:.3f} mm^3")
+        print(f"NOTE: linking {[nm for nm, _ in getattr(sw, 'linked', [])]} changed the volume from {v0:.3f} to {v1:.3f} mm^3; "
+              "the equations are removed")
+        sw.unlink_dimensions()
+        v2 = sw.mass()[0]
+        if abs(v2 - v0) > 1e-4 * v0 + 1e-3:
+            raise RuntimeError(f"after removing the equations the volume is {v2:.3f} mm^3, not {v0:.3f}")
     print(f"dimensions: {sw.dims_ok} added" + (f", {len(sw.dims_failed)} failed: {sw.dims_failed}" if sw.dims_failed else ""))
     print(f"relations: {sw.rels_ok} added" + (f", {len(sw.rels_failed)} failed: {sw.rels_failed}" if sw.rels_failed else ""))
     print("sketch status: " + ", ".join(sw.status))

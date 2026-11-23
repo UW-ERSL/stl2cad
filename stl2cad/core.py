@@ -142,3 +142,22 @@ class Result:
     report: str = ""
     deviation: dict = field(default_factory=dict)
     extras: dict = field(default_factory=dict)
+
+
+def mass_props(shape, eps=1e-9):
+    """(volume, centre of mass) of a shape. CadQuery's Volume() and Center() (fixed-order Gauss
+    integration) were 6.8 mm^3 off on a ring whose cross bore meets its outer cylinder
+    (snapring). The volume is checked by Gauss-Kronrod integration (VolumePropertiesGK, whose
+    centre of mass is not usable); when the two disagree, the GK volume is used and the centre of
+    mass is taken from a fine tessellation (1e-5 of the part's size: within 1e-4 mm)."""
+    from OCP.GProp import GProp_GProps
+    from OCP.BRepGProp import BRepGProp
+    p = GProp_GProps()
+    BRepGProp.VolumePropertiesGK_s(shape.wrapped, p, eps)
+    v = float(p.Mass())
+    v0 = float(shape.Volume())
+    if abs(v - v0) <= 1e-7 * max(abs(v), 1.0):
+        return v0, tuple(shape.Center().toTuple())
+    bb = shape.BoundingBox()
+    tm = shape_to_mesh(shape, tolerance=1e-5 * max(bb.DiagonalLength, 1.0), angular=0.02)
+    return v, tuple(float(x) for x in tm.center_mass)

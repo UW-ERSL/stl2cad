@@ -38,6 +38,8 @@ crossbar.STL m
 flange.STL m
 standoff.STL m
 chesspawn.STL m
+topcover.STL m
+snapring.STL m
 EOF
 
 run_one() {

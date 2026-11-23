@@ -45,9 +45,9 @@ CYLINDERS = [
     dict(name="Hole 2 dia 4 along (1, 0, 0)", op="cut", pick=(0.75, 4.5, 24.19), normal=(-1.0, 0.0, 0.0), centre=(0.75, 4.5, 21.99),
          dia=4.0, offset=0.0, depth=6.35, depth2=0.0, volume=10596.2375, centroid=(0.00000, 4.50000, -0.49380)),
     dict(name="Hole 3 dia 6 along (1, 0, 0)", op="cut", pick=(-7.1, 4.011759, 21.97338), normal=(1.0, 0.0, 0.0), centre=(-7.1, 4.5, 21.99),
-         dia=6.0, offset=-11.53667, depth=11.63667, depth2=0.0, volume=10384.6628, centroid=(0.22712, 4.50000, -0.94241)),
-    dict(name="Hole 4 dia 6 along (-1, 0, 0)", op="cut", pick=(7.1, 4.011759, 21.97338), normal=(-1.0, -0.0, -0.0), centre=(7.1, 4.5, 21.99),
-         dia=6.0, offset=-11.53667, depth=11.63667, depth2=0.0, volume=10166.3673, centroid=(0.00046, 4.49971, -1.40908)),
+         dia=6.0, offset=-11.53667, depth=11.63667, depth2=0.0, volume=10384.7018, centroid=(0.22708, 4.50000, -0.94230)),
+    dict(name="Hole 4 dia 6 along (-1, 0, 0)", op="cut", pick=(7.1, 3.97225, 22.243277), normal=(-1.0, -0.0, -0.0), centre=(7.1, 4.5, 21.99),
+         dia=6.0, offset=-11.53667, depth=11.63667, depth2=0.0, volume=10173.1662, centroid=(0.00000, 4.50000, -1.40946)),
 ]
 
 # ---- revolved features about axes along y: the body is turned with y along y (if it is not),
@@ -398,14 +398,21 @@ class SW:
                     if g is not None:
                         first.append((r, g))
                     self.model.ClearSelection2(True)
-                    ok = ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
+                    ok = (g is not None and g.Select4(False, NOTHING)) or \
+                        ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
                     d = self.model.AddDimension2(cx + 1.6 * r, cy + 1.6 * r, 0.0) if ok else None
                     self._count(d, tag + " diameter")
                 for kind, tx, ty in (("H", cx / 2, cy - 3 * r), ("V", cx - 3 * r, cy / 2)):
                     if abs(cx if kind == "H" else cy) < 1e-9:
                         continue                 # centre on the origin's line: no distance needed
                     self.model.ClearSelection2(True)
-                    ok1 = ext.SelectByID2("", "SKETCHPOINT", cx, cy, 0.0, False, 0, NOTHING, 0)
+                    ok1 = False
+                    try:                         # the circle's own centre point, else by coordinates
+                        c_ = call0(g, "GetCenterPoint2") if g is not None else None
+                        ok1 = c_ is not None and c_.Select4(False, NOTHING)
+                    except Exception:
+                        pass
+                    ok1 = ok1 or ext.SelectByID2("", "SKETCHPOINT", cx, cy, 0.0, False, 0, NOTHING, 0)
                     ok2 = ext.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, True, 0, NOTHING, 0)
                     d = None
                     if ok1 and ok2:
@@ -663,7 +670,9 @@ class SW:
         print(f"  sketch pattern: {len(seed)} entities x {count}, step {math.hypot(dx, dy) / MM:g} mm")
 
     def apply_plan(self, plan):
-        """Relations and dimensions planned by stl2cad for one outline, in order."""
+        """Relations and dimensions planned by stl2cad for one outline, in order. The drawn
+        geometry is exact, so no planned operation may move it: one that does (it acted on the
+        wrong entity) is undone and reported."""
         for op in plan:
             if op[0] == "centerline":
                 self.centerline(op[2], op[3])
@@ -674,7 +683,40 @@ class SW:
             else:
                 _, kind, picks, text, what = op
                 self._dimension(picks, text, kind, what)
+            moved = self._moved()
+            if moved:
+                try:
+                    self.model.EditUndo2(1)
+                except Exception as ex:
+                    print(f"  undo failed: {type(ex).__name__}: {ex}")
+                still = self._moved()
+                print(f"  '{op[-1]}' moved the sketch ({moved}); undone"
+                      + (f", but the sketch is still moved ({still})" if still else ""))
+                (self.rels_failed if op[0] == "rel" else self.dims_failed).append(op[-1] + " (moved the sketch, undone)")
+                if op[0] == "rel":
+                    self.rels_ok -= 1
+                if still:
+                    break
         self.model.ClearSelection2(True)
+
+    def _moved(self, tol=1e-6):
+        """A drawn line or arc whose end points are no longer where they were drawn (m): a short
+        description, or None."""
+        for kind, geo, g in self.ents:
+            if kind not in ("line", "arc"):
+                continue
+            try:
+                ends = [call0(g, "GetStartPoint2"), call0(g, "GetEndPoint2")]
+                P = [(p.X, p.Y) for p in ends]
+            except Exception:
+                return None                          # not readable: no check
+            want = (geo[0], geo[1])
+            off = min(max(math.dist(P[0], want[0]), math.dist(P[1], want[1])),
+                      max(math.dist(P[0], want[1]), math.dist(P[1], want[0])))
+            if off > tol:
+                return (f"{kind} from ({want[0][0] / MM:.4f}, {want[0][1] / MM:.4f}) moved by "
+                        f"{off / MM:.4f} mm")
+        return None
 
     def report_status(self):
         """Constrained status of the sketch just closed, if SolidWorks returns it."""
@@ -696,7 +738,10 @@ class SW:
             try:
                 dd = d.GetDimension2(0)
                 name = "@".join(str(dd.FullName).split("@")[:2])         # D1@Sketch2
-                self.linkable.append(("R" if "radius" in what else "D", float(dd.SystemValue) / MM, name))
+                if not self.direct:              # revolve profiles: re-solving one by an equation
+                    # turned topcover's dish into a huge body in SolidWorks 2025; equal radii there
+                    # are coincidences, not design intent
+                    self.linkable.append(("R" if "radius" in what else "D", float(dd.SystemValue) / MM, name))
             except Exception:
                 pass
 
@@ -712,6 +757,7 @@ class SW:
             return "linked dimensions: none (no equal radius or diameter in two sketches)"
         try:
             em = call0(self.model, "GetEquationMgr")
+            self.n_equations = call0(em, "GetCount")     # equations before linking
             n = 0
             for (kind, val), names in sorted(groups.items()):
                 var = f"{'radius' if kind == 'R' else 'dia'}_{val:g}".replace(".", "_").replace("-", "m")
@@ -719,10 +765,24 @@ class SW:
                 for nm in names:
                     em.Add2(-1, f'"{nm}" = "{var}"', True)
                     n += 1
+            self.linked = [(nm, val) for (kind, val), names in groups.items() for nm in names]
             call0(self.model, "EditRebuild3")
             return f"linked dimensions: {n} in {len(groups)} global variable(s)"
         except Exception as ex:
             return f"linked dimensions: failed ({type(ex).__name__}: {ex})"
+
+    def unlink_dimensions(self):
+        """Delete the equations link_dimensions added (from the last), restore the linked
+        dimensions' values, and rebuild."""
+        em = call0(self.model, "GetEquationMgr")
+        for idx in range(call0(em, "GetCount") - 1, getattr(self, "n_equations", 0) - 1, -1):
+            em.Delete(idx)
+        for nm, val in getattr(self, "linked", []):  # an equation leaves its value behind
+            try:
+                self.model.Parameter(nm).SystemValue = val * MM
+            except Exception as ex:
+                print(f"  could not restore {nm}: {type(ex).__name__}: {ex}")
+        call0(self.model, "EditRebuild3")
 
     def remove_helper(self, seg):
         """Delete the helper circle; if that fails, make it construction geometry, which
@@ -875,23 +935,43 @@ class SW:
         q = [v * MM for v in self.in_model_frame(cy["centre"])]
         cx, cyy = (sum(q[r] * A[3 * r + i] for r in range(3)) + A[9 + i] for i in range(2))
         r = cy["dia"] / 2 * MM
-        sm.CreateCircleByRadius(cx, cyy, 0.0, r)
+        circ = sm.CreateCircleByRadius(cx, cyy, 0.0, r)
         tag = cy["name"]
+
+        def to_model(sx, sy):
+            """Sketch point (m) -> model point (m): the inverse of the transform above (selection
+            and dimension placement take model coordinates; on a face sketch they differ)."""
+            v = (sx - A[9], sy - A[10], -A[11])
+            return tuple(sum(v[i] * A[3 * r_ + i] for i in range(3)) for r_ in range(3))
+
+        def pick_circle(append):
+            if circ is not None and circ.Select4(append, NOTHING):
+                return True
+            return ext.SelectByID2("", "SKETCHSEGMENT", *to_model(cx + r, cyy), append, 0, NOTHING, 0)
+
+        def pick_centre(append):
+            try:
+                c = call0(circ, "GetCenterPoint2")
+                if c is not None and c.Select4(append, NOTHING):
+                    return True
+            except Exception:
+                pass
+            return ext.SelectByID2("", "SKETCHPOINT", *to_model(cx, cyy), append, 0, NOTHING, 0)
         try:
             self.model.ClearSelection2(True)
-            ok = ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cyy, 0.0, False, 0, NOTHING, 0)
-            self._count(self.model.AddDimension2(cx + 1.6 * r, cyy + 1.6 * r, 0.0) if ok else None,
+            ok = pick_circle(False)
+            self._count(self.model.AddDimension2(*to_model(cx + 1.6 * r, cyy + 1.6 * r)) if ok else None,
                         tag + " diameter")
             for kind, tx, ty in (("H", cx / 2, cyy - 3 * r), ("V", cx - 3 * r, cyy / 2)):
                 if abs(cx if kind == "H" else cyy) < 1e-9:
                     continue
                 self.model.ClearSelection2(True)
-                ok1 = ext.SelectByID2("", "SKETCHPOINT", cx, cyy, 0.0, False, 0, NOTHING, 0)
+                ok1 = pick_centre(False)
                 ok2 = ext.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, True, 0, NOTHING, 0)
                 d = None
                 if ok1 and ok2:
-                    d = (self.model.AddHorizontalDimension2(tx, ty, 0.0) if kind == "H"
-                         else self.model.AddVerticalDimension2(tx, ty, 0.0))
+                    d = (self.model.AddHorizontalDimension2(*to_model(tx, ty)) if kind == "H"
+                         else self.model.AddVerticalDimension2(*to_model(tx, ty)))
                 self._count(d, tag + (" x" if kind == "H" else " y") + " position on the face")
         except Exception as ex:
             self.dims_failed.append(f"{tag}: {type(ex).__name__}: {ex}")
@@ -976,7 +1056,7 @@ class SW:
         if nothing == len(tries):
             raise NoFeature(name)
         self.dump_sketch(sk)
-        raise RuntimeError(f"{name}: no extrusion direction gives the expected volume {expected:.3f} mm^3 "
+        raise WrongShape(f"{name}: no extrusion direction gives the expected volume {expected:.3f} mm^3 "
                            f"and centre of mass {centroid}")
 
 
@@ -1008,7 +1088,11 @@ class SW:
             self.model.ClearSelection2(True)
             f.Select2(False, 0)
             self.model.Extension.DeleteSelection2(0)
-        raise RuntimeError(f"{name}: no Revolve feature gives the expected volume {expected:.3f} mm^3")
+        raise WrongShape(f"{name}: no Revolve feature gives the expected volume {expected:.3f} mm^3")
+
+
+class WrongShape(RuntimeError):
+    """The feature was made, but no direction gives the expected volume and centre of mass."""
 
 
 class NoFeature(Exception):
@@ -1052,12 +1136,16 @@ def build_step(sw, st):
             else:
                 v = sw.feature(sk, st["op"], st["lo"], st["hi"], st["volume"], st["centroid"], st["name"])
             break
-        except NoFeature:
+        except (NoFeature, WrongShape) as ex:
+            # a planned relation or dimension can pick the wrong entity (picks by coordinates
+            # depend on the view scale): the sketch is drawn again without them
             sw.dump_sketch(sk, everything=True)
             if m == len(modes) - 1:
+                if isinstance(ex, WrongShape):
+                    raise
                 raise RuntimeError(f"{st['name']}: SolidWorks makes no feature from the sketch")
             nxt = modes[m + 1]
-            print(f"  no feature; drawing the sketch again ({'AddToDB' if nxt[0] else 'normal mode'}, "
+            print(f"  {'wrong shape' if isinstance(ex, WrongShape) else 'no feature'}; drawing the sketch again ({'AddToDB' if nxt[0] else 'normal mode'}, "
                   f"{'with' if nxt[1] else 'without'} relations and dimensions)")
             sw.model.ClearSelection2(True)
             sk.Select2(False, 0)
@@ -1102,7 +1190,12 @@ def build():
     print(sw.link_dimensions())
     v1 = sw.mass()[0]
     if abs(v1 - v0) > 1e-4 * v0 + 1e-3:
-        raise RuntimeError(f"linking dimensions changed the volume from {v0:.3f} to {v1:.3f} mm^3")
+        print(f"NOTE: linking {[nm for nm, _ in getattr(sw, 'linked', [])]} changed the volume from {v0:.3f} to {v1:.3f} mm^3; "
+              "the equations are removed")
+        sw.unlink_dimensions()
+        v2 = sw.mass()[0]
+        if abs(v2 - v0) > 1e-4 * v0 + 1e-3:
+            raise RuntimeError(f"after removing the equations the volume is {v2:.3f} mm^3, not {v0:.3f}")
     print(f"dimensions: {sw.dims_ok} added" + (f", {len(sw.dims_failed)} failed: {sw.dims_failed}" if sw.dims_failed else ""))
     print(f"relations: {sw.rels_ok} added" + (f", {len(sw.rels_failed)} failed: {sw.rels_failed}" if sw.rels_failed else ""))
     print("sketch status: " + ", ".join(sw.status))

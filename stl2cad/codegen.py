@@ -82,7 +82,8 @@ def verify(script, ref_shape, tol, timeout=900):
     BH.clean_mesh(s)
     if not s.isValid():
         return False, "script solid is invalid"
-    v0, v1 = abs(ref_shape.Volume()), abs(s.Volume())
+    from .core import mass_props
+    v0, v1 = abs(mass_props(ref_shape)[0]), abs(mass_props(s)[0])
     dv = abs(v1 - v0) / v0
     if dv > 1e-4:
         return False, f"volume differs by {100 * dv:.3f} %"
@@ -726,6 +727,10 @@ def stacked_script(p25, name, nd=4):
             L.append(f"part = part {'+' if ft['op'] == 'add' else '-'} {expr}")
         L.append("")
         m += 1
+    revs = p25.get("revolved") or []
+    if revs:
+        L += _revolved_code(revs, k, f, P)
+        L[L.index("from cadquery import Edge, Vector")] = "from cadquery import Edge, Face, Solid, Vector, Wire"
     cyls = p25.get("cylinders") or []
     if cyls:
         import numpy as np
@@ -740,11 +745,77 @@ def stacked_script(p25, name, nd=4):
         L.append("    c = Solid.makeCylinder(d / 2, h, Vector(*p), Vector(*u))")
         L.append("    part = part + c if op == \"add\" else part - c")
         L.append("")
-        L[L.index("from cadquery import Edge, Vector")] = "from cadquery import Edge, Solid, Vector"
+        if "from cadquery import Edge, Vector" in L:
+            L[L.index("from cadquery import Edge, Vector")] = "from cadquery import Edge, Solid, Vector"
     L.append("part = part.clean()")
     L += ["", 'if __name__ == "__main__":',
           f'    part.exportStep(sys.argv[1] if len(sys.argv) > 1 else "{name}.step")']
     return "\n".join(L) + "\n"
+
+
+def _revolved_code(revs, k, f, P):
+    """Script lines for revolved features about axes along k: each profile (u from the axis, v the
+    level) revolved 360 degrees and added or cut; identical profiles about several axes are one
+    loop over the axis points."""
+    import numpy as np
+    i, j = [m for m in range(3) if m != k]
+    axes = "xyz"
+    rad = ["0", "0", "0"]
+    rad[i] = "1"
+
+    def key(ft):
+        return (ft["op"], ft["mode"], tuple((e[0],) + tuple(tuple(np.round(np.asarray(q, float), 9)) if m else q
+                                                            for m, q in enumerate(e[1:], 1))
+                                            for L_ in ft["loops"] for e in L_.edges))
+    groups = []
+    for ft in revs:
+        for g in groups:
+            if key(g[0]) == key(ft):
+                g.append(ft)
+                break
+        else:
+            groups.append([ft])
+
+    def Q(q):
+        return f"Q({f(q[0])}, {f(q[1])})"
+
+    def edges(Lp):
+        out = []
+        for e in Lp.edges:
+            if e[0] == "line":
+                out.append(f"Edge.makeLine({Q(e[1])}, {Q(e[2])})")
+            elif e[0] == "arc":
+                out.append(f"Edge.makeThreePointArc({Q(e[1])}, {Q(e[2])}, {Q(e[3])})")
+            else:
+                raise ValueError("circle in a revolved profile")
+        return out
+    L = ["# ---- revolved features about axes along " + axes[k] + ": a profile in the half plane through the",
+         "# axis (u = distance from the axis, v = level), revolved 360 degrees " + "-" * 14,
+         f"RADIAL = ({', '.join(rad)})", "", "",
+         "def revolved(axis, rings):",
+         '    """Profile rings (outline first, then holes) revolved about the axis through axis along DIR."""',
+         "    face = Face.makeFromWires(Wire.assembleEdges(rings[0]), [Wire.assembleEdges(r) for r in rings[1:]])",
+         "    return Solid.revolve(face, 360.0, Vector(*axis), Vector(*axis) + Vector(*DIR))", ""]
+    for n, g in enumerate(groups, 1):
+        ft = g[0]
+        what = {"add": "boss", "cut": "cut"}[ft["op"]]
+        pts = [ft_["a3"] for ft_ in g]
+        L.append(f"# revolved {what} {n}" + (f" ({len(g)} axes)" if len(g) > 1 else ""))
+        L.append("for a, b in [" + ", ".join(f"({f(p[i])}, {f(p[j])})" for p in pts) + "]:")
+        L.append("    axis = P(a, b)")
+        L.append("    Q = lambda u, v: Vector(*axis) + Vector(*RADIAL) * u + Vector(*DIR) * v")
+        L.append("    rings = [")
+        for Lp in ft["loops"]:
+            L.append("        [")
+            L += [f"            {e}," for e in edges(Lp)]
+            L.append("        ],")
+        L.append("    ]")
+        if ft["op"] == "cut":
+            L.append("    part = part - revolved(axis, rings)")
+        else:
+            L.append("    part = part + revolved(axis, rings)")
+        L.append("")
+    return L
 
 
 def generate(res, name, tol, log=print):

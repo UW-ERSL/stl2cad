@@ -35,7 +35,7 @@ def _wall_or_cap(mesh, k, deg=1.0):
     return (c > np.cos(np.radians(deg))) | (c < np.sin(np.radians(deg)))
 
 
-def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print):
+def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print, ignore=None):
     """Bosses and holes along directions other than the prism axis k. The faces that are neither
     walls nor caps for k must form connected patches, each a cylinder (normals perpendicular to
     one axis, vertices on one circle about it). Returns a list of dict(op, c, d, r, t0, t1, ext)
@@ -44,6 +44,8 @@ def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print):
     off-axis faces are not all such cylinders."""
     import trimesh
     off = ~_wall_or_cap(mesh, k)
+    if ignore is not None:                       # faces of revolved features about axes along k
+        off &= ~ignore
     a = mesh.area_faces
     if not off.any():
         return []
@@ -78,6 +80,13 @@ def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print):
             fits.append((c, d, float(r)))
     out = []
     for c, d, r in fits:
+        if np.abs(d).max() > np.cos(np.radians(0.1)):   # along a model axis
+            m_ = int(np.argmax(np.abs(d)))
+            d = np.sign(d[m_]) * np.eye(3)[m_] + 0.0
+            c = c - (c @ d) * d
+            from .snap2d import nice
+            c = np.array([nice(float(x), tol / 4) for x in c]) + 0.0
+            r = nice(float(r), tol / 4)
         # every facet on this cylinder, including those whose normals happen to be along or across
         # the prism axis (a cross hole's wall facets facing +-x or +-z when the prism axis is y)
         u, v = _perp(d)
@@ -89,58 +98,69 @@ def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print):
         rc = rad.mean(axis=1)
         rc /= np.linalg.norm(rc, axis=1)[:, None] + 1e-30
         on &= np.abs(np.einsum("ij,ij->i", rc, n)) > np.cos(np.radians(10.0))
-        comp = np.nonzero(on)[0]
-        w = a[comp]
-        V = mesh.vertices[np.unique(mesh.faces[comp])]
-        err = float(np.abs(np.linalg.norm(V - c - np.outer(V @ d, d), axis=1) - r).max())
-        t = V @ d
-        t0, t1 = float(t.min()), float(t.max())
-        # outward normals point away from the axis on a boss, towards it in a hole
-        F = mesh.triangles_center[comp]
-        radial = F - c - np.outer(F @ d, d)
-        op = "add" if float(np.sum(w * np.einsum("ij,ij->i", radial, n[comp]))) > 0 else "cut"
-        # an end is free when the point just beyond it on the axis lies outside the material.
-        # d is oriented so that t0 is the end a designer sketches on: the attached end of a boss,
-        # the open end of a hole
-        e = max(2 * tol, 0.05 * r)
-        inside = mesh.contains([c + (t0 - e) * d, c + (t1 + e) * d])
-        if op == "cut":                            # an end is closed if any cap facet lies on its disk
-            inside = np.array([inside[0] or _cap_at(mesh, c, d, r, t0, tol),
-                               inside[1] or _cap_at(mesh, c, d, r, t1, tol)])
-        through_boss = False
-        if op == "add":
-            if inside[0] and inside[1]:
-                log("  2.5D: off-axis boss is closed at both ends")
-                return None
-            through_boss = not inside[0] and not inside[1]   # passes through the prism body
-            flip = bool(inside[1])
-        else:
-            if inside[0] and inside[1]:
-                log("  2.5D: off-axis hole is closed at both ends")
-                return None
-            flip = bool(inside[0])
-            if not inside[0] and not inside[1]:      # open at both ends: sketch on a flat end face
-                f0 = _face_point(mesh, c + t0 * d, d, u, v, r, tol)
-                flip = f0 is None and _face_point(mesh, c + t1 * d, d, u, v, r, tol) is not None
-        if flip:
-            d, t0, t1 = -d, -t1, -t0
-            inside = inside[::-1]
-        tf = t0
-        if op == "cut":                            # cut past the open end(s)
-            t0 -= e
-            t1 += 0 if inside[1] else e
-        face_pt = _face_point(mesh, c + tf * d, d, u, v, r, tol)
-        if through_boss:                           # sketched on a face of the body it crosses
-            face_pt = None
-            for tc in _cap_heights(mesh, c, d, r, t0, t1, tol):
-                face_pt = _face_point(mesh, c + tc * d, d, u, v, r, tol)
-                if face_pt is not None:
-                    tf = tc
-                    break
-        ext = (float(V[:, k].min()), float(V[:, k].max()))
-        out.append(dict(op=op, c=c, d=d, r=float(r), t0=t0, t1=t1, tf=tf, face_pt=face_pt, spans=through_boss,
-                        through=bool(op == "cut" and not inside[1]), ext=ext, err=float(err),
-                        faces=comp))
+        comp_all = np.nonzero(on)[0]
+        # pieces of one cylinder separated along its axis (a stepped cross hole: the wide bore
+        # through both lugs, a narrow one between them) are separate features
+        tt = (mesh.triangles[comp_all] - c) @ d
+        o = np.argsort(tt.min(axis=1))
+        pieces, hi = [], -np.inf
+        for f_ in o:
+            if tt[f_].min() > hi + max(4 * tol, 0.5 * r):
+                pieces.append([])
+            pieces[-1].append(comp_all[f_])
+            hi = max(hi, tt[f_].max())
+        for comp in map(np.asarray, pieces):
+            w = a[comp]
+            V = mesh.vertices[np.unique(mesh.faces[comp])]
+            err = float(np.abs(np.linalg.norm(V - c - np.outer(V @ d, d), axis=1) - r).max())
+            t = V @ d
+            t0, t1 = float(t.min()), float(t.max())
+            # outward normals point away from the axis on a boss, towards it in a hole
+            F = mesh.triangles_center[comp]
+            radial = F - c - np.outer(F @ d, d)
+            op = "add" if float(np.sum(w * np.einsum("ij,ij->i", radial, n[comp]))) > 0 else "cut"
+            # an end is free when the point just beyond it on the axis lies outside the material.
+            # d is oriented so that t0 is the end a designer sketches on: the attached end of a boss,
+            # the open end of a hole
+            e = max(2 * tol, 0.05 * r)
+            inside = mesh.contains([c + (t0 - e) * d, c + (t1 + e) * d])
+            if op == "cut":                            # an end is closed if any cap facet lies on its disk
+                inside = np.array([inside[0] or _cap_at(mesh, c, d, r, t0, tol),
+                                   inside[1] or _cap_at(mesh, c, d, r, t1, tol)])
+            through_boss = False
+            if op == "add":
+                if inside[0] and inside[1]:
+                    log("  2.5D: off-axis boss is closed at both ends")
+                    return None
+                through_boss = not inside[0] and not inside[1]   # passes through the prism body
+                flip = bool(inside[1])
+            else:
+                if inside[0] and inside[1]:
+                    log("  2.5D: off-axis hole is closed at both ends")
+                    return None
+                flip = bool(inside[0])
+                if not inside[0] and not inside[1]:      # open at both ends: sketch on a flat end face
+                    f0 = _face_point(mesh, c + t0 * d, d, u, v, r, tol)
+                    flip = f0 is None and _face_point(mesh, c + t1 * d, d, u, v, r, tol) is not None
+            if flip:
+                d, t0, t1 = -d, -t1, -t0
+                inside = inside[::-1]
+            tf = t0
+            if op == "cut":                            # cut past the open end(s)
+                t0 -= e
+                t1 += 0 if inside[1] else e
+            face_pt = _face_point(mesh, c + tf * d, d, u, v, r, tol)
+            if through_boss:                           # sketched on a face of the body it crosses
+                face_pt = None
+                for tc in _cap_heights(mesh, c, d, r, t0, t1, tol):
+                    face_pt = _face_point(mesh, c + tc * d, d, u, v, r, tol)
+                    if face_pt is not None:
+                        tf = tc
+                        break
+            ext = (float(V[:, k].min()), float(V[:, k].max()))
+            out.append(dict(op=op, c=c, d=d, r=float(r), t0=t0, t1=t1, tf=tf, face_pt=face_pt, spans=through_boss,
+                            through=bool(op == "cut" and not inside[1]), ext=ext, err=float(err),
+                            faces=comp))
     return out
 
 
@@ -245,7 +265,8 @@ def levels(mesh, k, tol, skip=()):
         else:
             cur.append(x)
     out.append(float(np.mean(cur)))
-    return out
+    from .snap2d import nice
+    return [nice(v, 1e-6) for v in out]          # 3e-17 is 0
 
 
 # ----------------------------------------------------------------------------- sections
@@ -285,6 +306,9 @@ def section_loops(mesh, k, z, tol):
             loops.append(order)
     V = mesh.vertices[:, [i, j]]
     F = mesh.faces
+    # a wall facet's vertices project onto the section curve; a tilted facet's (a badly shaped
+    # triangle where a cross hole meets a wall) belong to other heights: its crossing point is used
+    tilted = np.abs(mesh.face_normals[fidx, k]) > 1e-3
     out = []
     for order in loops:
         poly = np.array([S[s, e] for s, e in order])
@@ -293,6 +317,10 @@ def section_loops(mesh, k, z, tol):
             a, b = S[s, e], S[s, 1 - e]
             d = b - a
             L2 = float(d @ d) + 1e-30
+            if tilted[s]:
+                pts.append(a)
+                par.append(float(n_))
+                continue
             for v in V[F[fidx[s]]]:
                 t = np.clip((v - a) @ d / L2, 0.0, 1.0)
                 if np.linalg.norm(a + t * d - v) < 0.05 * np.sqrt(L2) + 4 * tol:
@@ -1012,6 +1040,100 @@ def build_loop(P, tol):
     return Loop(edges, _area(P))
 
 
+def exact_arcs(L, eps=1e-6):
+    """Arc middle points put exactly on the arc's circle when its centre and radius are clean
+    values within eps (a snapped arc keeps a fitted middle point a few 1e-9 off, and three
+    rounded points then give a radius off by 1e-7: OCC fails between coaxial cylinders then)."""
+    from .snap2d import nice
+    E = list(L.edges)
+    changed = False
+    for m, e in enumerate(E):
+        if e[0] != "arc":
+            continue
+        a, mid, b = (np.asarray(q, float) for q in e[1:])
+        c = _centre3(a, mid, b)
+        if c is None:
+            continue
+        c2 = np.array([nice(float(c[0]), eps), nice(float(c[1]), eps)])
+        r = nice(float(np.linalg.norm(a - c)), eps)
+        if abs(np.linalg.norm(a - c2) - r) > eps or abs(np.linalg.norm(b - c2) - r) > eps:
+            continue
+        u = mid - c2
+        E[m] = ("arc", e[1], c2 + r * u / np.linalg.norm(u), e[3])
+        changed = True
+    if not changed:
+        return L
+    out = Loop(E, L.area, pattern=L.pattern, linear=L.linear)
+    return out
+
+
+def absorb_chords(L, tol):
+    """Lines that are chords of a neighbouring arc's circle (both ends on it within tol / 4, the
+    line within 1.5 tol of it: no data can tell them from the arc) and neighbouring arcs on one
+    circle are merged into one arc. Where a section's points are sparse (a few mm apart on a
+    large radius), chords fit within tol and would leave a faceted wall."""
+    if L.pattern is not None or L.linear is not None or len(L.edges) < 3:
+        return L
+    if any(e[0] not in ("line", "arc") for e in L.edges):
+        return L
+    E = [tuple(np.asarray(q, float) if m else q for m, q in enumerate(e)) for e in L.edges]
+    cr = lambda u, v: u[0] * v[1] - u[1] * v[0]
+
+    def circle(e):
+        c = _centre3(*e[1:])
+        if c is None:
+            return None
+        return c, float(np.linalg.norm(e[1] - c)), np.sign(cr(e[1] - c, e[2] - c) + cr(e[2] - c, e[3] - c))
+
+    def fits(e, c, R, s):
+        a, b = e[1], e[-1]
+        if abs(np.linalg.norm(a - c) - R) > tol / 4 or abs(np.linalg.norm(b - c) - R) > tol / 4:
+            return False
+        if e[0] == "arc":
+            g = circle(e)
+            return g is not None and np.linalg.norm(g[0] - c) < tol / 10 and abs(g[1] - R) < tol / 10 and g[2] == s
+        d = b - a
+        dist = abs(cr(d, c - a)) / (np.linalg.norm(d) + 1e-30)
+        return -tol / 4 <= R - dist < 1.5 * tol and np.sign(cr(a - c, b - c)) == s
+
+    def arc(a, b, c, R, s):
+        ta, tb = np.arctan2(*(a - c)[::-1]), np.arctan2(*(b - c)[::-1])
+        sw = (tb - ta) % (2 * np.pi) if s > 0 else -((ta - tb) % (2 * np.pi))
+        if abs(sw) > 2 * np.pi - 0.05:
+            return None
+        tm = ta + sw / 2
+        return ("arc", a, c + R * np.array([np.cos(tm), np.sin(tm)]), b)
+    changed = True
+    while changed and len(E) > 2:
+        changed = False
+        n = len(E)
+        for m in range(n):
+            if E[m][0] != "arc":
+                continue
+            g = circle(E[m])
+            if g is None:
+                continue
+            c, R, s = g
+            nx, pv = (m + 1) % n, (m - 1) % n
+            if fits(E[nx], c, R, s):
+                new = arc(E[m][1], E[nx][-1], c, R, s)
+                if new is not None:
+                    E[m] = new
+                    del E[nx]
+                    changed = True
+                    break
+            if fits(E[pv], c, R, s):
+                new = arc(E[pv][1], E[m][-1], c, R, s)
+                if new is not None:
+                    E[m] = new
+                    del E[pv]
+                    changed = True
+                    break
+    if len(E) == len(L.edges):
+        return L
+    return Loop(E, L.area)
+
+
 def consolidate(loops, tol):
     """One value per design dimension: circle and pattern centres within tol become one centre,
     circle radii within tol one radius (a hole and a boss turned on one axis share it)."""
@@ -1161,16 +1283,17 @@ def reconstruct(mesh, tol, log=print):
         f"{vsum - solid.Volume():.1f}) ({time.time() - t0:.1f}s)")
     if not solid.isValid():
         return None
-    feats, cyls = [], []
+    feats, cyls, revs = [], [], []
     for r in res:
         feats += r.extras["prism25"]["features"]
         cyls += r.extras["prism25"].get("cylinders", [])
+        revs += r.extras["prism25"].get("revolved", [])
     out = Result(shape=solid, mode="exact")
     out.extras = dict(prims=[], analytic_fraction=1.0, summary=f"2.5D: {len(feats)} extrusions",
                       volume_error=max(r.extras["volume_error"] for r in res), brep=None, valid=True,
                       passed=True, overlapping_shells=len(bodies),
                       prism25=dict(axis=res[0].extras["prism25"]["axis"], features=feats,
-                                   cylinders=cyls))
+                                   cylinders=cyls, revolved=revs))
     return out
 
 
@@ -1239,9 +1362,17 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
     import time
     import cadquery as cq
     t0 = time.time()
+    from . import revfeat
     k, frac = prism_axis(mesh, min_fraction=0.0)
-    cyls = [] if frac >= 0.999 else secondary_cylinders(mesh, k, tol, log=log)
+    groups, member = [], None
+    if frac < 0.999:                             # surfaces of revolution about axes along k
+        groups, member = revfeat.find_groups(mesh, k, tol, log=log)
+    cyls = [] if frac >= 0.999 else secondary_cylinders(mesh, k, tol, log=log, ignore=member)
+    if cyls is None and groups:
+        log(f"  2.5D along {AX[k]}: {len(groups)} revolved group(s), but the other off-axis faces "
+            "are not cylinders")
     if cyls is None:                             # another axis, whose off-axis faces are cylinders
+        groups = []
         quiet = lambda *a, **kw: None
         for k2 in range(3):
             f2 = float(mesh.area_faces[_wall_or_cap(mesh, k2)].sum() / mesh.area_faces.sum())
@@ -1258,17 +1389,31 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
         log(f"  2.5D along {AX[k]} ({100 * frac:.1f} % of the area) with {len(cyls)} off-axis "
             f"cylinder(s): " + ", ".join(f"{'boss' if c['op'] == 'add' else 'hole'} d={2 * c['r']:.3f}"
                                          for c in cyls))
-    lv = levels(mesh, k, tol, skip=[f for c in cyls for f in c["faces"]])
+    if groups:
+        log(f"  2.5D along {AX[k]} with {len(groups)} revolved group(s) about axes along {AX[k]}")
+    skip = [f for c in cyls for f in c["faces"]] + list(revfeat.cap_skip(mesh, k, tol, groups))
+    lv = levels(mesh, k, tol, skip=skip)
     slabs = [(a, b) for a, b in zip(lv[:-1], lv[1:]) if b - a > 2 * tol]
     if not slabs:
         return None
+    revfeat.set_modes(groups, slabs, tol)
+    local = [dict(ext=iv) for g in groups if g["mode"] == "local" for iv in g["spans"]]
+
+    def disks(sec):
+        out = revfeat.disk_sections(sec, groups, k, tol)
+        if out is None:
+            raise ValueError("a section loop crosses the circle of a revolved disk")
+        return out
     zs, secs = [], []
     for a, b in slabs:
-        z = _free_height(a, b, cyls, tol)
+        z = _free_height(a, b, cyls + local, tol)
         if z is not None:
             zs.append(z)
-            secs.append(section_loops(mesh, k, z, tol))
+            secs.append(disks(section_loops(mesh, k, z, tol)))
             continue
+        if local and _free_height(a, b, local, tol) is None:
+            log("  2.5D: a revolved feature spans a whole slab; no clean section")
+            return None
         # bosses that cross the whole slab: section next to the slab end where their chords
         # are narrowest, and drop the slivers the chords leave (the prism under a boss is
         # unknown; any profile within the boss is the same part)
@@ -1283,7 +1428,7 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
             log("  2.5D: an off-axis feature spans a whole slab; no clean section")
             return None
         zs.append(z)
-        secs.append(_open_section(section_loops(mesh, k, z, tol), span, k, z, tol))
+        secs.append(disks(_open_section(section_loops(mesh, k, z, tol), span, k, z, tol)))
     tracks = loop_tracks(slabs, secs, tol)
     # material is built in nesting order: outlines, then the holes in them, then islands in the
     # holes, and so on; at every height this reproduces the section
@@ -1305,12 +1450,14 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
         if len(Lf.edges) <= 1.75 * len(L.edges) and _dist_to_loop(P, Lf.edges) <= tol / 4:
             log(f"  loop {m + 1}: refitted at tol/4 ({len(L.edges)} -> {len(Lf.edges)} edges)")
             loops[m] = Lf
+    loops = [absorb_chords(L, tol) for L in loops]
     loops = consolidate(loops, tol)
     if snap:
         from .snap2d import snap_loops
         loops = snap_loops(loops, [t["P"] for t in tracks], tol, log=log)
         loops = [resymmetrize(L, t["P"], tol) for L, t in zip(loops, tracks)]
-    loops = [linear_pattern(L, tol) for L in loops]
+    loops = [linear_pattern(exact_arcs(L), tol) for L in loops]
+    loops = revfeat.exact_circles(loops, tracks, groups)
     for L in loops:
         if L.linear is not None:
             p_, N_, v_ = L.linear
@@ -1328,6 +1475,16 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
         else:
             solid = solid.cut(body)
         feats.append(dict(z0=t["z0"], z1=t["z1"], op=t["op"], loop=loop))
+    revs = []
+    if groups:
+        revs = revfeat.features(mesh, k, tol, groups, slabs, secs, snap=snap, log=log, prism=solid)
+        if revs is None:
+            return None
+        for f in revs:                           # a disk boss only touches the prism on its cylinder
+            if f["op"] == "cut":
+                solid = solid.cut(f["solid"])
+            else:
+                solid = solid.fuse(f["solid"])
     for cy in cyls:                              # off-axis bosses first, then the holes
         if cy["op"] == "add":
             solid = solid.fuse(cylinder_solid(cy))
@@ -1336,11 +1493,13 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
             solid = solid.cut(cylinder_solid(cy))
     solid = solid.clean()
     n_edges = sum(len(f["loop"].edges) for f in feats)
-    vol_err = abs(solid.Volume() / mesh.volume - 1)
+    from .core import mass_props
+    vol_err = abs(mass_props(solid)[0] / mesh.volume - 1)
     valid = solid.isValid() and len(solid.Solids()) == 1
     dmax, dback = _distance_check(solid, mesh) if valid else (np.inf, np.inf)
     n_add = sum(f["op"] == "add" for f in feats)
     log(f"  2.5D along {AX[k]}: {len(lv)} levels, {n_add} extrusion(s) and {len(feats) - n_add} cut(s), "
+        f"{len(revs)} revolved feature(s), "
         f"{n_edges} profile edges, volume error {100 * vol_err:.3f} %, max distance mesh->model "
         f"{dmax:.4f} mm, model->mesh {dback:.4f} mm, valid={valid} ({time.time() - t0:.1f}s)")
     # the two-way distance is the real test: every mesh vertex within 1.5 tol of the model, the
@@ -1352,7 +1511,8 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
     res = Result(shape=solid, mode="exact")
     res.extras = dict(prims=[], analytic_fraction=1.0, summary=f"2.5D: {len(feats)} features",
                       volume_error=vol_err, brep=None, valid=True, passed=True,
-                      prism25=dict(axis=k, features=feats, cylinders=_order_cyls(cyls)))
+                      prism25=dict(axis=k, features=feats, cylinders=_order_cyls(cyls),
+                                   revolved=[{q: v for q, v in f.items() if q != "solid"} for f in revs]))
     return res
 
 
