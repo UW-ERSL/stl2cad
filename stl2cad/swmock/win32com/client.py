@@ -355,17 +355,45 @@ class Extension:
                             return True
             return False
         if typ == "FACE" and m.body is not None:
-            P = cq.Vector(x * K, y * K, z * K)
-            for fc in m.body.Faces():
-                if fc.geomType() != "PLANE":
-                    continue
-                if (cq.Vertex.makeVertex(*P.toTuple())).distance(fc) < 1e-6:
-                    nrm = np.array(fc.normalAt(P).toTuple())
-                    fr = face_frame(nrm)
-                    off = float(nrm @ np.array(fc.Center().toTuple())) / K     # the face's own plane
-                    m.selected = Feature(m, "Face", (fr, off))
-                    return True
+            # as seen in SolidWorks 2025: the first face along the line of sight through the point
+            # (front view, looking along -z), not necessarily the face containing it
+            v = np.array([0.0, 0.0, 1.0])
+            return self._ray_face(np.array([x, y, z]) * K + 1000.0 * v, -v)
+        return self._select_other(name, typ, x, y, z, append)
+
+    def SelectByRay(self, x, y, z, dx, dy, dz, radius, typ, append, mark, opt):
+        if typ != 2 or self.model.body is None:                  # swSelFACES
             return False
+        d = np.array([dx, dy, dz], float)
+        return self._ray_face(np.array([x, y, z]) * K, d / np.linalg.norm(d))
+
+    def _ray_face(self, p0, d):
+        """Select the first planar face hit by the ray p0 + t d (mm)."""
+        m = self.model
+        best = None
+        for fc in m.body.Faces():
+            if fc.geomType() != "PLANE":
+                continue
+            c = np.array(fc.Center().toTuple())
+            nrm = np.array(fc.normalAt(cq.Vector(*c)).toTuple())
+            den = d @ nrm
+            if abs(den) < 1e-12:
+                continue
+            t = ((c - p0) @ nrm) / den
+            if t <= 0:
+                continue
+            q = p0 + t * d
+            if cq.Vertex.makeVertex(*q).distance(fc) < 1e-6 and (best is None or t < best[0]):
+                best = (t, fc, nrm, c)
+        if best is None:
+            return False
+        _, fc, nrm, c = best
+        m.selected = Feature(m, "Face", (face_frame(nrm), float(nrm @ c) / K))   # the face's own plane
+        m.selected_normal = tuple(nrm)
+        return True
+
+    def _select_other(self, name, typ, x, y, z, append):
+        m = self.model
         if typ == "EXTSKETCHPOINT" and name == "Point1@Origin":
             m.sel_list.append(("point", (0.0, 0.0)))
             return True
@@ -529,6 +557,13 @@ class SelectionManager:
 
     def CreateSelectData(self):
         return SelectData()
+
+    def GetSelectedObject6(self, i, mark):
+        class F:
+            pass
+        f = F()
+        f.Normal = getattr(self.model, "selected_normal", (0.0, 0.0, 0.0))
+        return f
 
     def GetSelectedObjectCount2(self, mark):
         return 0 if self.model.selected is None else 1
