@@ -185,13 +185,17 @@ def save(res, path, o, log=print, out_dir=None):
         else:
             log(f"script: not written ({msg})")
         res.report += f"\nscript: {kind + ' script, ' + msg if code else 'not written (' + msg + ')'}"
-    if o.export_solidworks and res.mode == "exact" and res.extras.get("prism25") is not None:
-        from .swgen import solidworks_script, verify_with_standin
+    if o.export_solidworks and res.mode == "exact" and (res.extras.get("prism25") is not None
+                                                         or res.extras.get("revolve") is not None):
+        from .swgen import solidworks_script, solidworks_revolve_script, verify_with_standin
         t0 = time.time()
         swname = os.path.splitext(os.path.basename(path))[0] + "_solidworks"
         tol_ = res.extras.get("tolerance", 0.1)
         try:
-            code = solidworks_script(res.extras["prism25"], swname)
+            if res.extras.get("revolve") is not None:
+                code = solidworks_revolve_script(res.extras["revolve"], res.shape, swname)
+            else:
+                code = solidworks_script(res.extras["prism25"], swname)
         except ValueError as e:                  # a feature the generator cannot express
             code, ok1, ok2, m1 = None, False, False, str(e)
         if code is not None:

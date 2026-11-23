@@ -37,6 +37,7 @@ heatfin.STL m
 crossbar.STL m
 flange.STL m
 standoff.STL m
+chesspawn.STL m
 EOF
 
 run_one() {

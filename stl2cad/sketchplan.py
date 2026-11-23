@@ -35,7 +35,7 @@ def _tangent(line_dir, corner, centre):
 RANK_TOL = 1e-5
 
 
-def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies=None):
+def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies=None, revolve_axis=False):
     """edges: ("line", a, b) / ("arc", a, mid, b) in (a, b) sketch coordinates (mm).
     linear: (p, N) when edges[:p N] are N copies of the first p edges made by a sketch linear
     pattern: the copies then follow the period (each corner moved by the period's own end-to-start
@@ -45,6 +45,8 @@ def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies
     copies: (p, [(start, k), ...]) when edges start .. start + p - 1 are made by a sketch linear
     pattern of the first p edges (the seed), moved k times the seed's own end-to-start offset;
     the pattern's spacing and direction fix that offset, and no operation picks a copy.
+    revolve_axis: the outline is a revolve profile with its axis on the line a = 0: a construction
+    centerline there (the Revolve feature's axis) and the corners on it put on it.
     pitch: p when the first edges are drawn copies of a period of p edges (tied by Equal and
     Parallel relations): the pitch, from corner 0 to corner p, is dimensioned first, so that a
     change of a feature's size keeps the pitch.
@@ -134,6 +136,16 @@ def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies
               for m in range(1, N_) for j in range(p_) for a in (0, 1)]
         R = np.vstack([rows, jac(fs)])
         rows, rank = R, np.linalg.matrix_rank(R, tol=RANK_TOL * max(1.0, np.abs(R).max()))
+    if revolve_axis:
+        ext_b = float(np.abs(V[:, 1]).max()) if n else 1.0
+        Lc = 1.3 * ext_b + 1.0
+        ops.append(("centerline", 0, ((0.0, -Lc), (0.0, Lc)), f"{tag}revolve axis a = 0"))
+        pick = P(np.array([0.0, 0.9 * Lc]))
+        for i in range(n):
+            if abs(V[i][0]) < 1e-9:
+                try_add([lambda x, i=i: corner(x, i)[0]],
+                        ("rel", "sgCOINCIDENT", [("SKETCHPOINT", P(V[i])), ("SKETCHSEGMENT", pick)],
+                         f"{tag}corner {P(V[i])} on the revolve axis"))
     # mirror symmetry about the sketch axes through the origin: a construction centerline per
     # axis, mirrored corners tied with Symmetric relations, corners on the axis put on it
     ext = float(np.abs(V).max()) if n else 1.0

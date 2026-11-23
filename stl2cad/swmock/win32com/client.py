@@ -223,6 +223,7 @@ class SketchManager:
     def CreateCenterLine(self, x1, y1, z1, x2, y2, z2):
         seg = self._add(("line", (x1, y1), (x2, y2)))
         seg.ConstructionGeometry = True
+        seg.centerline = True
         return seg
 
     def CreateCircularSketchStepAndRepeat(self, R, A, n, spacing, rotate, delete, *dims):
@@ -509,6 +510,39 @@ class FeatureManager:
         else:
             m.body = body if before is None else _boolean(before, body, cut=False)
         f = Feature(m, "Extrusion", dict(before=before))
+        m.features.append(f)
+        LAST["features"] = m.features
+        return f
+
+    def FeatureRevolve2(self, single, solid, thin, cut, rev, both, t1, t2, a1, a2, *rest):
+        """Revolve the selected sketch's profile about its single construction centerline."""
+        m = self.model
+        sk = m.selected.data
+        u, v, n = (np.array(a, float) for a in sk.frame)
+        o = sk.offset * n
+        P = lambda q: cq.Vector(*(K * (np.asarray(q, float)[0] * u + np.asarray(q, float)[1] * v + o)))
+        axes = [seg for seg in sk.edges if not seg.deleted and seg.ConstructionGeometry and seg.edge[0] == "line"
+                and getattr(seg, "centerline", False)]
+        if len(axes) != 1:
+            return None
+        es = []
+        for seg in sk.edges:
+            if seg.deleted or seg.ConstructionGeometry:
+                continue
+            e = seg.edge
+            if e[0] == "line":
+                es.append(cq.Edge.makeLine(P(e[1]), P(e[2])))
+            elif e[0] == "arc":
+                es.append(cq.Edge.makeThreePointArc(P(e[1]), P(e[2]), P(e[3])))
+            else:
+                es.append(cq.Edge.makeCircle(K * e[2], P(e[1]), cq.Vector(*n)))
+        wires = sorted(cq.Wire.combine(es), key=lambda w: -cq.Face.makeFromWires(w, []).Area())
+        face = cq.Face.makeFromWires(wires[0], wires[1:])
+        a, b = axes[0].edge[1], axes[0].edge[2]
+        body = cq.Solid.revolve(face, math.degrees(a1), P(a), P(b))
+        before = m.body
+        m.body = body if before is None else _boolean(before, body, cut=bool(cut))
+        f = Feature(m, "Revolve", dict(before=before))
         m.features.append(f)
         LAST["features"] = m.features
         return f

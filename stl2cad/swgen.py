@@ -1019,6 +1019,37 @@ class SW:
                            f"and centre of mass {centroid}")
 
 
+    def revolve(self, sk, expected, centroid, name):
+        """Revolve feature of 360 degrees about the sketch's construction centerline. The axis is
+        taken from the sketch's single centerline; if SolidWorks makes no feature that way, the
+        centerline is selected as well (Mark 4, then 16)."""
+        fm = self.model.FeatureManager
+        cl = next((g for kind, _, g in self.ents if kind == "cline"), None)
+        for mark in (None, 4, 16):
+            self.model.ClearSelection2(True)
+            sk.Select2(False, 0)
+            if mark is not None:
+                if cl is None:
+                    break
+                sd = call0(self.model.SelectionManager, "CreateSelectData")
+                sd.Mark = mark
+                cl.Select4(True, sd)
+            f = fm.FeatureRevolve2(True, True, False, False, False, False, 0, 0, 2 * math.pi, 0.0,
+                                   False, False, 0.0, 0.0, 0, 0.0, 0.0, True, True, True)
+            if f is None:
+                print(f"  revolve{'' if mark is None else f' (centerline Mark {mark})'}: SolidWorks returned no feature")
+                continue
+            v, c = self.mass()
+            print(f"  revolve: volume {v:.3f} mm^3, centre of mass ({c[0]:.3f}, {c[1]:.3f}, {c[2]:.3f}) mm")
+            if abs(v - expected) <= 1e-4 * expected + 1e-3 and math.dist(c, centroid) <= 1e-5 * SIZE + 1e-4:
+                f.Name = name
+                return v
+            self.model.ClearSelection2(True)
+            f.Select2(False, 0)
+            self.model.Extension.DeleteSelection2(0)
+        raise RuntimeError(f"{name}: no Revolve feature gives the expected volume {expected:.3f} mm^3")
+
+
 class NoFeature(Exception):
     """SolidWorks created no feature from the sketch (typically an open or self-touching outline)."""
 
@@ -1056,7 +1087,10 @@ def build():
         for m, (add_to_db, use_plans) in enumerate(modes):
             sk = sw.sketch(st["loops"], add_to_db, plans=st.get("plans") if use_plans else None)
             try:
-                v = sw.feature(sk, st["op"], st["lo"], st["hi"], st["volume"], st["centroid"], st["name"])
+                if st["op"] == "revolve":
+                    v = sw.revolve(sk, st["volume"], st["centroid"], st["name"])
+                else:
+                    v = sw.feature(sk, st["op"], st["lo"], st["hi"], st["volume"], st["centroid"], st["name"])
                 break
             except NoFeature:
                 sw.dump_sketch(sk, everything=True)
@@ -1201,6 +1235,83 @@ def solidworks_script(p25, name, nd=6):
         L.append(f'         dia={_f(cy["dia"], nd)}, depth={_f(cy["depth"], nd)}, depth2={_f(cy["depth2"], nd)}, volume={cy["volume"]:.4f}, '
                  f'centroid=({cy["centroid"][0]:.5f}, {cy["centroid"][1]:.5f}, {cy["centroid"][2]:.5f})),')
     L.append("]")
+    return "\n".join(L) + "\n" + _RUNTIME
+
+
+REVOLVE_FRAME = {      # STL frame -> build frame turning the revolve axis onto +y, a quarter turn
+    1: ([[1, 0, 0], [0, 1, 0], [0, 0, 1]], (0.0, 0.0, 0.0)),
+    0: ([[0, -1, 0], [1, 0, 0], [0, 0, 1]], (0.0, 0.0, -math.pi / 2)),   # +90 deg about z
+    2: ([[1, 0, 0], [0, 0, 1], [0, -1, 0]], (math.pi / 2, 0.0, 0.0)),    # -90 deg about x
+}
+
+
+def solidworks_revolve_script(rv, shape, name, nd=6):
+    """SolidWorks script for a body of revolution: the profile sketched on the Front Plane with the
+    axis as a vertical construction centerline through the origin, one Revolve feature of 360
+    degrees, then the body turned to the STL's orientation. Needs the axis along a model axis and
+    through the origin."""
+    from .sketchplan import plan_outline
+    k = rv["axis"]
+    c, d = np.asarray(rv["c"], float), np.asarray(rv["d"], float)
+    size = float(np.linalg.norm(np.ptp(np.array([np.asarray(q, float) for L in rv["loops"]
+                                                    for e in L.edges for q in e[1:]]), axis=0))) + 1.0
+    if np.linalg.norm(c) > 1e-6 * size or abs(abs(d[k]) - 1.0) > 1e-12:
+        raise ValueError("the revolve axis is not a model axis through the origin")
+    R, back = REVOLVE_FRAME[k]
+    Rt = np.asarray(R, float).T
+    ai = int(np.argmax(np.abs(Rt @ np.array([1.0, 0.0, 0.0]))))     # model axis drawn as sketch x
+    sgn = float(np.sign((Rt @ np.array([1.0, 0.0, 0.0]))[ai]))
+    # profile (u, v) -> sketch (a, b) = model coordinates (axis ai, axis k); u is drawn on the
+    # side where the build frame's x is positive
+    loops = []
+    from .prism25 import Loop
+    for L in rv["loops"]:
+        es = [(e[0],) + tuple(np.array([sgn * q[0], q[1]], float) for q in e[1:]) for e in L.edges]
+        loops.append(Loop(es, L.area))
+    cb = np.asarray(R, float) @ np.asarray(shape.Center().toTuple())
+    vol = float(shape.Volume())
+    allp = np.array([np.asarray(q, float) for L in loops for e in L.edges for q in e[1:]])
+    helper = allp.min(axis=0) - 10.0
+    plans, full = [], True
+    for n_, L in enumerate(sorted(loops, key=lambda L: -abs(L.area))):
+        E_ = [tuple([e[0]] + [tuple(map(float, q)) for q in e[1:]]) for e in L.edges]
+        ops, ok = plan_outline(E_, revolve_axis=(n_ == 0))
+        plans.append(ops)
+        full = full and ok
+    loops = sorted(loops, key=lambda L: -abs(L.area))
+    L = [f'"""{name}: SolidWorks feature tree generated by stl2cad (exact mode, revolve).',
+         "",
+         f"Builds the part in SolidWorks through its API: one Revolve feature of 360 degrees about the "
+         f"{AX[k]} axis,",
+         "from a profile sketched on the Front Plane with the axis as a construction centerline; "
+         + ("the part is built with the axis along y and turned back by a Move/Copy Body feature. "
+            if k != 1 else "") + "Units: mm.",
+         "The part volume and centre of mass are checked against stl2cad's values.",
+         "",
+         "Needs: Windows, SolidWorks, Python with pywin32 (pip install pywin32).",
+         f"Run:   python {name}.py [C:\\path\\part.SLDPRT]",
+         '"""',
+         "",
+         f"AXIS_I, AXIS_J = {ai}, {k}           # model axes of the sketch coordinates (a, b)",
+         'PLANE_NAME = "Front Plane"',
+         "PLANE_INDEX = 0                 # its position among the template planes",
+         f"ROT = {[list(map(float, r)) for r in R]}   # STL frame -> build frame (revolve axis {AX[k]} -> y)",
+         f"ROT_BACK = {tuple(back)}   # rotation (rad) about x, y, z back to the STL frame",
+         f"FINAL_CENTROID = {tuple(round(float(x), 5) for x in shape.Center().toTuple())}   # STL frame, mm",
+         f"SIZE = {_f(size, 3)}                  # part diagonal (mm), scale of the centre-of-mass check",
+         f"HELPER_AB = ({_f(helper[0], 3)}, {_f(helper[1], 3)})   # helper circle (a, b), outside the part",
+         "",
+         "# ---- features: the revolve profile (a, b in mm), expected volume (mm^3) ----",
+         "FEATURES = [",
+         "    dict(",
+         f'        name="Revolve 1 about {AX[k]}", op="revolve", lo=0.0, hi=0.0, '
+         f"volume={vol:.4f}, centroid=({cb[0]:.5f}, {cb[1]:.5f}, {cb[2]:.5f}), holes=False,",
+         f"        expect=\"{'fully defined' if full else 'under defined'}\",",
+         "        plans=" + repr(_round_plans(plans)) + ",",
+         "        loops=["]
+    for Lp in loops:
+        L.append("        " + _loop_code(Lp, nd) + ",")
+    L += ["        ],", "    ),", "]", "", "CYLINDERS = []"]
     return "\n".join(L) + "\n" + _RUNTIME
 
 

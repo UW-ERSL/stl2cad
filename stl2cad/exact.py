@@ -492,6 +492,10 @@ def reconstruct(mesh, opts, spec=None, log=print):
         res = prism25.reconstruct(mesh, tol, log=log)
         if res is not None:
             return res
+        from . import revolve
+        res = revolve.reconstruct(mesh, tol, log=log)    # a body of revolution: one revolved profile
+        if res is not None:
+            return res
     t = time.time()
     seg = Segmenter(mesh, tol, kinds=opts["kinds"], allow_extrusion=opts.get("allow_extrusion", False),
                     allow_facets=opts.get("allow_facets", True), log=log)
