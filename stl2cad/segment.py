@@ -1394,8 +1394,10 @@ def snap_tangency(prims, mesh, tol, log=print):
         if len(cons) >= 3:
             x, *_ = np.linalg.lstsq(A, b, rcond=None)
         else:
-            # minimum-norm correction from x0 satisfying A x = b
-            x = x0 + A.T @ np.linalg.solve(A @ A.T, b - A @ x0)
+            # minimum-norm correction from x0 satisfying A x = b (least squares when the two
+            # constraints are dependent, e.g. two parallel planes: A A^T is then singular)
+            dx, *_ = np.linalg.lstsq(A, b - A @ x0, rcond=None)
+            x = x0 + dx
         if abs(x[2] - p.p["r"]) < 3 * tol and np.hypot(x[0], x[1]) < 3 * tol:
             p.p["c"] = c0 + x[0] * u + x[1] * v
             p.p["r"] = float(x[2])
