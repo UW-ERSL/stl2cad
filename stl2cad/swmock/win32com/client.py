@@ -806,6 +806,11 @@ class Model:
             assert ks in (["line", "line"], ["arc", "arc"], ["arc", "circle"], ["circle", "circle"]), (rel, s)
             self.rels.append(rel)
             return
+        if rel in ("sgHORIZONTAL2D", "sgVERTICAL2D"):      # as SolidWorks: the line would turn
+            (k0, seg), = s
+            (x1, y1), (x2, y2) = seg.edge[1], seg.edge[2]
+            along, across = (abs(x2 - x1), abs(y2 - y1)) if rel == "sgHORIZONTAL2D" else (abs(y2 - y1), abs(x2 - x1))
+            assert across <= 1e-3 * along, f"{rel} on a line that is not {'horizontal' if rel == 'sgHORIZONTAL2D' else 'vertical'}"
         need = {"sgHORIZONTAL2D": ["line"], "sgVERTICAL2D": ["line"], "sgTANGENT": ["arc", "line"],
                 "sgCOINCIDENT": ["point", "point"], "sgHORIZONTALPOINTS2D": ["point", "point"],
                 "sgVERTICALPOINTS2D": ["point", "point"]}[rel]
@@ -865,6 +870,9 @@ class App:
 
     def SetUserPreferenceToggle(self, k, v):
         self.prefs[k] = v
+
+    def CloseAllDocuments(self, include_unsaved):
+        return True
 
     def NewPart(self):
         return Model()

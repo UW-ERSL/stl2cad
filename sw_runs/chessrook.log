@@ -1,0 +1,25 @@
+connected to SolidWorks; new part created; building 1 feature(s)
+  sketch (AddToDB): 1 closed region(s)
+  revolve: volume 17719.995 mm^3, centre of mass (-0.000, 19.399, 0.000) mm
+Revolve 1 about y: volume 17719.995 mm^3 (expected 17719.996)
+turned +90 deg about the axis (Move/Copy Body, angle argument 2, +90 deg)
+  sketch (AddToDB): 2 closed region(s)
+  try reverse=True flip_start=True: volume 17588.662 mm^3, centre of mass (0.000, 19.215, -0.000) mm
+Cut 1 across the axis (-1, 0, 0): volume 17588.662 mm^3 (expected 17588.662)
+turned back (Move/Copy Body, angle argument 2, -90 deg)
+turned -30 deg about the axis (Move/Copy Body, angle argument 2, -30 deg)
+  sketch (AddToDB): 2 closed region(s)
+  try reverse=True flip_start=True: volume 17457.329 mm^3, centre of mass (-0.000, 19.028, 0.000) mm
+Cut 2 across the axis (0.5, 0, 0.866): volume 17457.329 mm^3 (expected 17457.329)
+turned back (Move/Copy Body, angle argument 2, +30 deg)
+turned -150 deg about the axis (Move/Copy Body, angle argument 2, -150 deg)
+  sketch (AddToDB): 2 closed region(s)
+  try reverse=True flip_start=True: volume 17325.995 mm^3, centre of mass (-0.000, 18.838, -0.000) mm
+Cut 3 across the axis (0.5, 0, -0.866): volume 17325.995 mm^3 (expected 17325.995)
+turned back (Move/Copy Body, angle argument 2, +150 deg)
+part is in the STL's orientation
+linked dimensions: none (no equal radius or diameter in two sketches)
+dimensions: 33 added
+relations: 30 added
+sketch status: fully defined, fully defined, fully defined, fully defined
+planned: fully defined, fully defined, fully defined, fully defined

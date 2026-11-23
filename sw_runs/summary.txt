@@ -1,0 +1,30 @@
+C-bracket              ok          3s   1 feature(s), 4 dims, 8 relations, 1/1 sketches fully defined
+CircularPlateHole      ok          5s   2 feature(s), 6 dims, 0 relations, 2/2 sketches fully defined
+CrossHoles             ok         12s   3 feature(s), 7 dims, 5 relations, 2/3 sketches fully defined  [3 dimension(s) failed]
+HeatBlock              ok         11s   4 feature(s), 14 dims, 20 relations, 4/4 sketches fully defined
+SimpleBracket          ok          6s   2 feature(s), 8 dims, 5 relations, 2/2 sketches fully defined
+StepBlock              ok          8s   3 feature(s), 11 dims, 18 relations, 3/3 sketches fully defined
+ThreeHoleBracket       ok          6s   2 feature(s), 8 dims, 6 relations, 2/2 sketches fully defined
+WedgeHoles             FAILED      8s  RuntimeError: Hole 2 dia 8 along (-0.5, -0.866, -8.62e-09): neither direction gives the expected volume 66395.171 mm^3
+bottleopener           ok         26s   4 feature(s), 54 dims, 22 relations, 1/4 sketches fully defined  [4 dimension(s) failed]
+chesspawn              ok          5s   1 feature(s), 14 dims, 14 relations, 1/1 sketches fully defined
+chessrook              ok         21s   4 feature(s), 33 dims, 30 relations, 4/4 sketches fully defined
+crankarm               ok         11s   4 feature(s), 13 dims, 6 relations, 4/4 sketches fully defined
+crossbar               ok         53s   2 feature(s), 8 dims, 97 relations, 1/3 sketches fully defined  [9 dimension(s) failed; 12 relation(s) failed]
+flange                 ok         30s   9 feature(s), 38 dims, 40 relations, 9/9 sketches fully defined
+gear                   ok         18s   6 feature(s), 29 dims, 4 relations, 5/6 sketches fully defined
+heatfin                ok          4s   1 feature(s), 5 dims, 10 relations, 1/1 sketches fully defined
+hexcap                 ok         11s   4 feature(s), 10 dims, 16 relations, 4/4 sketches fully defined
+hexspanner             ok          9s   2 feature(s), 14 dims, 22 relations, 2/2 sketches fully defined
+lbracket               ok          6s   2 feature(s), 8 dims, 12 relations, 2/2 sketches fully defined
+lever                  ok         15s   5 feature(s), 11 dims, 10 relations, 5/5 sketches fully defined
+lid                    ok         33s   7 feature(s), 33 dims, 61 relations, 7/8 sketches fully defined  [1 sketch(es) redrawn without plan]
+rack                   ok         14s   5 feature(s), 16 dims, 18 relations, 5/5 sketches fully defined
+slottedBlock           ok         15s   4 feature(s), 28 dims, 22 relations, 4/4 sketches fully defined
+snapring               ok         26s   6 feature(s), 35 dims, 21 relations, 6/7 sketches fully defined  [1 relation(s) failed; 1 sketch(es) redrawn without plan]
+standoff               ok         32s   7 feature(s), 60 dims, 33 relations, 7/7 sketches fully defined
+swingarm               ok          7s   2 feature(s), 13 dims, 20 relations, 2/2 sketches fully defined
+topcover               ok         31s   7 feature(s), 45 dims, 52 relations, 7/7 sketches fully defined
+tray                   ok         35s   4 feature(s), 91 dims, 35 relations, 3/4 sketches fully defined
+
+27 of 28 part(s) built; 20 with every sketch fully defined

@@ -1,0 +1,70 @@
+mode: exact
+tolerance: 0.0557 mm
+symmetry imposed: none (detected: D4 about frame axis x + mirror x)
+solid valid: True, faces: 75
+deviation:
+  ref_to_model  mean 0.0006  median 0.0000  p95 0.0032  max 0.0078 mm
+  model_to_ref  mean 0.0006  median 0.0000  p95 0.0032  max 0.0084 mm
+  volume ref 9922.45  model 9919.55 mm^3  (-0.03 %)
+time: 33.2 s
+script: feature script, verified: volume 0.0002 %, max distance 0.0000 mm
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 17 dimension(s), 108 relation(s)) (12.8s)
+
+options:
+{
+  "units": "m",
+  "mode": "auto",
+  "tolerance": 0.0,
+  "symmetry": "auto",
+  "mirror_x": false,
+  "mirror_y": false,
+  "mirror_z": false,
+  "cyclic": 1,
+  "cyclic_axis": "z",
+  "dihedral": false,
+  "surfaces": [
+    "plane",
+    "cylinder",
+    "cone",
+    "sphere",
+    "torus"
+  ],
+  "algebraic_only": false,
+  "allow_extrusion": true,
+  "snap_directions_deg": 1.0,
+  "snap_angle_step_deg": 15.0,
+  "tangency": true,
+  "separators": false,
+  "fillets": true,
+  "prism25": true,
+  "export_script": true,
+  "export_solidworks": true,
+  "grid": 0.0,
+  "pitch": 0.0,
+  "blur": 0.0,
+  "prune": 1.0,
+  "min_copy_frac": 0.5,
+  "holes": true,
+  "keep_free_ends": true,
+  "clip": "thin",
+  "area_radius": true,
+  "out_dir": "D:\\Dropbox\\Personal\\suresh\\Software\\Github\\ERSL-Private\\stl2cad\\sw_runs\\generated\\crossbar",
+  "export_step": true,
+  "export_stl": true
+}
+
+symmetry analysis:
+frame center [0.0, 0.0, -55.0]
+frame axes (columns):
+[[ 0.      0.9008 -0.4342]
+ [-0.      0.4342  0.9008]
+ [ 1.     -0.      0.    ]]
+mirror normal to frame x: mean error 0.0042 mm
+mirror normal to frame y: mean error 2.9840 mm
+mirror normal to frame z: mean error 2.9831 mm
+rotation about frame x: C2:0.004 C3:0.625 C4:0.004 C5:0.531 C6:0.624 C7:2.994 C8:3.233 C9:3.025 C10:2.937 C11:0.655 C12:0.626
+rotation about frame y: C2:2.987 C3:59.599 C4:68.518 C5:65.615 C6:59.595 C7:53.370 C8:47.907 C9:43.105 C10:38.971 C11:35.468 C12:32.440
+rotation about frame z: C2:2.984 C3:59.651 C4:68.451 C5:65.639 C6:59.740 C7:53.520 C8:47.964 C9:43.150 C10:39.061 C11:35.554 C12:32.630
+dihedral mirror plane at 19.27 deg: error 0.0039
+detected: D4 about frame axis x + mirror x  (group order 16, max element error 0.0042 mm, threshold 0.2226)
+center [0.0, -0.0, -55.0006]

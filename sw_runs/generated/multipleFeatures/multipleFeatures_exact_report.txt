@@ -1,0 +1,68 @@
+mode: exact
+tolerance: 0.0731 mm
+symmetry imposed: none (detected: mirror y)
+solid valid: True, faces: 79
+deviation:
+  ref_to_model  mean 0.0017  median 0.0000  p95 0.0090  max 0.0759 mm
+  model_to_ref  mean 0.0017  median 0.0000  p95 0.0089  max 0.0643 mm
+  volume ref 190454.61  model 190511.28 mm^3  (+0.03 %)
+time: 51.5 s
+script: construction script, verified: volume 0.0000 %, max distance 0.0000 mm
+
+options:
+{
+  "units": "in",
+  "mode": "auto",
+  "tolerance": 0.0,
+  "symmetry": "auto",
+  "mirror_x": false,
+  "mirror_y": false,
+  "mirror_z": false,
+  "cyclic": 1,
+  "cyclic_axis": "z",
+  "dihedral": false,
+  "surfaces": [
+    "plane",
+    "cylinder",
+    "cone",
+    "sphere",
+    "torus"
+  ],
+  "algebraic_only": false,
+  "allow_extrusion": true,
+  "snap_directions_deg": 1.0,
+  "snap_angle_step_deg": 15.0,
+  "tangency": true,
+  "separators": false,
+  "fillets": true,
+  "prism25": true,
+  "export_script": true,
+  "export_solidworks": true,
+  "grid": 0.0,
+  "pitch": 0.0,
+  "blur": 0.0,
+  "prune": 1.0,
+  "min_copy_frac": 0.5,
+  "holes": true,
+  "keep_free_ends": true,
+  "clip": "thin",
+  "area_radius": true,
+  "out_dir": "D:\\Dropbox\\Personal\\suresh\\Software\\Github\\ERSL-Private\\stl2cad\\sw_runs\\generated\\multipleFeatures",
+  "export_step": true,
+  "export_stl": true
+}
+
+symmetry analysis:
+frame center [-3.9928, -0.0036, 14.7734]
+frame axes (columns):
+[[1. 0. 0.]
+ [0. 1. 0.]
+ [0. 0. 1.]]
+mirror normal to frame x: mean error 14.1537 mm
+mirror normal to frame y: mean error 0.0143 mm
+mirror normal to frame z: mean error 10.9225 mm
+rotation about frame x: C2:13.003 C3:29.493 C4:31.424 C5:30.935 C6:27.965 C7:25.193 C8:23.161 C9:21.328 C10:19.772 C11:18.478 C12:17.309
+rotation about frame y: C2:16.013 C3:62.326 C4:71.284 C5:66.776 C6:59.352 C7:52.287 C8:46.188 C9:41.916 C10:38.251 C11:35.210 C12:32.648
+rotation about frame z: C2:14.249 C3:46.492 C4:45.686 C5:48.345 C6:46.728 C7:43.479 C8:40.294 C9:37.428 C10:34.962 C11:32.714 C12:30.385
+detected: mirror y  (group order 2, max element error 0.0143 mm, threshold 0.2924)
+center [-3.9928, -0.0015, 14.7734]

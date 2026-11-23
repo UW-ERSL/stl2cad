@@ -1,0 +1,69 @@
+mode: exact
+tolerance: 0.0516 mm
+symmetry imposed: none
+solid valid: True, faces: 25
+deviation:
+  ref_to_model  mean 0.0001  median 0.0000  p95 0.0000  max 0.0106 mm
+  model_to_ref  mean 0.0001  median 0.0000  p95 0.0000  max 0.0108 mm
+  volume ref 70037.48  model 70038.53 mm^3  (+0.00 %)
+time: 5.1 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 28 dimension(s), 22 relation(s)) (10.1s)
+
+options:
+{
+  "units": "m",
+  "mode": "auto",
+  "tolerance": 0.0,
+  "symmetry": "auto",
+  "mirror_x": false,
+  "mirror_y": false,
+  "mirror_z": false,
+  "cyclic": 1,
+  "cyclic_axis": "z",
+  "dihedral": false,
+  "surfaces": [
+    "plane",
+    "cylinder",
+    "cone",
+    "sphere",
+    "torus"
+  ],
+  "algebraic_only": false,
+  "allow_extrusion": true,
+  "snap_directions_deg": 1.0,
+  "snap_angle_step_deg": 15.0,
+  "tangency": true,
+  "separators": false,
+  "fillets": true,
+  "prism25": true,
+  "export_script": true,
+  "export_solidworks": true,
+  "grid": 0.0,
+  "pitch": 0.0,
+  "blur": 0.0,
+  "prune": 1.0,
+  "min_copy_frac": 0.5,
+  "holes": true,
+  "keep_free_ends": true,
+  "clip": "thin",
+  "area_radius": true,
+  "out_dir": "D:\\Dropbox\\Personal\\suresh\\Software\\Github\\ERSL-Private\\stl2cad\\sw_runs\\generated\\slottedBlock",
+  "export_step": true,
+  "export_stl": true
+}
+
+symmetry analysis:
+frame center [13.632, 22.5577, -47.2043]
+frame axes (columns):
+[[ 0.0398  0.0973 -0.9945]
+ [ 0.5199 -0.8519 -0.0626]
+ [-0.8533 -0.5145 -0.0845]]
+mirror normal to frame x: mean error 18.6136 mm
+mirror normal to frame y: mean error 17.5462 mm
+mirror normal to frame z: mean error 7.8624 mm
+rotation about frame x: C2:18.936 C3:24.352 C4:25.459 C5:25.576 C6:24.167 C7:22.235 C8:20.678 C9:19.199 C10:17.840 C11:16.517 C12:15.438
+rotation about frame y: C2:19.190 C3:44.620 C4:48.629 C5:46.659 C6:42.973 C7:39.080 C8:35.430 C9:32.332 C10:29.629 C11:27.397 C12:25.456
+rotation about frame z: C2:22.595 C3:19.872 C4:34.680 C5:35.688 C6:32.440 C7:31.381 C8:30.332 C9:28.416 C10:26.995 C11:26.245 C12:25.573
+detected: none  (group order 1, max element error 0.0000 mm, threshold 0.2064)
+center [13.632, 22.5577, -47.2043]

@@ -1,0 +1,21 @@
+connected to SolidWorks; new part created; building 1 feature(s)
+  sketch pattern: 4 entities x 23, step 6 mm
+  sketch (AddToDB): 2 closed region(s)
+  try reverse=False flip_start=True: volume 34281.523 mm^3, centre of mass (0.089, 6.580, -0.000) mm
+Boss 1 z -8 to 8: volume 34281.523 mm^3 (expected 34281.523)
+part is in the STL's orientation
+  try reverse=False flip_start=False: volume 37900.638 mm^3, centre of mass (-7.786, 7.756, 0.000) mm
+  try reverse=True flip_start=False: volume 37096.390 mm^3, centre of mass (-6.250, 6.536, -0.000) mm
+Boss 1 dia 16 along (0, -1, 0): volume 37096.390 mm^3 (expected 37096.390)
+  try reverse=False flip_start=False: volume 40715.505 mm^3, centre of mass (1.627, 7.634, -0.000) mm
+  try reverse=True flip_start=False: volume 39911.257 mm^3, centre of mass (0.076, 6.498, -0.000) mm
+Boss 2 dia 16 along (0, -1, 0): volume 39911.257 mm^3 (expected 39911.257)
+  try reverse=False flip_start=False: volume 39027.684 mm^3, centre of mass (-1.778, 6.510, -0.000) mm
+Hole 3 dia 7.5 along (0, -1, 0): volume 39027.684 mm^3 (expected 39027.684)
+  try reverse=False flip_start=False: volume 38144.111 mm^3, centre of mass (0.080, 6.521, -0.000) mm
+Hole 4 dia 7.5 along (0, 1, 0): volume 38144.111 mm^3 (expected 38144.111)
+linked dimensions: 4 in 2 global variable(s)
+dimensions: 16 added
+relations: 18 added
+sketch status: fully defined, fully defined, fully defined, fully defined, fully defined
+planned: fully defined

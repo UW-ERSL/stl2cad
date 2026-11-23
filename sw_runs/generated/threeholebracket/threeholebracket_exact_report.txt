@@ -1,0 +1,69 @@
+mode: exact
+tolerance: 0.0714 mm
+symmetry imposed: none (detected: D2 about frame axis y)
+solid valid: True, faces: 8
+deviation:
+  ref_to_model  mean 0.0008  median 0.0000  p95 0.0080  max 0.0188 mm
+  model_to_ref  mean 0.0008  median 0.0000  p95 0.0081  max 0.0189 mm
+  volume ref 95311.50  model 95299.52 mm^3  (-0.01 %)
+time: 6.6 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 8 dimension(s), 6 relation(s)) (9.1s)
+
+options:
+{
+  "units": "m",
+  "mode": "auto",
+  "tolerance": 0.0,
+  "symmetry": "auto",
+  "mirror_x": false,
+  "mirror_y": false,
+  "mirror_z": false,
+  "cyclic": 1,
+  "cyclic_axis": "z",
+  "dihedral": false,
+  "surfaces": [
+    "plane",
+    "cylinder",
+    "cone",
+    "sphere",
+    "torus"
+  ],
+  "algebraic_only": false,
+  "allow_extrusion": true,
+  "snap_directions_deg": 1.0,
+  "snap_angle_step_deg": 15.0,
+  "tangency": true,
+  "separators": false,
+  "fillets": true,
+  "prism25": true,
+  "export_script": true,
+  "export_solidworks": true,
+  "grid": 0.0,
+  "pitch": 0.0,
+  "blur": 0.0,
+  "prune": 1.0,
+  "min_copy_frac": 0.5,
+  "holes": true,
+  "keep_free_ends": true,
+  "clip": "thin",
+  "area_radius": true,
+  "out_dir": "D:\\Dropbox\\Personal\\suresh\\Software\\Github\\ERSL-Private\\stl2cad\\sw_runs\\generated\\threeholebracket",
+  "export_step": true,
+  "export_stl": true
+}
+
+symmetry analysis:
+frame center [33.9611, 33.9611, 10.0]
+frame axes (columns):
+[[-7.121e-01  7.021e-01 -3.500e-03]
+ [ 7.021e-01  7.121e-01  3.600e-03]
+ [ 5.000e-03  1.000e-04 -1.000e+00]]
+mirror normal to frame x: mean error 0.3076 mm
+mirror normal to frame y: mean error 34.8141 mm
+mirror normal to frame z: mean error 0.1336 mm
+rotation about frame x: C2:37.491 C3:41.821 C4:46.332 C5:43.914 C6:40.060 C7:36.500 C8:33.157 C9:30.155 C10:27.470 C11:25.233 C12:23.194
+rotation about frame y: C2:0.195 C3:68.643 C4:79.470 C5:75.657 C6:69.113 C7:62.059 C8:56.013 C9:50.575 C10:45.909 C11:42.109 C12:38.740
+rotation about frame z: C2:37.152 C3:33.345 C4:54.123 C5:58.730 C6:56.942 C7:53.244 C8:49.270 C9:45.480 C10:42.095 C11:39.009 C12:36.370
+detected: D2 about frame axis y  (group order 4, max element error 0.3077 mm, threshold 0.2857)
+center [34.0183, 33.9046, 9.9998]

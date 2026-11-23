@@ -589,10 +589,59 @@ def revolve_script(rv, name, nd=4):
         L.append("])")
         inner.append(f"inner_{n}")
     L += ["", f"profile = Face.makeFromWires(outline, [{', '.join(inner)}])",
-          "part = Solid.revolve(profile, 360.0, AXIS_POINT, AXIS_POINT + AXIS_DIR)", "",
-          'if __name__ == "__main__":',
+          "part = Solid.revolve(profile, 360.0, AXIS_POINT, AXIS_POINT + AXIS_DIR)", ""]
+    L += _cut_code(rv, f, vec)
+    L += ['if __name__ == "__main__":',
           f'    part.exportStep(sys.argv[1] if len(sys.argv) > 1 else "{name}.step")']
     return "\n".join(L) + "\n"
+
+
+def _cut_code(rv, f, vec):
+    """Straight cuts across a body of revolution: an outline in the plane through the axis
+    spanned by ACROSS (w) and AXIS_DIR, extruded along the cut direction through the body (both
+    sides) or from the axis outward; identical outlines are one loop over the directions."""
+    import numpy as np
+    cuts = rv.get("cuts") or []
+    if not cuts:
+        return []
+    key = lambda cu: (cu["both"], tuple((e[0],) + tuple(tuple(np.round(np.asarray(q, float), 6)) for q in e[1:])
+                                        for L_ in cu["loops"] for e in L_.edges))
+    groups = []
+    for cu in cuts:
+        for g in groups:
+            if key(g[0]) == key(cu):
+                g.append(cu)
+                break
+        else:
+            groups.append([cu])
+    reach = 1.2 * max(abs(float(q[0])) for L_ in rv["loops"] for e in L_.edges for q in e[1:])
+    L = ["# ---- straight cuts across the body: outline (w across the cut, v along the axis) "
+         "extruded along the cut direction ----",
+         f"REACH = {f(reach)}                 # beyond the body's largest radius", "", "",
+         "def cut_prism(direction, across, outline, through):",
+         '    """Outline in the plane through the axis spanned by across and AXIS_DIR, extruded along',
+         '    direction: through the body (both sides) or from the axis outward."""',
+         "    Q = lambda w, v: AXIS_POINT + Vector(*across) * w + AXIS_DIR * v",
+         "    face = Face.makeFromWires(Wire.assembleEdges([",
+         "        Edge.makeLine(Q(*a), Q(*b)) for a, b in outline]), [])",
+         "    D = Vector(*direction)",
+         "    if through:",
+         "        face = face.translate(D * -REACH)",
+         "    return Solid.extrudeLinear(face, D * (2 * REACH if through else REACH))", ""]
+    for n, g in enumerate(groups, 1):
+        cu = g[0]
+        if any(e[0] != "line" for L_ in cu["loops"] for e in L_.edges):
+            raise ValueError("a cut outline with arcs")
+        L.append(f"# cut {n}" + (f" ({len(g)} directions)" if len(g) > 1 else ""))
+        L.append("outline = [")
+        L += [f"    (({f(e[1][0])}, {f(e[1][1])}), ({f(e[2][0])}, {f(e[2][1])}))," for L_ in cu["loops"] for e in L_.edges]
+        L.append("]")
+        L.append("for direction, across in [")
+        L += [f"    ({vec(x['D'])}, {vec(x['w'])})," for x in g]
+        L.append("]:")
+        L.append(f"    part = part - cut_prism(direction, across, outline, {bool(cu['both'])})")
+        L.append("")
+    return L
 
 
 def stacked_script(p25, name, nd=4):

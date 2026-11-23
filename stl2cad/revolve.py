@@ -59,7 +59,7 @@ def _section(mesh, c, d, e1):
     return loops
 
 
-def _exact_points(G, UV, tol):
+def _exact_points(G, UV, tol, near=None):
     """The mesh vertices (UV: (radius, height) of every vertex, all on the profile curve) near the
     section polyline G, ordered by where they project onto it. The section itself mixes vertices
     with points where the plane cuts facet edges, which lie on chords inside the surface; the
@@ -78,7 +78,7 @@ def _exact_points(G, UV, tol):
         best_d[better] = dist[better]
         best_s[better] = cum[m] + t[better] * np.sqrt(L2[m])
     # chords of the section lie inside the surface by their sag; vertices lie on it
-    near = best_d < max(0.02 * float(np.ptp(G, axis=0).max()), 10 * tol)
+    near = best_d < (near if near is not None else max(0.02 * float(np.ptp(G, axis=0).max()), 10 * tol))
     P, sp = UV[near], best_s[near]
     o = np.argsort(sp, kind="stable")
     P = P[o]
@@ -115,7 +115,14 @@ def _profile(loops, tol, log, UV=None):
             X = _exact_points(G, UV[UV[:, 0] >= 0], tol)
             if len(X) >= 3:
                 H = X
-        E = _chain_edges(H, 0, 0, tol)
+        E = None
+        if UV is not None:                            # vertex rings are exact: fit them closely
+            from .snap2d import _dist_to_loop
+            E = _chain_edges(H, 0, 0, tol / 4)
+            if E and _dist_to_loop(H, [e for e in E]) > tol / 2:
+                E = None
+        if not E:
+            E = _chain_edges(H, 0, 0, tol)
         if not E:
             return None
         a, b = np.asarray(E[-1][-1], float), np.asarray(E[0][1], float)
@@ -217,3 +224,203 @@ def reconstruct(mesh, tol, log=print):
                           revolve=dict(axis=k, c=c, d=d, e1=e1, loops=L))
         return res
     return None
+
+
+# ----------------------------------------------------------------------------- revolve + through cuts
+def _half_area(mesh, c, d, e1):
+    """Area of the part's section in the half plane u >= 0 through the axis (c, d) towards e1."""
+    import shapely
+    loops = _section(mesh, c, d, e1)
+    geo = shapely.Polygon()
+    for Q in loops:
+        geo = geo.symmetric_difference(shapely.Polygon(Q).buffer(0))
+    return geo.intersection(shapely.box(0, -1e6, 1e6, 1e6)).area
+
+
+def _profile_solid(mesh, k, c, d, e1, tol, log, UV):
+    from .snap2d import snap_loops
+    loops = _section(mesh, c, d, e1)
+    if not loops:
+        return None
+    prof = _profile(loops, tol, log, UV)
+    if prof is None:
+        return None
+    L, pts = prof
+    L = snap_loops(L, pts, tol, log=lambda *a: None)
+    from .prism25 import exact_arcs
+    L = [exact_arcs(x) for x in L]
+    try:
+        solid = _solid(L, c, d, e1)
+    except Exception:
+        return None
+    return (L, solid) if solid is not None and solid.isValid() else None
+
+
+def _cut_directions(mesh, c, d, tol):
+    """Directions D (perpendicular to the axis) of straight cuts: the planar faces whose normals
+    leave the meridian planes (notch walls) have normals perpendicular to D. Returns a list of
+    (D, faces)."""
+    from .revfeat import _residual
+    N, C = mesh.face_normals, mesh.triangles_center
+    res, rr = _residual(N, C, c, d)
+    off = (res > np.sin(np.radians(5.0))) & (rr > 2 * tol)
+    nh = N - np.outer(N @ d, d)
+    ln = np.linalg.norm(nh, axis=1)
+    off &= ln > 0.3
+    dirs = []
+    for f in np.nonzero(off)[0]:
+        D = np.cross(d, nh[f] / ln[f])
+        for g in dirs:
+            if abs(g[0] @ D) > np.cos(np.radians(1.0)):
+                g[1].append(f)
+                break
+        else:
+            dirs.append((D, [f]))
+    A = mesh.area_faces
+    tot = A[off].sum()
+    return [(D, np.array(f)) for D, f in dirs if A[f].sum() > 0.02 * tot]
+
+
+def _plane_section(shape_or_mesh, origin, normal, w, e):
+    """Section by a plane as a shapely geometry in (w, e) coordinates."""
+    import shapely
+    import trimesh
+    if not isinstance(shape_or_mesh, trimesh.Trimesh):
+        from .core import shape_to_mesh
+        shape_or_mesh = shape_to_mesh(shape_or_mesh, tolerance=1e-3, angular=0.02)
+    sec = shape_or_mesh.section(plane_origin=origin, plane_normal=normal)
+    geo = shapely.Polygon()
+    if sec is None:
+        return geo
+    for P in sec.discrete:
+        Q = np.c_[(P - origin) @ w, (P - origin) @ e]
+        if len(Q) >= 3:
+            geo = geo.symmetric_difference(shapely.Polygon(Q).buffer(0))
+    return geo
+
+
+def reconstruct_with_cuts(mesh, tol, log=print):
+    """A body of revolution with straight cuts across it (a chess rook's crown notches): the
+    profile is taken in the half plane of largest section (clear of the cuts), revolved, and each
+    cut, a prism along a direction D perpendicular to the axis, is the difference between the
+    revolved body and the part in a plane across D near the rim (where no other cut reaches),
+    extruded through the body (both sides), else from the axis outward."""
+    import shapely
+    import cadquery as cq
+    from .prism25 import _distance_check, build_loop
+    from .revfeat import _clean
+    t0 = time.time()
+    from .snap2d import nice
+    for k, c, d in _axis_candidates(mesh):
+        i, j = [m for m in range(3) if m != k]
+        c = np.array([nice(float(x), tol / 4) for x in c]) + 0.0
+        cuts = _cut_directions(mesh, c, d, tol)
+        if not cuts:
+            continue
+        # half plane: the largest section (between the cuts); a model axis when it is as large
+        cand = []
+        for ang in np.radians(np.arange(0, 360, 5.0)):
+            e1 = np.cos(ang) * np.eye(3)[i] + np.sin(ang) * np.eye(3)[j]
+            cand.append((_half_area(mesh, c, d, e1), e1))
+        amax = max(a for a, _ in cand)
+        axis_dirs = [s * np.eye(3)[m] for m in (i, j) for s in (1.0, -1.0)]
+        good = [(a, e) for a, e in cand if a > amax * (1 - 1e-4)]
+        e1 = next((e for a, e in good if any(np.allclose(e, x) for x in axis_dirs)), good[0][1])
+        e1 = np.round(e1, 12) + 0.0
+        # exact profile points: vertices of facets on the surface of revolution
+        from .revfeat import _residual
+        res, _ = _residual(mesh.face_normals, mesh.triangles_center, c, d)
+        V = mesh.vertices[np.unique(mesh.faces[res < np.sin(np.radians(5.0))])] - c
+        UV = np.unique(np.round(np.c_[np.linalg.norm(V - np.outer(V @ d, d), axis=1), V @ d], 5), axis=0)
+        fit = _profile_solid(mesh, k, c, d, e1, tol, log, UV)
+        if fit is None:
+            continue
+        L, rev = fit
+        R = float(np.linalg.norm(mesh.vertices - c - np.outer((mesh.vertices - c) @ d, d), axis=1).max())
+        out, solid = [], rev
+        from .core import shape_to_mesh
+        rev_mesh = shape_to_mesh(rev, tolerance=tol / 4, angular=0.1)   # sections of the revolve
+        for D, faces in cuts:
+            # the cut direction's angle about the axis, to a whole degree when within 0.05 deg
+            ang = np.degrees(np.arctan2(D @ np.eye(3)[j], D @ np.eye(3)[i]))
+            if abs(ang - round(ang)) < 0.05:
+                a_ = np.radians(round(ang))
+                D = np.round(np.cos(a_) * np.eye(3)[i] + np.sin(a_) * np.eye(3)[j], 12) + 0.0
+            w = np.cross(D, d)
+            t = (mesh.triangles_center[faces] - c) @ D
+            side = 1.0 if (t > 0).sum() >= (t < 0).sum() else -1.0
+            tt = float(np.median(np.abs(t[t * side > 0])))
+            org = c + side * tt * D
+            S = _plane_section(mesh, org, D, w, d)
+            Rv = _plane_section(rev_mesh, org, D, w, d)
+            # strips along curved walls (the tessellated revolve against the mesh) are not cuts
+            region = _clean(Rv.difference(S).buffer(-2 * tol, join_style="mitre").buffer(2 * tol, join_style="mitre"), tol)
+            if region:
+                big = max(p.area for p in region)
+                region = [p for p in region if p.area > 0.01 * big and 2 * p.area > 4 * tol * p.length]
+            if not region:
+                log(f"  revolve+cuts: no cut region across {np.round(D, 3)}")
+                break
+            loops, pts = [], []
+            for poly in region:
+                P = np.asarray(poly.exterior.coords)[:-1]
+                Lc = build_loop(P, tol)
+                if Lc is None:
+                    break
+                loops.append(Lc)
+                pts.append(P)
+            from .snap2d import snap_loops, nice
+            loops = snap_loops(loops, pts, tol, log=lambda *a: None)
+            # outlines of lines: corners to clean values within 1e-5 mm (corners on slanted lines
+            # are recomputed intersections, 2.5000005 for 2.5); shared corners round alike
+            from .prism25 import Loop
+            for m_, Lc in enumerate(loops):
+                if all(e[0] == "line" for e in Lc.edges):
+                    r_ = lambda q: np.array([nice(float(q[0]), 1e-5), nice(float(q[1]), 1e-5)]) + 0.0
+                    loops[m_] = Loop([("line", r_(e[1]), r_(e[2])) for e in Lc.edges], Lc.area)
+            # through the body when the cut's walls lie on both sides of the axis
+            both = bool((t > tol).any() and (t < -tol).any())
+            body = None
+            for Lc in loops:
+                f = cq.Face.makeFromWires(_cut_wire(Lc, c, w, d), [])
+                if both:
+                    piece = cq.Solid.extrudeLinear(f.translate(cq.Vector(*(-1.2 * R * D))), cq.Vector(*(2.4 * R * D)))
+                else:
+                    piece = cq.Solid.extrudeLinear(f, cq.Vector(*(1.2 * R * side * D)))
+                body = piece if body is None else body.fuse(piece)
+            solid = solid.cut(body).clean()
+            out.append(dict(D=D, w=w, loops=loops, both=both, side=side))
+            log(f"  revolve+cuts: cut across ({D[0]:.3f}, {D[1]:.3f}, {D[2]:.3f}), "
+                f"{sum(len(x.edges) for x in loops)} edges, {'through' if both else 'one side'}")
+        else:
+            from .core import mass_props
+            valid = solid.isValid() and len(solid.Solids()) == 1
+            vol_err = abs(mass_props(solid)[0] / mesh.volume - 1)
+            dmax, dback = _distance_check(solid, mesh) if valid else (np.inf, np.inf)
+            log(f"  revolve about {AX[k]} with {len(out)} cut(s): {sum(len(x.edges) for x in L)} profile edges, "
+                f"volume error {100 * vol_err:.3f} %, max distance mesh->model {dmax:.4f} mm, model->mesh "
+                f"{dback:.4f} mm, valid={valid} ({time.time() - t0:.1f}s)")
+            if not (valid and vol_err < 0.03 and dmax < 1.5 * tol and dback < 4 * tol):
+                log("  revolve+cuts: checks failed")
+                continue
+            r = Result(shape=solid, mode="exact")
+            r.extras = dict(prims=[], analytic_fraction=1.0, summary=f"revolve about {AX[k]} with {len(out)} cut(s)",
+                            volume_error=vol_err, brep=None, valid=True, passed=True,
+                            revolve=dict(axis=k, c=c, d=d, e1=e1, loops=L, cuts=out))
+            return r
+    return None
+
+
+def _cut_wire(Lc, c, w, d):
+    """A cut's outline (w, h) in the plane through the axis point c spanned by w and d."""
+    import cadquery as cq
+    V = lambda q: cq.Vector(*(c + float(q[0]) * w + float(q[1]) * d))
+    es = []
+    for e in Lc.edges:
+        if e[0] == "line":
+            es.append(cq.Edge.makeLine(V(e[1]), V(e[2])))
+        elif e[0] == "arc":
+            es.append(cq.Edge.makeThreePointArc(V(e[1]), V(e[2]), V(e[3])))
+        else:
+            es.append(cq.Edge.makeCircle(e[2], V(e[1]), cq.Vector(*np.cross(w, d))))
+    return cq.Wire.assembleEdges(es)

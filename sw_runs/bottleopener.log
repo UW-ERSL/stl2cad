@@ -1,0 +1,19 @@
+connected to SolidWorks; new part created; building 4 feature(s)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=True: volume 16125.092 mm^3, centre of mass (37.423, 0.859, -0.000) mm
+Boss 1 y -5.5 to 5.5: volume 16125.092 mm^3 (expected 16125.090)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=True: volume 14898.568 mm^3, centre of mass (37.517, 0.863, 0.412) mm
+Cut 1 y -5.5 to -4.5: volume 14898.568 mm^3 (expected 14898.567)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=True: volume 14260.629 mm^3, centre of mass (39.195, 0.901, 0.430) mm
+Holes 1 (dia 9.5) y -4.5 to 4.5: volume 14260.629 mm^3 (expected 14260.627)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=False: volume 13034.105 mm^3, centre of mass (39.469, 0.909, 0.000) mm
+Cut 2 y 4.5 to 5.5: volume 13034.105 mm^3 (expected 13034.105)
+rotated back to the STL's orientation (Move/Copy Body, angle argument 3, -90 deg)
+linked dimensions: 12 in 6 global variable(s)
+dimensions: 54 added, 4 failed: ['vertical extent of slanted edge at (44.0000000000008, -7.999999654767407)', 'horizontal extent of slanted edge at (24.754364804997405, 7.968529595407069)', 'vertical extent of slanted edge at (44.0000000000008, -7.999999654767406)', 'horizontal extent of slanted edge at (24.754364804997405, 7.968529595407068)']
+relations: 22 added
+sketch status: under defined, under defined, fully defined, under defined
+planned: fully defined, fully defined, fully defined, fully defined

@@ -1,0 +1,136 @@
+connected to SolidWorks; new part created; building 2 feature(s)
+  sketch (AddToDB): 29 closed region(s)
+  try reverse=False flip_start=True: SolidWorks returned no feature
+  try reverse=True flip_start=True: SolidWorks returned no feature
+  try reverse=False flip_start=False: SolidWorks returned no feature
+  try reverse=True flip_start=False: SolidWorks returned no feature
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  segment of type 1
+  line (-4.31167, 4.83912) -> (-1.61381, 4.83912)   MOVED
+  moved line: (-4.3117, 4.8391) -> (-1.6138, 4.8391), endpoints 1.3386 and 0.4974 mm from the nearest intended vertex
+  line (-1.61381, 4.83912) -> (-1.50463, 4.86533)   MOVED
+  moved line: (-1.6138, 4.8391) -> (-1.5046, 4.8653), endpoints 0.4974 and 0.4453 mm from the nearest intended vertex
+  line (-1.50463, 4.86533) -> (0.05337, 6.41168)   MOVED
+  moved line: (-1.5046, 4.8653) -> (0.0534, 6.4117), endpoints 0.4453 and 1.1231 mm from the nearest intended vertex
+  line (4.68847, 7.43348) -> (0.00000, 7.43348)   MOVED
+  moved line: (4.6885, 7.4335) -> (0.0000, 7.4335), endpoints 1.7837 and 1.8545 mm from the nearest intended vertex
+  line (-0.25000, 7.68348) -> (-0.25000, 8.68348)   MOVED
+  moved line: (-0.2500, 7.6835) -> (-0.2500, 8.6835), endpoints 1.9484 and 2.8637 mm from the nearest intended vertex
+  line (0.00000, 8.93348) -> (4.50000, 8.93348)   MOVED
+  moved line: (0.0000, 8.9335) -> (4.5000, 8.9335), endpoints 3.1887 and 3.1887 mm from the nearest intended vertex
+  line (5.85027, 4.52038) -> (5.85027, 0.02038)   MOVED
+  moved line: (5.8503, 4.5204) -> (5.8503, 0.0204), endpoints 1.2387 and 0.9847 mm from the nearest intended vertex
+  line (8.80759, 0.00000) -> (7.80759, 0.00000)   MOVED
+  moved line: (8.8076, 0.0000) -> (7.8076, 0.0000), endpoints 3.0661 and 2.1608 mm from the nearest intended vertex
+  line (5.18681, -0.57256) -> (5.18681, 1.01744)   MOVED
+  moved line: (5.1868, -0.5726) -> (5.1868, 1.0174), endpoints 0.6112 and 0.4372 mm from the nearest intended vertex
+  line (4.75982, 1.19399) -> (3.25141, -0.31821)   MOVED
+  moved line: (4.7598, 1.1940) -> (3.2514, -0.3182), endpoints 0.1942 and 1.3163 mm from the nearest intended vertex
+  line (3.25141, -0.31821) -> (3.18681, -0.42361)   MOVED
+  moved line: (3.2514, -0.3182) -> (3.1868, -0.4236), endpoints 1.3163 and 1.1929 mm from the nearest intended vertex
+  line (3.18681, -0.42361) -> (3.18681, -3.22151)   MOVED
+  moved line: (3.1868, -0.4236) -> (3.1868, -3.2215), endpoints 1.1929 and 0.8680 mm from the nearest intended vertex
+  line (3.18681, -3.22151) -> (3.25141, -3.32691)   MOVED
+  moved line: (3.1868, -3.2215) -> (3.2514, -3.3269), endpoints 0.8680 and 0.7819 mm from the nearest intended vertex
+  line (3.25141, -3.32691) -> (4.75982, -4.83912)   MOVED
+  moved line: (3.2514, -3.3269) -> (4.7598, -4.8391), endpoints 0.7819 and 1.5258 mm from the nearest intended vertex
+  line (5.18681, -4.66256) -> (5.18681, -3.07256)   MOVED
+  moved line: (5.1868, -4.6626) -> (5.1868, -3.0726), endpoints 1.3579 and 0.7251 mm from the nearest intended vertex
+  line (6.94522, -2.59347) -> (7.94522, -2.59347)   MOVED
+  moved line: (6.9452, -2.5935) -> (7.9452, -2.5935), endpoints 1.6427 and 2.3641 mm from the nearest intended vertex
+  line (6.34681, -0.31291) -> (6.34681, -4.81291)   MOVED
+  moved line: (6.3468, -0.3129) -> (6.3468, -4.8129), endpoints 0.8758 and 0.9992 mm from the nearest intended vertex
+  line (6.09681, -5.06291) -> (1.59681, -5.06291)   MOVED
+  moved line: (6.0968, -5.0629) -> (1.5968, -5.0629), endpoints 0.6939 and 0.6612 mm from the nearest intended vertex
+  line (1.34681, -4.81291) -> (1.34681, -3.81291)   MOVED
+  moved line: (1.3468, -4.8129) -> (1.3468, -3.8129), endpoints 0.3275 and 0.6939 mm from the nearest intended vertex
+  line (1.59681, -3.56291) -> (3.18681, -3.56291)   MOVED
+  moved line: (1.5968, -3.5629) -> (3.1868, -3.5629), endpoints 0.9992 and 0.5375 mm from the nearest intended vertex
+  line (2.84541, -3.22151) -> (1.28741, -1.67516)   MOVED
+  moved line: (2.8454, -3.2215) -> (1.2874, -1.6752), endpoints 0.8680 and 0.8271 mm from the nearest intended vertex
+  line (1.28741, -1.67516) -> (1.17823, -1.64895)   MOVED
+  moved line: (1.2874, -1.6752) -> (1.1782, -1.6489), endpoints 0.8271 and 0.8680 mm from the nearest intended vertex
+  line (1.17823, -1.64895) -> (-1.51963, -1.64895)   MOVED
+  moved line: (1.1782, -1.6489) -> (-1.5196, -1.6489), endpoints 0.8680 and 0.8680 mm from the nearest intended vertex
+  line (-1.51963, -1.64895) -> (-1.62882, -1.67516)   MOVED
+  moved line: (-1.5196, -1.6489) -> (-1.6288, -1.6752), endpoints 0.8680 and 0.8680 mm from the nearest intended vertex
+  line (-1.62882, -1.67516) -> (-3.18681, -3.22151)   MOVED
+  moved line: (-1.6288, -1.6752) -> (-3.1868, -3.2215), endpoints 0.8680 and 0.8680 mm from the nearest intended vertex
+  line (-3.01070, -3.64895) -> (-1.42070, -3.64895)   MOVED
+  moved line: (-3.0107, -3.6489) -> (-1.4207, -3.6489), endpoints 0.4236 and 0.8680 mm from the nearest intended vertex
+  line (-0.00982, -3.58912) -> (-0.00982, -4.58912)   MOVED
+  moved line: (-0.0098, -3.5891) -> (-0.0098, -4.5891), endpoints 1.4509 and 1.0032 mm from the nearest intended vertex
+  line (-0.25982, -4.83912) -> (-4.75982, -4.83912)   MOVED
+  moved line: (-0.2598, -4.8391) -> (-4.7598, -4.8391), endpoints 0.7455 and 1.5258 mm from the nearest intended vertex
+  line (-5.85027, -4.47962) -> (-5.85027, 0.02038)   MOVED
+  moved line: (-5.8503, -4.4796) -> (-5.8503, 0.0204), endpoints 1.2792 and 0.9847 mm from the nearest intended vertex
+  line (-1.51963, 1.64895) -> (3.18681, 0.42361)   MOVED
+  moved line: (-1.5196, 1.6489) -> (3.1868, 0.4236), endpoints 0.8680 and 1.1929 mm from the nearest intended vertex
+  line (4.89326, -0.65277) -> (4.89326, -2.24277)   MOVED
+  moved line: (4.8933, -0.6528) -> (4.8933, -2.2428), endpoints 0.3756 and 0.7151 mm from the nearest intended vertex
+  line (1.61381, -1.19399) -> (3.12222, 0.31821)   MOVED
+  moved line: (1.6138, -1.1940) -> (3.1222, 0.3182), endpoints 0.9096 and 1.2471 mm from the nearest intended vertex
+  line (3.12222, 0.31821) -> (3.18681, 0.42361)   MOVED
+  moved line: (3.1222, 0.3182) -> (3.1868, 0.4236), endpoints 1.2471 and 1.1929 mm from the nearest intended vertex
+  line (3.18681, 0.42361) -> (3.18681, 3.22151)   MOVED
+  moved line: (3.1868, 0.4236) -> (3.1868, 3.2215), endpoints 1.1929 and 0.8680 mm from the nearest intended vertex
+  line (3.18681, 3.22151) -> (3.12222, 3.32691)   MOVED
+  moved line: (3.1868, 3.2215) -> (3.1222, 3.3269), endpoints 0.8680 and 0.7532 mm from the nearest intended vertex
+  line (3.12222, 3.32691) -> (1.61381, 4.83912)   MOVED
+  moved line: (3.1222, 3.3269) -> (1.6138, 4.8391), endpoints 0.7532 and 0.4974 mm from the nearest intended vertex
+  line (1.44663, 3.50168) -> (1.44663, 1.91168)   MOVED
+  moved line: (1.4466, 3.5017) -> (1.4466, 1.9117), endpoints 0.9755 and 0.5964 mm from the nearest intended vertex
+  line (1.19663, 1.66168) -> (0.19663, 1.66168)   MOVED
+  moved line: (1.1966, 1.6617) -> (0.1966, 1.6617), endpoints 0.8520 and 1.4250 mm from the nearest intended vertex
+  line (-0.05337, 1.91168) -> (-0.05337, 6.41168)   MOVED
+  moved line: (-0.0534, 1.9117) -> (-0.0534, 6.4117), endpoints 1.4229 and 1.1231 mm from the nearest intended vertex
+  line (0.19663, 7.43348) -> (0.00000, 7.43348)   MOVED
+  moved line: (0.1966, 7.4335) -> (0.0000, 7.4335), endpoints 1.7498 and 1.8545 mm from the nearest intended vertex
+  line (-2.45434, 8.08912) -> (-2.45434, 7.08912)   MOVED
+  moved line: (-2.4543, 8.0891) -> (-2.4543, 7.0891), endpoints 2.4114 and 1.6238 mm from the nearest intended vertex
+  line (-4.21274, 6.83912) -> (-5.80274, 6.83912)   MOVED
+  moved line: (-4.2127, 6.8391) -> (-5.8027, 6.8391), endpoints 1.7514 and 0.8408 mm from the nearest intended vertex
+  line (-5.97886, 6.41168) -> (-4.42086, 4.86533)   MOVED
+  moved line: (-5.9789, 6.4117) -> (-4.4209, 4.8653), endpoints 0.4710 and 1.4494 mm from the nearest intended vertex
+  line (-4.42086, 4.86533) -> (-4.31167, 4.83912)   MOVED
+  moved line: (-4.4209, 4.8653) -> (-4.3117, 4.8391), endpoints 1.4494 and 1.3386 mm from the nearest intended vertex
+  sketch read back: 74 segment(s), 44 line(s) with moved endpoints
+  no feature; drawing the sketch again (AddToDB, without relations and dimensions)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=True: volume 10264.348 mm^3, centre of mass (0.000, -0.000, -55.000) mm
+Boss 1 z -110 to 0: volume 10264.348 mm^3 (expected 10264.348)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=True: volume 9918.773 mm^3, centre of mass (0.000, -0.000, -55.000) mm
+Holes 1 (dia 2) z -110 to 0: volume 9918.773 mm^3 (expected 9918.773)
+part is in the STL's orientation
+linked dimensions: none (no equal radius or diameter in two sketches)
+dimensions: 8 added, 9 failed: ['x of corner (-1.3489298622329593, 2.5)', 'y of corner (-1.3489298622329593, 2.5)', 'horizontal extent of slanted edge at (1.4035230347670349, 2.5131064347261285)', 'vertical extent of slanted edge at (1.4035230347670349, 2.5131064347261285)', 'horizontal extent of slanted edge at (2.2371141965864494, 3.2993870766532414)', 'vertical extent of slanted edge at (2.2371141965864494, 3.2993870766532414)', 'horizontal extent of slanted edge at (3.318797496997232, 2.260454014886552)', 'vertical extent of slanted edge at (3.318797496997232, 2.260454014886552)', 'horizontal extent of slanted edge at (2.5322967702335277, 1.4516499107547227)']
+relations: 97 added, 12 failed: ['corners (-1.3489298622329593, 2.5) and (1.3489298622329593, 2.5) symmetric (selection)', 'corners (1.4581162073011105, 2.526212869452257) and (-1.4581162073011105, 2.526212869452257) symmetric (selection)', 'corners (2.5, 1.3989463570882168) and (-2.5, 1.3989463570882168) symmetric (selection)', 'corners (1.25, -6.0) and (-1.25, -6.0) symmetric (selection)', 'corners (1.0, -5.75) and (-1.0, -5.75) symmetric (selection)', 'corners (1.0, -4.75) and (-1.0, -4.75) symmetric (selection)', 'corners (1.25, -4.5) and (-1.25, -4.5) symmetric (selection)', 'corners (6.0, 1.25) and (6.0, -1.25) symmetric (selection)', 'corners (5.75, 1.0) and (5.75, -1.0) symmetric (selection)', 'corners (4.75, 1.0) and (4.75, -1.0) symmetric (selection)', 'corners (4.5, 1.25) and (4.5, -1.25) symmetric (selection)', 'corners (2.5, 1.3989463570882168) and (2.5, -1.3989463570882168) symmetric (selection)']
+sketch status: no solution, under defined, fully defined
+planned: fully defined, fully defined

@@ -1,0 +1,13 @@
+connected to SolidWorks; new part created; building 2 feature(s)
+  sketch (AddToDB): 2 closed region(s)
+  try reverse=False flip_start=False: volume 10064.449 mm^3, centre of mass (52.293, -0.000, 3.810) mm
+Boss 1 z 0 to 7.62: volume 10064.449 mm^3 (expected 10064.449)
+  sketch (AddToDB): 2 closed region(s)
+  try reverse=True flip_start=False: volume 9000.077 mm^3, centre of mass (47.084, -0.000, 3.810) mm
+Cut 1 z 0 to 7.62: volume 9000.077 mm^3 (expected 9000.077)
+part is in the STL's orientation
+linked dimensions: none (no equal radius or diameter in two sketches)
+dimensions: 14 added
+relations: 22 added
+sketch status: fully defined, fully defined
+planned: fully defined, fully defined

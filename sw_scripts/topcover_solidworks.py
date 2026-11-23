@@ -148,6 +148,7 @@ REVOLVES = [
         ),
     ]),
 ]
+CUTS = []
 
 # ---- SolidWorks helpers (pywin32) -------------------------------------------------------------
 import math
@@ -464,17 +465,20 @@ class SW:
                         ext.SelectByID2("", "SKETCHSEGMENT", cx + r, cy, 0.0, False, 0, NOTHING, 0)
                     d = self.model.AddDimension2(cx + 1.6 * r, cy + 1.6 * r, 0.0) if ok else None
                     self._count(d, tag + " diameter")
-                for kind, tx, ty in (("H", cx / 2, cy - 3 * r), ("V", cx - 3 * r, cy / 2)):
-                    if abs(cx if kind == "H" else cy) < 1e-9:
-                        continue                 # centre on the origin's line: no distance needed
-                    self.model.ClearSelection2(True)
-                    ok1 = False
+                def pick_centre(append=False):
                     try:                         # the circle's own centre point, else by coordinates
                         c_ = call0(g, "GetCenterPoint2") if g is not None else None
-                        ok1 = c_ is not None and c_.Select4(False, NOTHING)
+                        if c_ is not None and c_.Select4(append, NOTHING):
+                            return True
                     except Exception:
                         pass
-                    ok1 = ok1 or ext.SelectByID2("", "SKETCHPOINT", cx, cy, 0.0, False, 0, NOTHING, 0)
+                    return ext.SelectByID2("", "SKETCHPOINT", cx, cy, 0.0, append, 0, NOTHING, 0)
+                self.centre_to_origin(tag, cx, cy, pick_centre)
+                for kind, tx, ty in (("H", cx / 2, cy - 3 * r), ("V", cx - 3 * r, cy / 2)):
+                    if abs(cx if kind == "H" else cy) < 1e-9:
+                        continue                 # centre on the origin's line: a relation above
+                    self.model.ClearSelection2(True)
+                    ok1 = pick_centre()
                     ok2 = ext.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, True, 0, NOTHING, 0)
                     d = None
                     if ok1 and ok2:
@@ -483,6 +487,25 @@ class SW:
                     self._count(d, tag + (" x" if kind == "H" else " y") + " position")
             except Exception as ex:
                 self.dims_failed.append(f"{tag}: {type(ex).__name__}: {ex}")
+        self.model.ClearSelection2(True)
+
+    def centre_to_origin(self, tag, cx, cy, pick_centre):
+        """A circle centre on the origin, or on its vertical or horizontal line, needs a relation in
+        place of the distance that is zero: Coincident, Vertical or Horizontal with the origin."""
+        zx, zy = abs(cx) < 1e-9, abs(cy) < 1e-9
+        if not (zx or zy):
+            return
+        rel, what = (("sgCOINCIDENT", "on the origin") if zx and zy else
+                     ("sgVERTICALPOINTS2D", "vertical with the origin") if zx else
+                     ("sgHORIZONTALPOINTS2D", "horizontal with the origin"))
+        self.model.ClearSelection2(True)
+        ok = pick_centre(False) and self.model.Extension.SelectByID2(
+            "Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, True, 0, NOTHING, 0)
+        if ok:
+            self.model.SketchAddConstraints(rel)
+            self.rels_ok += 1
+        else:
+            self.rels_failed.append(f"{tag} centre {what} (selection)")
         self.model.ClearSelection2(True)
 
     def dimension_ellipses(self):
@@ -573,6 +596,8 @@ class SW:
                         d += 0.5 * tol
                 elif kind == "arc":
                     d = abs(math.dist(P, geo[2]) - geo[3])
+                    if not _on_arc(P, geo[0], geo[4], geo[1], geo[2]):
+                        d += 1.0                 # another arc on the same circle (snapring)
                 elif kind == "circle":
                     d = abs(math.dist(P, geo[0]) - geo[1])
                 else:
@@ -593,7 +618,18 @@ class SW:
                         return pt
         return None
 
+    def _swapped(self):
+        """Whether the plan's first axis is the sketch's vertical (parts extruded along x: a plan
+        point (a, b) is the sketch point (-b, a)); then the plan's horizontal is vertical."""
+        x0, y0 = self.to_sketch(0.0, 0.0)
+        x1, y1 = self.to_sketch(1.0, 0.0)
+        return abs(y1 - y0) > abs(x1 - x0)
+
     def _relation(self, rel, picks, what):
+        if self._swapped():
+            rel = {"sgHORIZONTAL2D": "sgVERTICAL2D", "sgVERTICAL2D": "sgHORIZONTAL2D",
+                   "sgHORIZONTALPOINTS2D": "sgVERTICALPOINTS2D",
+                   "sgVERTICALPOINTS2D": "sgHORIZONTALPOINTS2D"}.get(rel, rel)
         try:
             self.model.ClearSelection2(True)
             ok = True
@@ -624,6 +660,8 @@ class SW:
             d = None
             if ok:
                 tx, ty = self.to_sketch(*text)
+                if self._swapped():                  # the plan's horizontal is the sketch's vertical
+                    kind = {"H": "V", "V": "H"}.get(kind, kind)
                 d = {"any": self.model.AddDimension2, "H": self.model.AddHorizontalDimension2,
                      "V": self.model.AddVerticalDimension2}[kind](tx, ty, 0.0)
             self._count(d, what)
@@ -732,9 +770,10 @@ class SW:
         print(f"  sketch pattern: {len(seed)} entities x {count}, step {math.hypot(dx, dy) / MM:g} mm")
 
     def apply_plan(self, plan):
-        """Relations and dimensions planned by stl2cad for one outline, in order. The drawn
-        geometry is exact, so no planned operation may move it: one that does (it acted on the
-        wrong entity) is undone and reported."""
+        """Relations and dimensions planned by stl2cad for one outline, in order. A step that acts
+        on the wrong entity shows as a feature of the wrong shape; the sketch is then drawn again
+        without its plan (build_step). (Checking each step and undoing it with EditUndo2 did more
+        harm than good in SolidWorks 2025: an undo could take back more than the step.)"""
         for op in plan:
             if op[0] == "centerline":
                 self.centerline(op[2], op[3])
@@ -745,40 +784,7 @@ class SW:
             else:
                 _, kind, picks, text, what = op
                 self._dimension(picks, text, kind, what)
-            moved = self._moved()
-            if moved:
-                try:
-                    self.model.EditUndo2(1)
-                except Exception as ex:
-                    print(f"  undo failed: {type(ex).__name__}: {ex}")
-                still = self._moved()
-                print(f"  '{op[-1]}' moved the sketch ({moved}); undone"
-                      + (f", but the sketch is still moved ({still})" if still else ""))
-                (self.rels_failed if op[0] == "rel" else self.dims_failed).append(op[-1] + " (moved the sketch, undone)")
-                if op[0] == "rel":
-                    self.rels_ok -= 1
-                if still:
-                    break
         self.model.ClearSelection2(True)
-
-    def _moved(self, tol=1e-6):
-        """A drawn line or arc whose end points are no longer where they were drawn (m): a short
-        description, or None."""
-        for kind, geo, g in self.ents:
-            if kind not in ("line", "arc"):
-                continue
-            try:
-                ends = [call0(g, "GetStartPoint2"), call0(g, "GetEndPoint2")]
-                P = [(p.X, p.Y) for p in ends]
-            except Exception:
-                return None                          # not readable: no check
-            want = (geo[0], geo[1])
-            off = min(max(math.dist(P[0], want[0]), math.dist(P[1], want[1])),
-                      max(math.dist(P[0], want[1]), math.dist(P[1], want[0])))
-            if off > tol:
-                return (f"{kind} from ({want[0][0] / MM:.4f}, {want[0][1] / MM:.4f}) moved by "
-                        f"{off / MM:.4f} mm")
-        return None
 
     def report_status(self):
         """Constrained status of the sketch just closed, if SolidWorks returns it."""
@@ -823,7 +829,7 @@ class SW:
             n = 0
             for (kind, val), names in sorted(groups.items()):
                 var = f"{'radius' if kind == 'R' else 'dia'}_{val:g}".replace(".", "_").replace("-", "m")
-                em.Add2(-1, f'"{var}" = {val:g}', True)
+                em.Add2(-1, f'"{var}" = {val:g}mm', True)   # units explicit: the template may be in metres
                 for nm in names:
                     em.Add2(-1, f'"{nm}" = "{var}"', True)
                     n += 1
@@ -875,14 +881,41 @@ class SW:
         return ("NOTE: part left in the build frame (extrusion axis along z); no quarter turn brought it "
                 "to the STL's orientation")
 
-    def quarter_turn(self, target, name):
-        """Move/Copy Body turning the body a quarter turn about the origin such that its centre of
-        mass comes to target (mm); each sign in each angle argument is tried. Returns a
-        description, or None if no quarter turn does it."""
+    def turn_y(self, angle, target, name):
+        """Move/Copy Body turning the body by the signed angle (rad, right-handed) about the y
+        axis: angle argument 2, which turned about y in the stand-in's convention (argument 1
+        about z and argument 3 about x were seen in SolidWorks 2025). The sign is not searched:
+        a body symmetric about y has the same centre of mass either way, so a search could turn
+        it the wrong way. The centre of mass is checked; other arguments are the fall-back."""
+        f = None
+        try:
+            bodies = self.model.GetBodies2(0, True)
+            self.model.ClearSelection2(True)
+            sd = call0(self.model.SelectionManager, "CreateSelectData")
+            sd.Mark = 1
+            bodies[0].Select2(False, sd)
+            f = self.model.FeatureManager.InsertMoveCopyBody2(
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, angle, 0.0, False, 1)
+        except Exception as e:
+            print(f"  turn about y failed: {type(e).__name__}: {e}")
+        if f is not None:
+            v, c = self.mass()
+            if math.dist(c, target) <= 1e-4 * SIZE + 1e-4:
+                f.Name = name
+                return f"(Move/Copy Body, angle argument 2, {math.degrees(angle):+g} deg)"
+            self.model.ClearSelection2(True)
+            f.Select2(False, 0)
+            self.model.Extension.DeleteSelection2(0)
+        return self.quarter_turn(target, name, angle=abs(angle))
+
+    def quarter_turn(self, target, name, angle=math.pi / 2):
+        """Move/Copy Body turning the body by angle (a quarter turn by default) about an axis
+        through the origin such that its centre of mass comes to target (mm); each sign in each
+        angle argument is tried. Returns a description, or None if no turn does it."""
         for slot in range(3):
             for sign in (1, -1):
                 ang = [0.0, 0.0, 0.0]
-                ang[slot] = sign * math.pi / 2
+                ang[slot] = sign * angle
                 f = None
                 try:
                     bodies = self.model.GetBodies2(0, True)          # swSolidBody
@@ -899,7 +932,7 @@ class SW:
                 v, c = self.mass()
                 if math.dist(c, target) <= 1e-4 * SIZE + 1e-4:
                     f.Name = name
-                    return f"(Move/Copy Body, angle argument {slot + 1}, {'+' if sign > 0 else '-'}90 deg)"
+                    return f"(Move/Copy Body, angle argument {slot + 1}, {sign * math.degrees(angle):+g} deg)"
                 self.model.ClearSelection2(True)
                 f.Select2(False, 0)
                 self.model.Extension.DeleteSelection2(0)
@@ -1024,6 +1057,7 @@ class SW:
             ok = pick_circle(False)
             self._count(self.model.AddDimension2(*to_model(cx + 1.6 * r, cyy + 1.6 * r)) if ok else None,
                         tag + " diameter")
+            self.centre_to_origin(tag, cx, cyy, pick_centre)
             for kind, tx, ty in (("H", cx / 2, cyy - 3 * r), ("V", cx - 3 * r, cyy / 2)):
                 if abs(cx if kind == "H" else cyy) < 1e-9:
                     continue
@@ -1153,6 +1187,17 @@ class SW:
         raise WrongShape(f"{name}: no Revolve feature gives the expected volume {expected:.3f} mm^3")
 
 
+def _on_arc(P, s, m, t, c):
+    """Whether P (on the circle about c) lies on the arc from s through m to t."""
+    ang = lambda q: math.atan2(q[1] - c[1], q[0] - c[0])
+    a0, am, a1, ap = ang(s), ang(m), ang(t), ang(P)
+    ccw = lambda a, b: (b - a) % (2 * math.pi)
+    sweep = ccw(a0, a1)
+    if ccw(a0, am) > sweep:                      # the arc runs clockwise from s to t
+        return ccw(ap, a0) <= ccw(a1, a0) + 1e-9
+    return ccw(a0, ap) <= sweep + 1e-9
+
+
 class WrongShape(RuntimeError):
     """The feature was made, but no direction gives the expected volume and centre of mass."""
 
@@ -1193,7 +1238,7 @@ def build_step(sw, st):
         try:
             if st["op"] == "revolve":
                 v = sw.revolve(sk, st["volume"], st["centroid"], st["name"])
-            elif sw.direct:                          # revolved boss or cut about the y axis
+            elif sw.direct and "angle" not in st:    # revolved boss or cut about the y axis
                 v = sw.revolve(sk, st["volume"], st["centroid"], st["name"], cut=st["op"] == "cut")
             else:
                 v = sw.feature(sk, st["op"], st["lo"], st["hi"], st["volume"], st["centroid"], st["name"])
@@ -1220,6 +1265,20 @@ def build():
     print(f"connected to SolidWorks; new part created; building {len(FEATURES)} feature(s)")
     for n, st in enumerate(FEATURES, 1):
         build_step(sw, st)
+    for st in CUTS:                              # straight cuts across a revolved body
+        if abs(st["angle"]) > 1e-9:
+            r = sw.turn_y(st["angle"], st["turned"], "Turn cut direction to z")
+            if r is None:
+                raise RuntimeError(f"{st['name']}: no turn about the axis brings the body to the expected place")
+            print(f"turned {math.degrees(st['angle']):+g} deg about the axis " + r)
+        sw.direct, sw.helper_ab = True, st["helper"]     # outline in Front Plane coordinates
+        build_step(sw, st)
+        sw.direct, sw.helper_ab = False, None
+        if abs(st["angle"]) > 1e-9:
+            r = sw.turn_y(-st["angle"], st["back"], "Turn back")
+            if r is None:
+                raise RuntimeError(f"{st['name']}: no turn brings the body back")
+            print("turned back " + r)
     print(sw.rotate_back())
     if REVOLVES:
         if not sw.turned_back:
@@ -1261,7 +1320,7 @@ def build():
     print(f"dimensions: {sw.dims_ok} added" + (f", {len(sw.dims_failed)} failed: {sw.dims_failed}" if sw.dims_failed else ""))
     print(f"relations: {sw.rels_ok} added" + (f", {len(sw.rels_failed)} failed: {sw.rels_failed}" if sw.rels_failed else ""))
     print("sketch status: " + ", ".join(sw.status))
-    print("planned: " + ", ".join(st.get("expect", "?") for st in FEATURES + [x for g in REVOLVES for x in g["steps"]]))
+    print("planned: " + ", ".join(st.get("expect", "?") for st in FEATURES + CUTS + [x for g in REVOLVES for x in g["steps"]]))
     sw.restore_preferences()
     return sw
 

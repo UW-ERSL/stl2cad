@@ -40,6 +40,7 @@ standoff.STL m
 chesspawn.STL m
 topcover.STL m
 snapring.STL m
+chessrook.STL m
 EOF
 
 run_one() {

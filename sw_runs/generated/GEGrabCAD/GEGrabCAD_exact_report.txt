@@ -1,0 +1,68 @@
+mode: exact
+tolerance: 0.1090 mm
+symmetry imposed: none
+solid valid: True, faces: 58
+deviation:
+  ref_to_model  mean 0.0043  median 0.0000  p95 0.0266  max 0.0782 mm
+  model_to_ref  mean 0.0044  median 0.0000  p95 0.0272  max 0.0770 mm
+  volume ref 463321.10  model 463330.46 mm^3  (+0.00 %)
+time: 38.8 s
+script: not written (construction script script failed: OCP.OCP.Standard.Standard_ConstructionError: ChFi3d_Builder:only 2 faces)
+
+options:
+{
+  "units": "in",
+  "mode": "auto",
+  "tolerance": 0.0,
+  "symmetry": "auto",
+  "mirror_x": false,
+  "mirror_y": false,
+  "mirror_z": false,
+  "cyclic": 1,
+  "cyclic_axis": "z",
+  "dihedral": false,
+  "surfaces": [
+    "plane",
+    "cylinder",
+    "cone",
+    "sphere",
+    "torus"
+  ],
+  "algebraic_only": false,
+  "allow_extrusion": true,
+  "snap_directions_deg": 1.0,
+  "snap_angle_step_deg": 15.0,
+  "tangency": true,
+  "separators": false,
+  "fillets": true,
+  "prism25": true,
+  "export_script": true,
+  "export_solidworks": true,
+  "grid": 0.0,
+  "pitch": 0.0,
+  "blur": 0.0,
+  "prune": 1.0,
+  "min_copy_frac": 0.5,
+  "holes": true,
+  "keep_free_ends": true,
+  "clip": "thin",
+  "area_radius": true,
+  "out_dir": "D:\\Dropbox\\Personal\\suresh\\Software\\Github\\ERSL-Private\\stl2cad\\sw_runs\\generated\\GEGrabCAD",
+  "export_step": true,
+  "export_stl": true
+}
+
+symmetry analysis:
+frame center [52.6138, 86.9538, 19.4286]
+frame axes (columns):
+[[-0.098  -0.9815  0.1642]
+ [-0.9952  0.0979 -0.0085]
+ [-0.0077 -0.1642 -0.9864]]
+mirror normal to frame x: mean error 11.1025 mm
+mirror normal to frame y: mean error 24.9941 mm
+mirror normal to frame z: mean error 27.3777 mm
+rotation about frame x: C2:28.458 C3:41.797 C4:43.011 C5:41.257 C6:39.383 C7:36.485 C8:33.537 C9:30.921 C10:28.680 C11:26.689 C12:24.920
+rotation about frame y: C2:29.332 C3:83.617 C4:98.604 C5:96.965 C6:90.387 C7:82.713 C8:75.608 C9:69.145 C10:63.678 C11:58.694 C12:54.610
+rotation about frame z: C2:26.115 C3:52.857 C4:60.543 C5:65.067 C6:62.800 C7:58.551 C8:54.051 C9:49.764 C10:46.143 C11:43.041 C12:39.966
+detected: none  (group order 1, max element error 0.0000 mm, threshold 0.4359)
+center [52.6138, 86.9538, 19.4286]

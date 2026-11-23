@@ -1,0 +1,68 @@
+mode: exact
+tolerance: 0.0780 mm
+symmetry imposed: none (detected: mirror z)
+solid valid: True, faces: 52
+deviation:
+  ref_to_model  mean 0.0033  median 0.0006  p95 0.0142  max 0.0621 mm
+  model_to_ref  mean 0.0033  median 0.0007  p95 0.0141  max 0.0617 mm
+  volume ref 109680.77  model 109692.80 mm^3  (+0.01 %)
+time: 56.1 s
+script: not written (construction script script solid is invalid)
+
+options:
+{
+  "units": "in",
+  "mode": "auto",
+  "tolerance": 0.0,
+  "symmetry": "auto",
+  "mirror_x": false,
+  "mirror_y": false,
+  "mirror_z": false,
+  "cyclic": 1,
+  "cyclic_axis": "z",
+  "dihedral": false,
+  "surfaces": [
+    "plane",
+    "cylinder",
+    "cone",
+    "sphere",
+    "torus"
+  ],
+  "algebraic_only": false,
+  "allow_extrusion": true,
+  "snap_directions_deg": 1.0,
+  "snap_angle_step_deg": 15.0,
+  "tangency": true,
+  "separators": false,
+  "fillets": true,
+  "prism25": true,
+  "export_script": true,
+  "export_solidworks": true,
+  "grid": 0.0,
+  "pitch": 0.0,
+  "blur": 0.0,
+  "prune": 1.0,
+  "min_copy_frac": 0.5,
+  "holes": true,
+  "keep_free_ends": true,
+  "clip": "thin",
+  "area_radius": true,
+  "out_dir": "D:\\Dropbox\\Personal\\suresh\\Software\\Github\\ERSL-Private\\stl2cad\\sw_runs\\generated\\AlcoaGrabCAD",
+  "export_step": true,
+  "export_stl": true
+}
+
+symmetry analysis:
+frame center [52.7178, 23.6418, -0.0]
+frame axes (columns):
+[[-0.9447 -0.328   0.0031]
+ [-0.3281  0.9446 -0.0052]
+ [-0.0012 -0.0059 -1.    ]]
+mirror normal to frame x: mean error 39.4663 mm
+mirror normal to frame y: mean error 25.9425 mm
+mirror normal to frame z: mean error 0.1148 mm
+rotation about frame x: C2:29.710 C3:33.048 C4:41.173 C5:43.090 C6:41.798 C7:40.436 C8:38.216 C9:35.376 C10:32.497 C11:30.140 C12:27.937
+rotation about frame y: C2:43.382 C3:64.753 C4:70.067 C5:67.377 C6:62.040 C7:56.156 C8:50.652 C9:46.047 C10:41.837 C11:38.456 C12:35.586
+rotation about frame z: C2:46.181 C3:53.477 C4:67.323 C5:68.046 C6:62.754 C7:58.856 C8:53.598 C9:48.145 C10:43.502 C11:39.636 C12:36.436
+detected: mirror z  (group order 2, max element error 0.1148 mm, threshold 0.3120)
+center [52.7177, 23.642, 0.0319]

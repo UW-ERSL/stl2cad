@@ -1,0 +1,68 @@
+mode: exact
+tolerance: 0.1617 mm
+symmetry imposed: none (detected: mirror z)
+solid valid: True, faces: 16
+deviation:
+  ref_to_model  mean 0.0022  median 0.0000  p95 0.0148  max 0.0565 mm
+  model_to_ref  mean 0.0022  median 0.0000  p95 0.0141  max 0.0566 mm
+  volume ref 754903.10  model 754843.56 mm^3  (-0.01 %)
+time: 12.6 s
+script: construction script, verified: volume 0.0000 %, max distance 0.0000 mm
+
+options:
+{
+  "units": "m",
+  "mode": "auto",
+  "tolerance": 0.0,
+  "symmetry": "auto",
+  "mirror_x": false,
+  "mirror_y": false,
+  "mirror_z": false,
+  "cyclic": 1,
+  "cyclic_axis": "z",
+  "dihedral": false,
+  "surfaces": [
+    "plane",
+    "cylinder",
+    "cone",
+    "sphere",
+    "torus"
+  ],
+  "algebraic_only": false,
+  "allow_extrusion": true,
+  "snap_directions_deg": 1.0,
+  "snap_angle_step_deg": 15.0,
+  "tangency": true,
+  "separators": false,
+  "fillets": true,
+  "prism25": true,
+  "export_script": true,
+  "export_solidworks": true,
+  "grid": 0.0,
+  "pitch": 0.0,
+  "blur": 0.0,
+  "prune": 1.0,
+  "min_copy_frac": 0.5,
+  "holes": true,
+  "keep_free_ends": true,
+  "clip": "thin",
+  "area_radius": true,
+  "out_dir": "D:\\Dropbox\\Personal\\suresh\\Software\\Github\\ERSL-Private\\stl2cad\\sw_runs\\generated\\BicycleCrank",
+  "export_step": true,
+  "export_stl": true
+}
+
+symmetry analysis:
+frame center [25.0, 145.8426, 29.8625]
+frame axes (columns):
+[[ 7.000e-04 -2.300e-03 -1.000e+00]
+ [-9.949e-01  1.010e-01 -9.000e-04]
+ [ 1.010e-01  9.949e-01 -2.200e-03]]
+mirror normal to frame x: mean error 39.6749 mm
+mirror normal to frame y: mean error 32.2416 mm
+mirror normal to frame z: mean error 0.0928 mm
+rotation about frame x: C2:32.675 C3:43.496 C4:50.145 C5:49.046 C6:49.239 C7:47.587 C8:44.248 C9:40.998 C10:37.932 C11:35.059 C12:32.431
+rotation about frame y: C2:42.024 C3:171.703 C4:194.255 C5:187.029 C6:171.697 C7:154.786 C8:139.282 C9:126.168 C10:114.807 C11:105.074 C12:96.686
+rotation about frame z: C2:57.179 C3:168.581 C4:188.033 C5:185.360 C6:176.727 C7:155.874 C8:135.386 C9:120.172 C10:108.460 C11:98.946 C12:91.159
+detected: mirror z  (group order 2, max element error 0.0928 mm, threshold 0.6468)
+center [25.0054, 145.8426, 29.8626]

@@ -1,0 +1,10 @@
+connected to SolidWorks; new part created; building 1 feature(s)
+  sketch (AddToDB): 1 closed region(s)
+  revolve: volume 5997.010 mm^3, centre of mass (0.000, -22.304, 0.000) mm
+Revolve 1 about y: volume 5997.010 mm^3 (expected 5997.010)
+part is in the STL's orientation
+linked dimensions: none (no equal radius or diameter in two sketches)
+dimensions: 14 added
+relations: 14 added
+sketch status: fully defined
+planned: fully defined

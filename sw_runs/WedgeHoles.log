@@ -1,0 +1,22 @@
+connected to SolidWorks; new part created; building 2 feature(s)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 67176.916 mm^3, centre of mass (25.359, 20.000, 15.000) mm
+Boss 1 z 0 to 30: volume 67176.916 mm^3 (expected 67176.915)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 67648.155 mm^3, centre of mass (25.238, 19.930, 15.125) mm
+Boss 2 z 30 to 36: volume 67648.155 mm^3 (expected 67648.154)
+part is in the STL's orientation
+  try reverse=False: volume 66998.453 mm^3, centre of mass (25.127, 19.985, 15.127) mm
+Hole 1 dia 4.99999 along (-0.5, -0.866, -1.48e-06): volume 66998.453 mm^3 (expected 66998.357)
+  try reverse=False: volume 66325.023 mm^3, centre of mass (25.209, 19.803, 15.128) mm
+  try reverse=True: SolidWorks returned no feature
+Traceback (most recent call last):
+  File "D:\Dropbox\Personal\suresh\Software\Github\ERSL-Private\stl2cad\sw_scripts\WedgeHoles_solidworks.py", line 961, in <module>
+    sw = build()
+         ^^^^^^^
+  File "D:\Dropbox\Personal\suresh\Software\Github\ERSL-Private\stl2cad\sw_scripts\WedgeHoles_solidworks.py", line 945, in build
+    v = sw.face_feature(cy)
+        ^^^^^^^^^^^^^^^^^^^
+  File "D:\Dropbox\Personal\suresh\Software\Github\ERSL-Private\stl2cad\sw_scripts\WedgeHoles_solidworks.py", line 839, in face_feature
+    raise RuntimeError(f"{cy['name']}: neither direction gives the expected volume {expected:.3f} mm^3")
+RuntimeError: Hole 2 dia 8 along (-0.5, -0.866, -8.62e-09): neither direction gives the expected volume 66395.171 mm^3

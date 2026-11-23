@@ -496,6 +496,9 @@ def reconstruct(mesh, opts, spec=None, log=print):
         res = revolve.reconstruct(mesh, tol, log=log)    # a body of revolution: one revolved profile
         if res is not None:
             return res
+        res = revolve.reconstruct_with_cuts(mesh, tol, log=log)   # with straight cuts across it
+        if res is not None:
+            return res
     t = time.time()
     seg = Segmenter(mesh, tol, kinds=opts["kinds"], allow_extrusion=opts.get("allow_extrusion", False),
                     allow_facets=opts.get("allow_facets", True), log=log)

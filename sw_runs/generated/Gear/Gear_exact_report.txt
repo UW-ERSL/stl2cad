@@ -1,0 +1,69 @@
+mode: exact
+tolerance: 0.1510 mm
+symmetry imposed: none (detected: D12 about frame axis z + mirror z)
+solid valid: True, faces: 302
+deviation:
+  ref_to_model  mean 0.2029  median 0.0064  p95 0.1918  max 9.9703 mm
+  model_to_ref  mean 0.0266  median 0.0033  p95 0.1088  max 0.2246 mm
+  volume ref 753311.56  model 754212.80 mm^3  (+0.12 %)
+time: 9.1 s
+script: feature script, verified: volume 0.0001 %, max distance 0.0001 mm
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 29 dimension(s), 4 relation(s)) (28.5s)
+
+options:
+{
+  "units": "mm",
+  "mode": "auto",
+  "tolerance": 0.0,
+  "symmetry": "auto",
+  "mirror_x": false,
+  "mirror_y": false,
+  "mirror_z": false,
+  "cyclic": 1,
+  "cyclic_axis": "z",
+  "dihedral": false,
+  "surfaces": [
+    "plane",
+    "cylinder",
+    "cone",
+    "sphere",
+    "torus"
+  ],
+  "algebraic_only": false,
+  "allow_extrusion": true,
+  "snap_directions_deg": 1.0,
+  "snap_angle_step_deg": 15.0,
+  "tangency": true,
+  "separators": false,
+  "fillets": true,
+  "prism25": true,
+  "export_script": true,
+  "export_solidworks": true,
+  "grid": 0.0,
+  "pitch": 0.0,
+  "blur": 0.0,
+  "prune": 1.0,
+  "min_copy_frac": 0.5,
+  "holes": true,
+  "keep_free_ends": true,
+  "clip": "thin",
+  "area_radius": true,
+  "out_dir": "D:\\Dropbox\\Personal\\suresh\\Software\\Github\\ERSL-Private\\stl2cad\\sw_runs\\generated\\Gear",
+  "export_step": true,
+  "export_stl": true
+}
+
+symmetry analysis:
+frame center [105.6174, 105.9534, 20.0]
+frame axes (columns):
+[[-0.1476 -0.989   0.    ]
+ [-0.989   0.1476 -0.    ]
+ [ 0.     -0.     -1.    ]]
+mirror normal to frame x: mean error 0.5202 mm
+mirror normal to frame y: mean error 0.4833 mm
+mirror normal to frame z: mean error 0.0165 mm
+rotation about frame x: C2:0.485 C3:109.618 C4:121.485 C5:117.099 C6:109.843 C7:103.766 C8:94.921 C9:85.244 C10:76.382 C11:69.058 C12:62.925
+rotation about frame y: C2:0.519 C3:109.507 C4:121.173 C5:116.396 C6:109.017 C7:102.857 C8:94.256 C9:84.710 C10:75.692 C11:68.440 C12:62.267
+rotation about frame z: C2:0.095 C3:0.063 C4:0.066 C5:0.770 C6:0.089 C7:0.513 C8:0.061 C9:0.828 C10:0.691 C11:0.781 C12:0.066
+detected: D12 about frame axis z + mirror z  (group order 48, max element error 0.5293 mm, threshold 0.6038)
+center [105.8038, 105.7978, 19.9968]
