@@ -1289,7 +1289,7 @@ def solidworks_revolve_script(rv, shape, name, nd=6):
          "The part volume and centre of mass are checked against stl2cad's values.",
          "",
          "Needs: Windows, SolidWorks, Python with pywin32 (pip install pywin32).",
-         f"Run:   python {name}.py [C:\\path\\part.SLDPRT]",
+         f"Run:   python {name}.py [C:\\\\path\\\\part.SLDPRT]",
          '"""',
          "",
          f"AXIS_I, AXIS_J = {ai}, {k}           # model axes of the sketch coordinates (a, b)",
