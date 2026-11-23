@@ -664,6 +664,10 @@ class Model:
             assert sorted(k for k, _ in s) == need, (rel, s)
             self.rels.append(rel)
             return
+        if rel == "sgPARALLEL":
+            assert sorted(k for k, _ in s) == ["line", "line"], (rel, s)
+            self.rels.append(rel)
+            return
         if rel == "sgSAMELENGTH":                    # Equal: two lines or two arcs/circles
             ks = sorted(k for k, _ in s)
             assert ks in (["line", "line"], ["arc", "arc"], ["arc", "circle"], ["circle", "circle"]), (rel, s)

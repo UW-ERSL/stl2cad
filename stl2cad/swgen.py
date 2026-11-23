@@ -137,6 +137,12 @@ def cylinder_steps(p25, steps):
     return out
 
 
+def seed_copy(E, p, N):
+    """Index of the pattern copy used as the seed: the one at the left (else bottom) end."""
+    a, b = tuple(E[0][1]), tuple(E[(N - 1) * p][1])
+    return N - 1 if (b[0], b[1]) < (a[0], a[1]) else 0
+
+
 def _loop_code(loop, nd):
     """Python literal of a loop: list of edges in sketch-plane coordinates (a, b) in mm, or a
     pattern of one period repeated about a centre."""
@@ -221,6 +227,12 @@ def model_point(a, b):
     p = [0.0, 0.0, 0.0]
     p[AXIS_I], p[AXIS_J] = a, b
     return p
+
+
+def seed_copy(E, p, N):
+    """Index of the pattern copy used as the seed: the one at the left (else bottom) end."""
+    a, b = tuple(E[0][1]), tuple(E[(N - 1) * p][1])
+    return N - 1 if (b[0], b[1]) < (a[0], a[1]) else 0
 
 
 def expand(loop):
@@ -333,8 +345,10 @@ class SW:
             circular = isinstance(loop, dict) and "centre" in loop and self.use_patterns
             first = len(self.ents)
             todo = expand(loop)
-            if linear:                           # the period and the rest; the copies by pattern
-                todo = todo[:len(loop["period"])] + todo[len(loop["period"]) * loop["count"]:]
+            if linear:                           # the seed copy and the rest; the others by pattern
+                p_, n_ = len(loop["period"]), loop["count"]
+                s_ = seed_copy(todo, p_, n_)
+                todo = todo[s_ * p_:(s_ + 1) * p_] + todo[p_ * n_:]
             elif circular:                       # the period; the copies by a circular pattern
                 todo = todo[:len(loop["period"])]
             for e in todo:
@@ -361,8 +375,8 @@ class SW:
                     g = make(sm.CreateArc, xc, yc, 0.0, s[0], s[1], 0.0, t[0], t[1], 0.0, 1 if turn > 0 else -1)
                     self.ents.append(("arc", (s, t, (xc, yc), math.dist(s, (xc, yc)), m), g))
             if linear:
-                patterns.append(([g for _, _, g in self.ents[first:first + len(loop["period"])]],
-                                 loop["count"], loop["step"]))
+                step = loop["step"] if s_ == 0 else tuple(-v for v in loop["step"])
+                patterns.append(([g for _, _, g in self.ents[first:first + p_]], n_, step))
             elif circular:
                 circles.append((self.ents[first:first + len(loop["period"])], loop))
         for seed, count, step in patterns:
@@ -713,15 +727,17 @@ class SW:
 
     def sketch_pattern(self, seed, count, step):
         """Repeat the period's entities count times by step (model mm) with a sketch linear
-        pattern (SketchManager.CreateLinearSketchStepAndRepeat). In SolidWorks 2025 the copies
-        share their end points with each other and with the rest of the outline (sw_probe8)."""
+        pattern (SketchManager.CreateLinearSketchStepAndRepeat) with its spacing and count
+        dimensions. In SolidWorks 2025 the copies share their end points with each other and with
+        the rest of the outline (sw_probe8), and follow changes of the seed only when the pattern
+        has its dimensions (sw_probe13)."""
         p0, p1 = self.to_sketch(0.0, 0.0), self.to_sketch(*step)
         dx, dy = p1[0] - p0[0], p1[1] - p0[1]
         self.model.ClearSelection2(True)
         ok = all(g.Select4(True, NOTHING) for g in seed)
         r = self.model.SketchManager.CreateLinearSketchStepAndRepeat(
             count, 1, math.hypot(dx, dy), 0.0, math.atan2(dy, dx), math.pi / 2, "",
-            False, False, False, False, False) if ok else False
+            True, False, False, True, False) if ok else False
         self.model.ClearSelection2(True)
         if not r:
             raise RuntimeError(f"sketch linear pattern of {len(seed)} entities x {count} was not created")
@@ -1151,11 +1167,20 @@ def solidworks_script(p25, name, nd=6):
         plans, full = [], True
         for loop in st["loops"]:
             if not (len(loop.edges) == 1 and loop.edges[0][0] in ("circle", "ellipse")):
-                lin = None if getattr(loop, "linear", None) is None else loop.linear[:2]
                 rot = None if loop.pattern is None else (len(loop.pattern[2]), loop.pattern[1],
                                                          tuple(map(float, loop.pattern[0])))
-                ops, ok = plan_outline([tuple([e[0]] + [tuple(map(float, q)) for q in e[1:]]) for e in loop.edges],
-                                       linear=lin, rotational=rot)
+                E_ = [tuple([e[0]] + [tuple(map(float, q)) for q in e[1:]]) for e in loop.edges]
+                cps = None
+                if getattr(loop, "linear", None) is not None:
+                    # a sketch linear pattern with its spacing and count dimensions (sw_probe13: the
+                    # copies then follow the seed); the seed is the copy at the left (else bottom)
+                    # end of the run, the plan starts with it
+                    p_, N_ = loop.linear[0], loop.linear[1]
+                    s_ = seed_copy(E_, p_, N_)
+                    n_ = len(E_)
+                    E_ = E_[s_ * p_:] + E_[:s_ * p_]
+                    cps = (p_, [((m * p_ - s_ * p_) % n_, m - s_) for m in range(N_) if m != s_])
+                ops, ok = plan_outline(E_, rotational=rot, copies=cps)
                 plans.append(ops)
                 full = full and ok
         L.append(f"        expect=\"{'fully defined' if full else 'under defined'}\",")

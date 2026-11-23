@@ -945,11 +945,26 @@ def linear_pattern(L, tol):
     for j in range(1, p):                         # shared vertices within the period
         period[j][0] = period[j - 1][-1]
     period[-1][-1] = period[0][0] + v
-    edges = [(kinds[(i + j) % n],) + tuple(q + m * v for q in period[j]) for m in range(N) for j in range(p)]
-    rest = [list(e) for e in E[N * p:]]
-    rest[0][1] = period[0][0] + N * v
-    rest[-1][-1] = period[0][0]
-    edges += [tuple(e) for e in rest]
+    K = [kinds[(i + j) % n] for j in range(n)]          # kinds in the rotated order
+    # a part of a period after the last copy (the rack's last tooth, followed by the long flat
+    # instead of a gap) and before the first copy are copies too, made exact like the others
+    rest_n = n - N * p
+    after = 0
+    while after < min(p - 1, rest_n - 1) and K[N * p + after] == K[after] and \
+            np.abs(A[N * p + after] - period[after] - N * v).max() < eps:
+        after += 1
+    before = 0
+    while before < min(p - 1, rest_n - after - 1) and K[n - 1 - before] == K[p - 1 - before] and \
+            np.abs(A[n - 1 - before] - period[p - 1 - before] + v).max() < eps:
+        before += 1
+    edges = [(K[j],) + tuple(q + m * v for q in period[j]) for m in range(N) for j in range(p)]
+    edges += [(K[j],) + tuple(q + N * v for q in period[j]) for j in range(after)]
+    rest = [list(e) for e in E[N * p + after:n - before]]
+    tail = [(K[p - before + j],) + tuple(q - v for q in period[p - before + j]) for j in range(before)]
+    start_rest = (period[after][0] if after < p else period[0][0] + v) + N * v
+    rest[0][1] = start_rest
+    rest[-1][-1] = tail[0][1] if tail else period[0][0]
+    edges += [tuple(e) for e in rest] + tail
     return Loop(edges, L.area, linear=(p, N, v))
 
 
