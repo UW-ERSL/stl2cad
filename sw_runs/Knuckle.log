@@ -1,0 +1,18 @@
+connected to SolidWorks; new part created; building 1 feature(s)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 150000.000 mm^3, centre of mass (45.000, 57.828, 15.000) mm
+Boss 1 z 0 to 30: volume 150000.000 mm^3 (expected 150000.000)
+part is in the STL's orientation
+  try reverse=False flip_start=False: volume 162271.846 mm^3, centre of mass (45.000, 61.963, 15.000) mm
+Boss 1 dia 25 along (0, 1, 0): volume 162271.846 mm^3 (expected 162271.846)
+  try reverse=False flip_start=False: volume 158737.555 mm^3, centre of mass (45.779, 62.780, 15.000) mm
+Hole 2 dia 15 along (1, 0, 0): volume 158737.555 mm^3 (expected 158737.555)
+  try reverse=False flip_start=False: volume 155203.263 mm^3, centre of mass (45.000, 63.635, 15.000) mm
+Hole 3 dia 15 along (1, 0, 0): volume 155203.263 mm^3 (expected 155203.263)
+  try reverse=False flip_start=False: volume 153239.767 mm^3, centre of mass (45.000, 63.009, 15.000) mm
+Hole 4 dia 10 along (0, -1, 0): volume 153239.767 mm^3 (expected 153239.767)
+linked dimensions: 2 in 1 global variable(s)
+dimensions: 16 added
+relations: 23 added
+sketch status: fully defined, fully defined, fully defined, fully defined, fully defined
+planned: fully defined

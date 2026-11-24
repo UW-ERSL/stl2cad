@@ -45,6 +45,19 @@ def nice(v, eps, grids=None):
     return float(v)
 
 
+def nice_any(v, eps):
+    """Clean value within eps of v on the coarser of the mm and inch grids (53.975 = 2 1/8 in
+    rather than 53.98 mm; 10 mm rather than 0.3937 in)."""
+    cand = []
+    for grids in (MM_GRIDS, IN_GRIDS):
+        for g in grids:
+            r = round(v / g) * g
+            if abs(r - v) <= eps:
+                cand.append((abs(r - v) > eps / 10, -g, float(r)))   # a near-exact hit first
+                break
+    return min(cand)[2] if cand else float(v)
+
+
 def _circle3(p, q, r):
     ax, ay = p
     bx, by = q

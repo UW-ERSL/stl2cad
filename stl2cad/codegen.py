@@ -794,12 +794,85 @@ def stacked_script(p25, name, nd=4):
         L.append("    c = Solid.makeCylinder(d / 2, h, Vector(*p), Vector(*u))")
         L.append("    part = part + c if op == \"add\" else part - c")
         L.append("")
+        for cy in cyls:
+            if cy.get("tip"):
+                c, u = np.asarray(cy["c"]), np.asarray(cy["d"])
+                p1 = c + cy["t1"] * u
+                L.append(f"# drill point {f(cy['tip']['angle'])} deg at the end of the hole d={f(2 * cy['r'])}")
+                L.append(f"part = part - Solid.makeCone({f(cy['r'])}, 0, {f(cy['tip']['h'])}, "
+                         f"Vector({f(p1[0])}, {f(p1[1])}, {f(p1[2])}), Vector({_f(u[0], 10)}, {_f(u[1], 10)}, {_f(u[2], 10)}))")
+                L.append("")
         if "from cadquery import Edge, Vector" in L:
             L[L.index("from cadquery import Edge, Vector")] = "from cadquery import Edge, Solid, Vector"
+    xc = p25.get("crosscuts") or []
+    if xc:
+        L += _crosscut_code(xc, f)
+        for imp in ("from cadquery import Edge, Vector", "from cadquery import Edge, Solid, Vector"):
+            if imp in L:
+                L[L.index(imp)] = "from cadquery import Edge, Face, Solid, Vector, Wire"
+    bl = p25.get("blends") or []
+    if bl:
+        L += ["# ---- fillets and chamfers on the edges through these points (edge midpoints) " + "-" * 10,
+              "def edges_at(points):",
+              "    es = part.Edges()",
+              "    return [min(es, key=lambda e: e.distance(Vertex.makeVertex(*p))) for p in points]", ""]
+        for b in bl:
+            L.append(f"part = part.{'fillet' if b['kind'] == 'fillet' else 'chamfer'}({f(b['size'])}, "
+                     + ("" if b["kind"] == "fillet" else "None, ") + "edges_at([")
+            L += [f"    ({f(p[0])}, {f(p[1])}, {f(p[2])})," for p in b["points"]]
+            L.append("]))")
+        L.append("")
+        for n_, ln in enumerate(L):
+            if ln.startswith("from cadquery import ") and "Vector" in ln and "Vertex" not in ln:
+                L[n_] = ln + ", Vertex"
+                break
     L.append("part = part.clean()")
     L += ["", 'if __name__ == "__main__":',
           f'    part.exportStep(sys.argv[1] if len(sys.argv) > 1 else "{name}.step")']
     return "\n".join(L) + "\n"
+
+
+def _crosscut_code(xc, f):
+    """Cuts along a second model axis (chamfers, slanted notches): an outline (a, b) in the plane
+    across the axis, spanned by ACROSS and UP, extruded along the axis from lo to hi."""
+    from .crosscut import plane_frame
+    import numpy as np
+    tup = lambda v: "(" + ", ".join(f(float(x)) for x in v) + ")"
+    L = ["# ---- cuts along a second axis: outline (a, b) in the plane across the axis, extruded along",
+         "# the axis from lo to hi " + "-" * 66, "",
+         "def cross_prism(across, up, along, outline, lo, hi):",
+         "    X = lambda a, b: Vector(*across) * a + Vector(*up) * b",
+         "    es = []",
+         "    for e in outline:",
+         "        if e[0] == \"line\":",
+         "            es.append(Edge.makeLine(X(*e[1]), X(*e[2])))",
+         "        elif e[0] == \"arc\":",
+         "            es.append(Edge.makeThreePointArc(X(*e[1]), X(*e[2]), X(*e[3])))",
+         "        else:",
+         "            es.append(Edge.makeCircle(e[2], X(*e[1]), Vector(*along)))",
+         "    face = Face.makeFromWires(Wire.assembleEdges(es), [])",
+         "    return Solid.extrudeLinear(face.translate(Vector(*along) * lo), Vector(*along) * (hi - lo))", ""]
+    P = lambda q: f"({f(q[0])}, {f(q[1])})"
+    for n, cu in enumerate(xc, 1):
+        w, h = plane_frame(cu["j"])
+        along = np.eye(3)[cu["j"]]
+        for Lp in cu["loops"]:
+            L.append(f"# cut {n} along {'xyz'[cu['j']]}")
+            L.append("outline = [")
+            for e in Lp.edges:
+                if e[0] == "line":
+                    L.append(f"    (\"line\", {P(e[1])}, {P(e[2])}),")
+                elif e[0] == "arc":
+                    L.append(f"    (\"arc\", {P(e[1])}, {P(e[2])}, {P(e[3])}),")
+                elif e[0] == "circle":
+                    L.append(f"    (\"circle\", {P(e[1])}, {f(e[2])}),")
+                else:
+                    raise ValueError(f"a {e[0]} in a cut outline")
+            L.append("]")
+            L.append(f"part = part - cross_prism({tup(w)}, {tup(h)}, {tup(along)}, outline, "
+                     f"{f(cu['lo'])}, {f(cu['hi'])})")
+            L.append("")
+    return L
 
 
 def _revolved_code(revs, k, f, P):

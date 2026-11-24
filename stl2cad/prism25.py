@@ -30,9 +30,11 @@ def prism_axis(mesh, min_fraction=0.999, deg=1.0):
     return (kbest, best) if best >= min_fraction else (None, best)
 
 
-def _wall_or_cap(mesh, k, deg=1.0):
+def _wall_or_cap(mesh, k, deg=1.0, wall_deg=3.5):
+    # a curved wall (a spline cut) tessellated with facets spanning different heights has facet
+    # normals tilted by a degree or two, so walls get a wider margin than caps
     c = np.abs(mesh.face_normals[:, k])
-    return (c > np.cos(np.radians(deg))) | (c < np.sin(np.radians(deg)))
+    return (c > np.cos(np.radians(deg))) | (c < np.sin(np.radians(wall_deg)))
 
 
 def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print, ignore=None):
@@ -84,9 +86,9 @@ def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print, ignore=None):
             m_ = int(np.argmax(np.abs(d)))
             d = np.sign(d[m_]) * np.eye(3)[m_] + 0.0
             c = c - (c @ d) * d
-            from .snap2d import nice
-            c = np.array([nice(float(x), tol / 4) for x in c]) + 0.0
-            r = nice(float(r), tol / 4)
+            from .snap2d import nice_any
+            c = np.array([nice_any(float(x), tol / 4) for x in c]) + 0.0
+            r = nice_any(float(r), tol / 4)
         # every facet on this cylinder, including those whose normals happen to be along or across
         # the prism axis (a cross hole's wall facets facing +-x or +-z when the prism axis is y)
         u, v = _perp(d)
@@ -115,6 +117,9 @@ def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print, ignore=None):
             err = float(np.abs(np.linalg.norm(V - c - np.outer(V @ d, d), axis=1) - r).max())
             t = V @ d
             t0, t1 = float(t.min()), float(t.max())
+            if np.abs(d).max() == 1.0:                 # ends on the clean faces the loops snap to
+                from .snap2d import nice_any
+                t0, t1 = nice_any(t0, tol / 4), nice_any(t1, tol / 4)
             # outward normals point away from the axis on a boss, towards it in a hole
             F = mesh.triangles_center[comp]
             radial = F - c - np.outer(F @ d, d)
@@ -146,6 +151,7 @@ def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print, ignore=None):
                 d, t0, t1 = -d, -t1, -t0
                 inside = inside[::-1]
             tf = t0
+            traw = (t0, t1)
             if op == "cut":                            # cut past the open end(s)
                 t0 -= e
                 t1 += 0 if inside[1] else e
@@ -158,7 +164,7 @@ def secondary_cylinders(mesh, k, tol, max_fraction=0.1, log=print, ignore=None):
                         tf = tc
                         break
             ext = (float(V[:, k].min()), float(V[:, k].max()))
-            out.append(dict(op=op, c=c, d=d, r=float(r), t0=t0, t1=t1, tf=tf, face_pt=face_pt, spans=through_boss,
+            out.append(dict(op=op, c=c, d=d, r=float(r), t0=t0, t1=t1, tf=tf, traw=traw, face_pt=face_pt, spans=through_boss,
                             through=bool(op == "cut" and not inside[1]), ext=ext, err=float(err),
                             faces=comp))
     return out
@@ -206,6 +212,83 @@ def _face_point(mesh, p, d, u, v, r, tol):
     return None
 
 
+def plane_patches(mesh, k, tol, ignore=None):
+    """Planar faces that are neither walls nor caps for k (a chamfer, a slanted cut): connected
+    groups of off-axis facets with one normal. Returns (patches, member): dict(faces, n, p, j, ext)
+    with n the unit normal, p a point on the plane, j the model axis lying in the plane (the cut is
+    a prism along it; None for a compound angle) and ext the extent along k."""
+    import trimesh
+    off = ~_wall_or_cap(mesh, k)
+    if ignore is not None:
+        off &= ~ignore
+    member = np.zeros(len(mesh.faces), bool)
+    if not off.any():
+        return [], member
+    adj = mesh.face_adjacency
+    # facets of a curved surface join at small angles: a patch is a plane only if all of the
+    # off-axis facets smoothly connected to it share its normal
+    keep = off[adj[:, 0]] & off[adj[:, 1]] & (mesh.face_adjacency_angles < np.radians(30))
+    comps = trimesh.graph.connected_components(adj[keep], nodes=np.nonzero(off)[0], min_len=1)
+    out = []
+    for comp in map(np.asarray, comps):
+        n_, w = mesh.face_normals[comp], mesh.area_faces[comp]
+        n = (n_ * w[:, None]).sum(axis=0)
+        n /= np.linalg.norm(n)
+        if np.abs(n_ @ n).min() < np.cos(np.radians(0.5)):
+            continue
+        V = mesh.vertices[np.unique(mesh.faces[comp])]
+        p = V.mean(axis=0)
+        if np.abs((V - p) @ n).max() > tol / 4:
+            continue
+        if w.sum() < 4 * tol ** 2:                   # a stray facet of a tessellated wall: ignored
+            member[comp] = True
+            continue
+        js = [m for m in range(3) if m != k and abs(n[m]) < np.sin(np.radians(0.05))]
+        j = js[0] if js else None
+        if j is not None:                            # exact normal in the plane across j
+            n[j] = 0.0
+            n /= np.linalg.norm(n)
+        out.append(dict(faces=comp, n=n, p=p, j=j, ext=(float(V[:, k].min()), float(V[:, k].max())),
+                        lo=V.min(axis=0), hi=V.max(axis=0)))
+        member[comp] = True
+    return out, member
+
+
+def _hole_section(c, k, z, tol):
+    """Section at height z of a hole whose axis is perpendicular to k, over the length its walls
+    run (a rectangle in the (i, j) plane), slightly widened so that it merges with the section."""
+    i, j = [m for m in range(3) if m != k]
+    dz = z - c["c"][k]
+    hw = np.sqrt(max(c["r"] ** 2 - dz ** 2, 0.0)) + 0.01 * tol
+    d = c["d"][[i, j]]
+    n = np.array([-d[1], d[0]])
+    p0 = c["c"][[i, j]] + c["traw"][0] * d
+    p1 = c["c"][[i, j]] + c["traw"][1] * d
+    return np.array([p0 - hw * n, p1 - hw * n, p1 + hw * n, p0 + hw * n])
+
+
+def _release_blend_groups(mesh, k, groups, member):
+    """A surface of revolution that continues smoothly into other off-axis faces (the cone of a
+    chamfer around an outline arc, running on into the plane strips along its straight sides) is
+    part of an edge blend, not a revolved feature: such groups are given back."""
+    if not groups:
+        return groups, member
+    off = ~_wall_or_cap(mesh, k)
+    adj = mesh.face_adjacency
+    smooth = adj[mesh.face_adjacency_angles < np.radians(30)]
+    keep, mem = [], member.copy()
+    other = off & ~member
+    for g in groups:
+        ing = np.zeros(len(mesh.faces), bool)
+        ing[np.asarray(g["faces"])] = True
+        touch = (ing[smooth[:, 0]] & other[smooth[:, 1]]) | (ing[smooth[:, 1]] & other[smooth[:, 0]])
+        if touch.any():
+            mem &= ~ing
+            continue
+        keep.append(g)
+    return keep, mem
+
+
 def _free_height(a, b, feats, tol):
     """Height in (a, b) away from the k-extent of every secondary feature (the section there is
     that of the prism alone), at the middle of the longest free interval; None if none is free."""
@@ -246,7 +329,11 @@ def cylinder_solid(cy):
     import cadquery as cq
     c, d = np.asarray(cy["c"]), np.asarray(cy["d"])
     base = c + cy["t0"] * d
-    return cq.Solid.makeCylinder(cy["r"], cy["t1"] - cy["t0"], cq.Vector(*base), cq.Vector(*d))
+    body = cq.Solid.makeCylinder(cy["r"], cy["t1"] - cy["t0"], cq.Vector(*base), cq.Vector(*d))
+    if cy.get("tip"):                            # drill point at the closed end
+        end = c + cy["t1"] * d
+        body = body.fuse(cq.Solid.makeCone(cy["r"], 0.0, cy["tip"]["h"], cq.Vector(*end), cq.Vector(*d))).clean()
+    return body
 
 
 def levels(mesh, k, tol, skip=()):
@@ -1298,10 +1385,30 @@ def reconstruct(mesh, tol, log=print):
 
 
 def _reconstruct_body(mesh, tol, log=print):
+    r = _try_axis(mesh, tol, log, None)
+    if r is not None and not r.extras["prism25"].get("blends"):
+        return r
+    first = r
+    # the axis with most wall and cap area can be the wrong one (a U-clevis whose rounded corners
+    # are about z, with cross holes along x): try the others whose off-axis faces are cylinders
+    fr = [float(mesh.area_faces[_wall_or_cap(mesh, k)].sum() / mesh.area_faces.sum()) for k in range(3)]
+    # with fillets or chamfers, another axis may hold the same rounds in its profiles (a
+    # U-clevis's rounded corners): that one is kept, as it needs no edge features
+    for k in sorted(range(3), key=lambda k: -fr[k]):
+        if fr[k] < 0.5 or (first is not None and k == first.extras["prism25"]["axis"]):
+            continue
+        log(f"  2.5D: trying the {AX[k]} axis ({100 * fr[k]:.1f} % of the area)")
+        r = _try_axis(mesh, tol, log, k)
+        if r is not None and (first is None or not r.extras["prism25"].get("blends")):
+            return r
+    return first
+
+
+def _try_axis(mesh, tol, log, axis):
     try:
-        r = _reconstruct_body_(mesh, tol, log)
+        r = _reconstruct_body_(mesh, tol, log, axis=axis)
         if r is None:
-            r2 = _reconstruct_body_(mesh, tol, lambda *a: None, snap=False)
+            r2 = _reconstruct_body_(mesh, tol, lambda *a: None, snap=False, axis=axis)
             if r2 is not None:
                 log("  2.5D: passes without snapping; snapping skipped")
             return r2
@@ -1358,20 +1465,32 @@ def loop_tracks(slabs, secs, tol):
     return tracks
 
 
-def _reconstruct_body_(mesh, tol, log=print, snap=True):
+def _reconstruct_body_(mesh, tol, log=print, snap=True, axis=None):
     import time
     import cadquery as cq
     t0 = time.time()
     from . import revfeat
     k, frac = prism_axis(mesh, min_fraction=0.0)
+    if axis is not None:
+        k = axis
+        frac = float(mesh.area_faces[_wall_or_cap(mesh, k)].sum() / mesh.area_faces.sum())
     groups, member = [], None
     if frac < 0.999:                             # surfaces of revolution about axes along k
         groups, member = revfeat.find_groups(mesh, k, tol, log=log)
-    cyls = [] if frac >= 0.999 else secondary_cylinders(mesh, k, tol, log=log, ignore=member)
+        groups, member = _release_blend_groups(mesh, k, groups, member)
+    planes, pmember = plane_patches(mesh, k, tol, ignore=member)   # chamfers, slanted cuts
+    ign = pmember if member is None else (member | pmember)
+    from . import blends as blends_
+    bl, bmember, cones = blends_.blend_patches(mesh, k, tol, ~_wall_or_cap(mesh, k) & ~ign, log=log)
+    ign = ign | bmember                          # fillets and chamfers along edges
+    bfeat = [dict(ext=(float(mesh.vertices[np.unique(mesh.faces[c])][:, k].min()),
+                       float(mesh.vertices[np.unique(mesh.faces[c])][:, k].max()))) for c in bl]
+    cyls = [] if frac >= 0.999 else secondary_cylinders(mesh, k, tol, log=log, ignore=ign,
+                                                         max_fraction=0.1 if axis is None else 0.3)
     if cyls is None and groups:
         log(f"  2.5D along {AX[k]}: {len(groups)} revolved group(s), but the other off-axis faces "
             "are not cylinders")
-    if cyls is None:                             # another axis, whose off-axis faces are cylinders
+    if cyls is None and axis is None:            # another axis, whose off-axis faces are cylinders
         groups = []
         quiet = lambda *a, **kw: None
         for k2 in range(3):
@@ -1385,13 +1504,20 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
     if cyls is None:
         log(f"  2.5D: no prism axis (best face fraction {frac:.3f})")
         return None
+    if cones:                                    # drill points of blind holes; others are blends
+        bl = bl + [c_["faces"] for c_ in blends_.attach_tips(cones, cyls, tol, log=log)]
     if cyls:
         log(f"  2.5D along {AX[k]} ({100 * frac:.1f} % of the area) with {len(cyls)} off-axis "
             f"cylinder(s): " + ", ".join(f"{'boss' if c['op'] == 'add' else 'hole'} d={2 * c['r']:.3f}"
                                          for c in cyls))
     if groups:
         log(f"  2.5D along {AX[k]} with {len(groups)} revolved group(s) about axes along {AX[k]}")
-    skip = [f for c in cyls for f in c["faces"]] + list(revfeat.cap_skip(mesh, k, tol, groups))
+    if planes:
+        log(f"  2.5D along {AX[k]} with {len(planes)} slanted planar face(s)")
+    if bl:
+        log(f"  2.5D along {AX[k]} with {len(bl)} edge blend(s)")
+    skip = ([f for c in cyls for f in c["faces"]] + list(revfeat.cap_skip(mesh, k, tol, groups))
+            + [f for p_ in planes for f in p_["faces"]] + [f for c in bl for f in c])
     lv = levels(mesh, k, tol, skip=skip)
     slabs = [(a, b) for a, b in zip(lv[:-1], lv[1:]) if b - a > 2 * tol]
     if not slabs:
@@ -1405,11 +1531,27 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
             raise ValueError("a section loop crosses the circle of a revolved disk")
         return out
     zs, secs = [], []
+    from . import crosscut
     for a, b in slabs:
-        z = _free_height(a, b, cyls + local, tol)
+        z = _free_height(a, b, cyls + local + planes + bfeat, tol)
         if z is not None:
             zs.append(z)
             secs.append(disks(section_loops(mesh, k, z, tol)))
+            continue
+        # holes across k and slanted faces that cross the whole slab: the prism holds the
+        # section with the holes filled back in (their own sections added), and with slanted
+        # faces, the union of the sections at both slab ends
+        adds = [c for c in cyls + local if c.get("op") != "cut"]
+        hs = (a + 0.01 * tol, b - 0.01 * tol) if planes else (_free_height(a, b, adds, tol),)
+        hit = lambda c, z_: c["ext"][0] - tol < z_ < c["ext"][1] + tol
+        holes = [c for c in cyls if c["op"] == "cut"]
+        if (None not in hs and all(not hit(c, z_) for z_ in hs for c in adds)
+                and all(abs(c["d"][k]) < 1e-9 for c in holes if any(hit(c, z_) for z_ in hs))):
+            zs.append(0.5 * (a + b))
+            secs.append(disks(crosscut.shadow([section_loops(mesh, k, z_, tol) +
+                                               [(H, H) for H in (_hole_section(c, k, z_, tol) for c in holes
+                                                                 if hit(c, z_))]
+                                               for z_ in hs], tol)))
             continue
         if local and _free_height(a, b, local, tol) is None:
             log("  2.5D: a revolved feature spans a whole slab; no clean section")
@@ -1425,7 +1567,7 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
                 z = zc
                 break
         if z is None:
-            log("  2.5D: an off-axis feature spans a whole slab; no clean section")
+            log(f"  2.5D: an off-axis feature spans the whole slab {a:.3f}..{b:.3f}; no clean section")
             return None
         zs.append(z)
         secs.append(disks(_open_section(section_loops(mesh, k, z, tol), span, k, z, tol)))
@@ -1477,7 +1619,12 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
         feats.append(dict(z0=t["z0"], z1=t["z1"], op=t["op"], loop=loop))
     revs = []
     if groups:
-        revs = revfeat.features(mesh, k, tol, groups, slabs, secs, snap=snap, log=log, prism=solid)
+        circ = [(np.asarray(e[1], float), float(e[2])) for L in loops for e in L.edges if e[0] == "circle"]
+        circ += [(np.asarray(e[4], float), float(e[5])) for L in loops for e in L.edges
+                 if e[0] == "arc" and len(e) > 5]
+        lvls = sorted({t["z0"] for t in tracks} | {t["z1"] for t in tracks})
+        revs = revfeat.features(mesh, k, tol, groups, slabs, secs, snap=snap, log=log, prism=solid,
+                                ref=(circ, lvls))
         if revs is None:
             return None
         for f in revs:                           # a disk boss only touches the prism on its cylinder
@@ -1492,6 +1639,18 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
         if cy["op"] == "cut":
             solid = solid.cut(cylinder_solid(cy))
     solid = solid.clean()
+    xcuts = []
+    if planes:
+        r_ = crosscut.cross_cuts(mesh, solid, planes, tol, log=log)
+        if r_ is None:
+            return None
+        solid, xcuts = r_
+    blist = []
+    if bl:
+        blist = blends_.find_blends(mesh, solid, bl, tol, log=log)
+        if blist is None:
+            return None
+        solid = blends_.apply_blends(solid, blist).clean()
     n_edges = sum(len(f["loop"].edges) for f in feats)
     from .core import mass_props
     vol_err = abs(mass_props(solid)[0] / mesh.volume - 1)
@@ -1512,11 +1671,12 @@ def _reconstruct_body_(mesh, tol, log=print, snap=True):
     res.extras = dict(prims=[], analytic_fraction=1.0, summary=f"2.5D: {len(feats)} features",
                       volume_error=vol_err, brep=None, valid=True, passed=True,
                       prism25=dict(axis=k, features=feats, cylinders=_order_cyls(cyls),
-                                   revolved=[{q: v for q, v in f.items() if q != "solid"} for f in revs]))
+                                   revolved=[{q: v for q, v in f.items() if q != "solid"} for f in revs],
+                                   crosscuts=xcuts, blends=blist))
     return res
 
 
 def _order_cyls(cyls):
     return [dict(op=c["op"], c=c["c"], d=c["d"], r=c["r"], t0=c["t0"], t1=c["t1"], tf=c["tf"],
-                 face_pt=c["face_pt"], through=c["through"], spans=c.get("spans", False))
+                 face_pt=c["face_pt"], through=c["through"], spans=c.get("spans", False), tip=c.get("tip"))
             for c in sorted(cyls, key=lambda c: c["op"] == "cut")]

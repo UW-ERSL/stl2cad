@@ -135,16 +135,31 @@ def cylinder_steps(p25, steps):
         nrm = best[2]
         pick = pick - ((pick - o) @ nrm) * nrm
         ctr = ctr - ((ctr - o) @ nrm) * nrm
-        body = cylinder_solid(cy)
+        tip = cy.get("tip")
+        body = cylinder_solid(dict(cy, tip=None))
         solid = solid.fuse(body).clean() if cy["op"] == "add" else solid.cut(body).clean()
         vol_, c = mass_props(solid)
+        depth = cy["t1"] - cy["tf"] - offset
         out.append(dict(op=cy["op"], pick=tuple(map(float, pick)), normal=tuple(map(float, nrm)),
                         centre=tuple(map(float, ctr)), dia=2 * cy["r"], offset=offset,
-                        depth=cy["t1"] - cy["tf"] - offset, depth2=(cy["tf"] - cy["t0"]) if cy.get("spans") else 0.0,
+                        depth=depth, depth2=(cy["tf"] - cy["t0"]) if cy.get("spans") else 0.0,
                         volume=vol_,
                         centroid=tuple(c), through=cy.get("through", False),
                         name=f"{'Boss' if cy['op'] == 'add' else 'Hole'} {n} dia {2 * cy['r']:g} "
                              f"along ({d[0] + 0:.3g}, {d[1] + 0:.3g}, {d[2] + 0:.3g})"))
+        if tip:
+            # drill point: a cut from the hole's end, tapered to a
+            # point (the wall at the half angle to the axis; a hair short of the point: an
+            # extrusion cannot taper to nothing)
+            import cadquery as cq
+            p1 = cen + cy["t1"] * d
+            solid = solid.cut(cq.Solid.makeCone(cy["r"], 0.0, tip["h"], cq.Vector(*p1), cq.Vector(*d))).clean()
+            vol_, c = mass_props(solid)
+            out.append(dict(op="cut", pick=tuple(map(float, pick)), normal=tuple(map(float, nrm)),
+                            centre=tuple(map(float, ctr)), dia=2 * cy["r"], offset=offset + depth,
+                            depth=tip["h"] * (1 - 1e-6), depth2=0.0, volume=vol_, centroid=tuple(c),
+                            through=False, draft=tip["angle"] / 2, dims=False,
+                            name=f"Drill point {tip['angle']:g} deg of hole {n}"))
     return out
 
 
@@ -1042,6 +1057,34 @@ class SW:
             self.model.Extension.DeleteSelection2(0)
         return self.quarter_turn(target, name, angle=abs(angle))
 
+    def turn_about(self, m, angle, target, name):
+        """Move/Copy Body turning the body by the signed angle (rad, right-handed) about model
+        axis m: angle argument 1 turned about z, 2 about y and 3 about x in SolidWorks 2025. The
+        centre of mass is checked; a quarter-turn search is the fall-back."""
+        slot = {2: 0, 1: 1, 0: 2}[m]
+        ang = [0.0, 0.0, 0.0]
+        ang[slot] = angle
+        f = None
+        try:
+            bodies = self.model.GetBodies2(0, True)
+            self.model.ClearSelection2(True)
+            sd = call0(self.model.SelectionManager, "CreateSelectData")
+            sd.Mark = 1
+            bodies[0].Select2(False, sd)
+            f = self.model.FeatureManager.InsertMoveCopyBody2(
+                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, ang[0], ang[1], ang[2], False, 1)
+        except Exception as e:
+            print(f"  turn about {'xyz'[m]} failed: {type(e).__name__}: {e}")
+        if f is not None:
+            v, c = self.mass()
+            if math.dist(c, target) <= 1e-4 * SIZE + 1e-4:
+                f.Name = name
+                return f"(Move/Copy Body, angle argument {slot + 1}, {math.degrees(angle):+g} deg)"
+            self.model.ClearSelection2(True)
+            f.Select2(False, 0)
+            self.model.Extension.DeleteSelection2(0)
+        return self.quarter_turn(target, name, angle=abs(angle))
+
     def quarter_turn(self, target, name, angle=math.pi / 2):
         """Move/Copy Body turning the body by angle (a quarter turn by default) about an axis
         through the origin such that its centre of mass comes to target (mm); each sign in each
@@ -1187,6 +1230,8 @@ class SW:
                 pass
             return ext.SelectByID2("", "SKETCHPOINT", *to_model(cx, cyy), append, 0, NOTHING, 0)
         try:
+            if not cy.get("dims", True):             # a drill point: its circle is the hole's
+                raise StopIteration
             self.model.ClearSelection2(True)
             ok = pick_circle(False)
             self._count(self.model.AddDimension2(*to_model(cx + 1.6 * r, cyy + 1.6 * r)) if ok else None,
@@ -1203,20 +1248,32 @@ class SW:
                     d = (self.model.AddHorizontalDimension2(*to_model(tx, ty)) if kind == "H"
                          else self.model.AddVerticalDimension2(*to_model(tx, ty)))
                 self._count(d, tag + (" x" if kind == "H" else " y") + " position on the face")
+        except StopIteration:
+            pass
         except Exception as ex:
             self.dims_failed.append(f"{tag}: {type(ex).__name__}: {ex}")
         sm.InsertSketch(True)
-        self.report_status()
+        if cy.get("dims", True):
+            self.report_status()
         sk = self.model.FeatureByPositionReverse(0)
         expected, centroid = cy["volume"], self.in_model_frame(cy["centroid"])
         h = cy["depth"] * MM
         off = abs(cy.get("offset", 0.0)) * MM       # start offset from the sketch face (swStartOffset)
         t0 = 3 if off > 0 else 0
         tries = [(rev, flip) for rev in (False, True) for flip in ((False, True) if off > 0 else (False,))]
-        for rev, flip in tries:
+        dang = math.radians(cy.get("draft", 0.0))
+        if dang:                                     # tapered cut (drill point): inward first
+            tries = [(rev, flip, out) for out in (False, True) for rev, flip in tries]
+        else:
+            tries = [(rev, flip, False) for rev, flip in tries]
+        for rev, flip, outward in tries:
             self.model.ClearSelection2(True)
             sk.Select2(False, 0)
-            if cy["op"] == "add":
+            if dang:
+                f = fm.FeatureCut4(True, False, rev, 0, 0, h, 0.0, True, False, outward, False,
+                                   dang, 0.0, False, False, False, False, False, True, True,
+                                   False, False, False, t0, off, flip, False)
+            elif cy["op"] == "add":
                 h2 = cy.get("depth2", 0.0) * MM          # a boss through the body: both directions
                 f = fm.FeatureExtrusion3(h2 <= 0, False, rev, 0, 0, h, h2, False, False, False, False,
                                          0.0, 0.0, False, False, False, False, True, True, True,
@@ -1237,6 +1294,123 @@ class SW:
             f.Select2(False, 0)
             self.model.Extension.DeleteSelection2(0)
         raise RuntimeError(f"{cy['name']}: neither direction gives the expected volume {expected:.3f} mm^3")
+
+    def blend(self, b):
+        """Fillet or chamfer on the edges through b's points (model coordinates): the edges are
+        picked with SelectByID2 (mark 1, as a recorded fillet macro does; then mark 0), and the
+        feature is checked against the expected volume and centre of mass. A fillet is tried with
+        FeatureFillet3 (array arguments empty, then Nothing) and with the older FeatureFillet; a
+        chamfer with InsertFeatureChamfer, equal distances."""
+        fm, ext = self.model.FeatureManager, self.model.Extension
+        E = VARIANT(pythoncom.VT_EMPTY, None)
+        r = b["size"] * MM
+        if b["kind"] == "fillet":
+            makes = [("FeatureFillet3", lambda: fm.FeatureFillet3(195, r, r, 0, 0, 0, 0, E, E, E, E, E, E, E)),
+                     ("FeatureFillet3 (Nothing)", lambda: fm.FeatureFillet3(195, r, r, 0, 0, 0, 0, NOTHING, NOTHING,
+                                                                            NOTHING, NOTHING, NOTHING, NOTHING, NOTHING)),
+                     ("FeatureFillet", lambda: fm.FeatureFillet(195, r, 0, 0, E, E, E))]
+        else:
+            makes = [("InsertFeatureChamfer", lambda: fm.InsertFeatureChamfer(0, 2, r, math.radians(45.0), r, 0, 0, 0)),
+                     ("InsertFeatureChamfer (tangent propagation)",
+                      lambda: fm.InsertFeatureChamfer(1, 2, r, math.radians(45.0), r, 0, 0, 0))]
+        for mark in (1, 0):
+            for how, make in makes:
+                self.model.ClearSelection2(True)
+                ok = all(ext.SelectByID2("", "EDGE", *(v * MM for v in self.in_model_frame(p)), True, mark, NOTHING, 0)
+                         for p in b["points"])
+                if not ok:
+                    print(f"  {b['name']}: an edge was not picked (mark {mark})")
+                    continue
+                if mark == 1 and how == makes[0][0]:
+                    self.report_selection(b)
+                f = None
+                try:
+                    f = make()
+                except Exception as ex:
+                    print(f"  {b['name']}: {how} failed: {type(ex).__name__}: {ex}")
+                if f is None:
+                    print(f"  {b['name']}: {how} (mark {mark}) made no feature")
+                    continue
+                ok_ = lambda v, c: (abs(v - b["volume"]) <= 1e-4 * b["volume"] + 1e-3
+                                    and math.dist(c, self.in_model_frame(b["centroid"])) <= 1e-5 * SIZE + 1e-4)
+                v, c = self.mass()
+                if ok_(v, c):
+                    f.Name = b["name"]
+                    print(f"  {b['name']}: {how}, mark {mark}")
+                    return v
+                print(f"  {b['name']}: {how} (mark {mark}): volume {v:.3f} mm^3, expected {b['volume']:.3f}")
+                # what SolidWorks made, read back from the feature definition; for a fillet, the
+                # radius is set there and the feature rebuilt
+                if self.fix_blend(f, b, r):
+                    v, c = self.mass()
+                    if ok_(v, c):
+                        f.Name = b["name"]
+                        print(f"  {b['name']}: {how}, radius set through the feature definition")
+                        return v
+                    print(f"  {b['name']}: after setting the radius: volume {v:.3f} mm^3")
+                self.model.ClearSelection2(True)
+                f.Select2(False, 0)
+                self.model.Extension.DeleteSelection2(0)
+        raise RuntimeError(f"{b['name']}: no fillet or chamfer call gives the expected volume")
+
+    def report_selection(self, b):
+        """Print what the edge picks selected: count, entity type, and for an edge its end points
+        (mm), to see whether SelectByID2 took the edge at the point or another one."""
+        sm = self.model.SelectionManager
+        try:
+            n = sm.GetSelectedObjectCount2(-1)
+        except Exception as ex:
+            print(f"    selection count failed: {type(ex).__name__}: {ex}")
+            return
+        print(f"    {n} selected (picked {len(b['points'])} point(s))")
+        for i in range(1, n + 1):
+            try:
+                typ = sm.GetSelectedObjectType3(i, -1)
+                o = sm.GetSelectedObject6(i, -1)
+                ends = ""
+                try:
+                    sv, ev = call0(o, "GetStartVertex"), call0(o, "GetEndVertex")
+                    p0 = [v / MM for v in call0(sv, "GetPoint")] if sv is not None else None
+                    p1 = [v / MM for v in call0(ev, "GetPoint")] if ev is not None else None
+                    ends = f", ends {None if p0 is None else tuple(round(v, 3) for v in p0)} -> " \
+                           f"{None if p1 is None else tuple(round(v, 3) for v in p1)}"
+                except Exception as ex:
+                    ends = f", ends unavailable ({type(ex).__name__})"
+                print(f"    #{i}: type {typ}{ends}")
+            except Exception as ex:
+                print(f"    #{i}: {type(ex).__name__}: {ex}")
+
+    def fix_blend(self, f, b, r):
+        """Print the fillet or chamfer definition SolidWorks made (radius or distance, edge
+        count); for a fillet whose radius differs, set it and modify the feature. True if the
+        feature was modified."""
+        try:
+            d = call0(f, "GetDefinition")
+        except Exception as ex:
+            print(f"    no definition: {type(ex).__name__}: {ex}")
+            return False
+        info = []
+        for nm in ("DefaultRadius", "DefaultConicRhoOrRadius", "Distance", "EdgeChamferDistance", "Type", "FilletType"):
+            try:
+                info.append(f"{nm}={getattr(d, nm)}")
+            except Exception:
+                pass
+        for nm in ("GetEdgeCount", "GetEntitiesToChamferCount", "GetFaceCount"):
+            try:
+                info.append(f"{nm}={getattr(d, nm)() if nm != 'GetFaceCount' else ''}")
+            except Exception:
+                pass
+        print("    definition: " + ", ".join(info))
+        if b["kind"] != "fillet":
+            return False
+        try:
+            if abs(float(d.DefaultRadius) - r) < 1e-9:
+                return False
+            d.DefaultRadius = r
+            return bool(f.ModifyDefinition(d, self.model, NOTHING))
+        except Exception as ex:
+            print(f"    setting the radius failed: {type(ex).__name__}: {ex}")
+            return False
 
     def mass(self):
         """Volume (mm^3) and centre of mass (mm) of the part."""
@@ -1441,6 +1615,27 @@ def build():
     for cy in CYLINDERS:
         v = sw.face_feature(cy)
         print(f"{cy['name']}: volume {v:.3f} mm^3 (expected {cy['volume']:.3f})")
+    for st in XCUTS:                             # cuts along a second axis
+        if not sw.turned_back:
+            raise RuntimeError("the cuts along a second axis need the part in the STL's orientation")
+        if st["axis"] is not None:
+            r = sw.turn_about(st["axis"], st["angle"], st["turned"], "Turn cut axis to z")
+            if r is None:
+                raise RuntimeError(f"{st['name']}: no turn brings the cut axis to z")
+            print(f"turned the cut axis to z " + r)
+        sw.direct, sw.helper_ab = True, st["helper"]
+        build_step(sw, st)
+        sw.direct, sw.helper_ab = False, None
+        if st["axis"] is not None:
+            r = sw.turn_about(st["axis"], -st["angle"], st["back"], "Turn back")
+            if r is None:
+                raise RuntimeError(f"{st['name']}: no turn brings the body back")
+            print("turned back " + r)
+    for b in BLENDS:                             # fillets and chamfers, last
+        if not sw.turned_back:
+            raise RuntimeError("the fillets and chamfers need the part in the STL's orientation")
+        v = sw.blend(b)
+        print(f"{b['name']}: volume {v:.3f} mm^3 (expected {b['volume']:.3f})")
     v0 = sw.mass()[0]
     print(sw.link_dimensions())
     v1 = sw.mass()[0]
@@ -1454,7 +1649,7 @@ def build():
     print(f"dimensions: {sw.dims_ok} added" + (f", {len(sw.dims_failed)} failed: {sw.dims_failed}" if sw.dims_failed else ""))
     print(f"relations: {sw.rels_ok} added" + (f", {len(sw.rels_failed)} failed: {sw.rels_failed}" if sw.rels_failed else ""))
     print("sketch status: " + ", ".join(sw.status))
-    print("planned: " + ", ".join(st.get("expect", "?") for st in FEATURES + CUTS + [x for g in REVOLVES for x in g["steps"]]))
+    print("planned: " + ", ".join(st.get("expect", "?") for st in FEATURES + CUTS + [x for g in REVOLVES for x in g["steps"]] + XCUTS))
     sw.restore_preferences()
     return sw
 
@@ -1574,12 +1769,126 @@ def solidworks_script(p25, name, nd=6):
         L.append(f'    dict(name="{cy["name"]}", op="{cy["op"]}", pick={tuple(round(v, nd) for v in cy["pick"])}, '
                  f'normal={tuple(round(v, 9) for v in cy["normal"])}, '
                  f'centre={tuple(round(v, nd) for v in cy["centre"])},')
-        L.append(f'         dia={_f(cy["dia"], nd)}, offset={_f(cy["offset"], nd)}, depth={_f(cy["depth"], nd)}, depth2={_f(cy["depth2"], nd)}, volume={cy["volume"]:.4f}, '
+        extra = (f'draft={_f(cy["draft"], nd)}, dims=False, ' if cy.get("draft") else "")
+        L.append(f'         dia={_f(cy["dia"], nd)}, offset={_f(cy["offset"], nd)}, depth={_f(cy["depth"], 12)}, depth2={_f(cy["depth2"], nd)}, {extra}volume={cy["volume"]:.4f}, '
                  f'centroid=({cy["centroid"][0]:.5f}, {cy["centroid"][1]:.5f}, {cy["centroid"][2]:.5f})),')
     L.append("]")
     L += _revolves_code(p25, rev_turn, rev_groups, nd)
     L.append("CUTS = []")
+    L += _xcuts_code(p25, steps, nd)
+    L += _blends_code(p25, steps, nd)
     return "\n".join(L) + "\n" + _RUNTIME
+
+
+def _blends_code(p25, steps, nd):
+    """Fillets and chamfers, last (STL frame): the edges picked at their midpoints, with the
+    volume and centre of mass expected after each."""
+    from .core import mass_props
+    from .crosscut import cut_solid
+    from .blends import apply_blends
+    from .prism25 import cylinder_solid
+    bl = p25.get("blends") or []
+    L = ["", "# ---- fillets and chamfers: edges picked at their midpoints (STL frame, mm) ----", "BLENDS = ["]
+    if not bl:
+        return L[:1] + ["BLENDS = []"]
+    solid = _prism_solid(p25, steps)
+    for ft in p25.get("revolved") or []:
+        solid = _apply_revolved(solid, ft)
+    for cy in p25.get("cylinders") or []:
+        solid = solid.fuse(cylinder_solid(cy)) if cy["op"] == "add" else solid.cut(cylinder_solid(cy))
+    for cu in p25.get("crosscuts") or []:
+        solid = solid.cut(cut_solid(cu))
+    solid = solid.clean()
+    t3 = lambda v: "(" + ", ".join(f"{float(x):.6f}" for x in v) + ")"
+    for n, b in enumerate(bl, 1):
+        solid = apply_blends(solid, [b]).clean()
+        vol, com = mass_props(solid)
+        L.append(f'    dict(name="{b["kind"].capitalize()} {n} {b["size"]:g} mm", kind="{b["kind"]}", '
+                 f'size={_f(b["size"], 9)}, volume={vol:.4f}, centroid={t3(com)},')
+        L.append("         points=[" + ", ".join(t3(p) for p in b["points"]) + "]),")
+    L.append("]")
+    return L
+
+
+XCUT_TURN = {   # cut axis -> (model axis turned about, signed angle) bringing it to +z
+    2: (None, 0.0),
+    0: (1, -math.pi / 2),        # about y: x -> z
+    1: (0, math.pi / 2),         # about x: y -> z
+}
+
+
+def _rot(m, ang):
+    c, s_ = math.cos(ang), math.sin(ang)
+    if m is None:
+        return np.eye(3)
+    if m == 0:
+        return np.array([[1, 0, 0], [0, c, -s_], [0, s_, c]])
+    if m == 1:
+        return np.array([[c, 0, s_], [0, 1, 0], [-s_, 0, c]])
+    return np.array([[c, -s_, 0], [s_, c, 0], [0, 0, 1]])
+
+
+def _xcuts_code(p25, steps, nd):
+    """Cuts along a second model axis, after the off-axis cylinders (STL frame): the body is
+    turned so the cut axis is +z, the outline sketched on the Front Plane and cut from lo to hi
+    along z, and the body turned back; expected volumes and centres of mass from CadQuery."""
+    from .core import mass_props
+    from .crosscut import plane_frame, cut_solid
+    from .prism25 import Loop, cylinder_solid
+    from .sketchplan import plan_outline
+    xc = p25.get("crosscuts") or []
+    L = ["", "# ---- cuts along a second axis: the body is turned so the cut axis is z ----", "XCUTS = ["]
+    if not xc:
+        return L[:1] + ["XCUTS = []"]
+    solid = _prism_solid(p25, steps)
+    for ft in p25.get("revolved") or []:
+        solid = _apply_revolved(solid, ft)
+    for cy in p25.get("cylinders") or []:
+        solid = solid.fuse(cylinder_solid(cy)) if cy["op"] == "add" else solid.cut(cylinder_solid(cy))
+    solid = solid.clean()
+    t3 = lambda v: "(" + ", ".join(f"{float(x):.5f}" for x in v) + ")"
+    for n, cu in enumerate(xc, 1):
+        m, ang = XCUT_TURN[cu["j"]]
+        R = _rot(m, ang)
+        w, h = plane_frame(cu["j"])
+        com0 = np.array(mass_props(solid)[1])
+        solid = solid.cut(cut_solid(cu)).clean()
+        vol, com = mass_props(solid)
+        com = np.array(com)
+        to_sk = lambda q: np.array((R @ (float(q[0]) * w + float(q[1]) * h))[:2]) + 0.0
+        loops = []
+        for Lc in cu["loops"]:
+            es = []
+            for e in Lc.edges:
+                if e[0] == "circle":
+                    es.append(("circle", to_sk(e[1]), e[2]))
+                else:
+                    es.append((e[0],) + tuple(to_sk(q) for q in e[1:]))
+            loops.append(Loop(es, Lc.area))
+        plans, full = [], True
+        for Lc in loops:
+            if len(Lc.edges) == 1:
+                plans.append([])
+                continue
+            E_ = [tuple([e[0]] + [tuple(map(float, q)) for q in e[1:]]) for e in Lc.edges]
+            ops, ok = plan_outline(E_)
+            plans.append(ops)
+            full = full and ok
+        P = np.array([q for Lc in loops for e in Lc.edges for q in e[1:] if np.ndim(q) == 1])
+        L.append("    dict(")
+        L.append(f'        name="Cut {n} along {AX[cu["j"]]} {cu["a"]:.4g} to {cu["b"]:.4g}", op="cut", '
+                 f"axis={m}, angle={ang:.12f}, lo={_f(cu['lo'], nd)}, hi={_f(cu['hi'], nd)}, volume={vol:.4f},")
+        L.append(f"        turned={t3(R @ com0)}, centroid={t3(R @ com)}, back={t3(com)}, holes=False,")
+        L.append(f"        helper=({_f(P[:, 0].min() - 10.0, 3)}, {_f(P[:, 1].min() - 10.0, 3)}),")
+        L.append(f"        expect=\"{'fully defined' if full else 'under defined'}\",")
+        L.append("        plans=" + repr(_round_plans(plans)) + ",")
+        L.append("        loops=[")
+        for Lp in loops:
+            L.append("        " + _loop_code(Lp, max(nd, 9)) + ",")
+        L.append("        ],")
+        L.append("    ),")
+    L.append("]")
+    return L
 
 
 def _revolves_code(p25, turn, groups, nd):
@@ -1762,7 +2071,8 @@ def solidworks_revolve_script(rv, shape, name, nd=6):
          "        loops=["]
     for Lp in loops:
         L.append("        " + _loop_code(Lp, max(nd, 9)) + ",")
-    L += ["        ],", "    ),", "]", "", "CYLINDERS = []", "REV_TURN = None", "REV_DONE = None", "REVOLVES = []"]
+    L += ["        ],", "    ),", "]", "", "CYLINDERS = []", "REV_TURN = None", "REV_DONE = None", "REVOLVES = []", "XCUTS = []",
+          "BLENDS = []"]
     L += _cuts_code(rv, shape, R, nd)
     return "\n".join(L) + "\n" + _RUNTIME
 

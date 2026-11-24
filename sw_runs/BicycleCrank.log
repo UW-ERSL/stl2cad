@@ -1,0 +1,38 @@
+connected to SolidWorks; new part created; building 3 feature(s)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 750000.000 mm^3, centre of mass (25.000, 150.000, 25.000) mm
+Boss 1 z 0 to 50: volume 750000.000 mm^3 (expected 750000.000)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 787500.000 mm^3, centre of mass (25.000, 144.048, 27.619) mm
+Boss 2 z 50 to 110: volume 787500.000 mm^3 (expected 787500.000)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=False: volume 752157.083 mm^3, centre of mass (25.000, 138.129, 27.742) mm
+Holes 1 (dia 30) z 0 to 50: volume 752157.083 mm^3 (expected 752157.083)
+part is in the STL's orientation
+    4 selected (picked 4 point(s))
+    #1: type 1, ends (12.5, 37.5, 50.0) -> (12.5, 12.5, 50.0)
+    #2: type 1, ends (37.5, 37.5, 50.0) -> (12.5, 37.5, 50.0)
+    #3: type 1, ends (12.5, 12.5, 110.0) -> (37.5, 12.5, 110.0)
+    #4: type 1, ends (37.5, 12.5, 110.0) -> (37.5, 37.5, 110.0)
+  Fillet 1 10 mm: FeatureFillet3 (mark 1): volume 752348.966 mm^3, expected 754686.582
+    definition: DefaultRadius=0.01, DefaultConicRhoOrRadius=0.0, Type=0, GetFaceCount=
+  Fillet 1 10 mm: FeatureFillet3 (Nothing) (mark 1): volume 752348.966 mm^3, expected 754686.582
+    definition: DefaultRadius=0.01, DefaultConicRhoOrRadius=0.0, Type=0, GetFaceCount=
+  Fillet 1 10 mm: FeatureFillet (mark 1): volume 752348.966 mm^3, expected 754686.582
+    definition: DefaultRadius=0.01, DefaultConicRhoOrRadius=0.0, Type=0, GetFaceCount=
+  Fillet 1 10 mm: FeatureFillet3 (mark 0): volume 752348.966 mm^3, expected 754686.582
+    definition: DefaultRadius=0.01, DefaultConicRhoOrRadius=0.0, Type=0, GetFaceCount=
+  Fillet 1 10 mm: FeatureFillet3 (Nothing) (mark 0): volume 752348.966 mm^3, expected 754686.582
+    definition: DefaultRadius=0.01, DefaultConicRhoOrRadius=0.0, Type=0, GetFaceCount=
+  Fillet 1 10 mm: FeatureFillet (mark 0): volume 752348.966 mm^3, expected 754686.582
+    definition: DefaultRadius=0.01, DefaultConicRhoOrRadius=0.0, Type=0, GetFaceCount=
+Traceback (most recent call last):
+  File "D:\Dropbox\Personal\suresh\Software\Github\ERSL-Private\stl2cad\sw_scripts\BicycleCrank_solidworks.py", line 1436, in <module>
+    sw = build()
+         ^^^^^^^
+  File "D:\Dropbox\Personal\suresh\Software\Github\ERSL-Private\stl2cad\sw_scripts\BicycleCrank_solidworks.py", line 1415, in build
+    v = sw.blend(b)
+        ^^^^^^^^^^^
+  File "D:\Dropbox\Personal\suresh\Software\Github\ERSL-Private\stl2cad\sw_scripts\BicycleCrank_solidworks.py", line 1132, in blend
+    raise RuntimeError(f"{b['name']}: no fillet or chamfer call gives the expected volume")
+RuntimeError: Fillet 1 10 mm: no fillet or chamfer call gives the expected volume

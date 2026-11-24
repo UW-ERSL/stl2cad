@@ -153,7 +153,8 @@ def find_groups(mesh, k, tol, log=print):
     for a3, f in found:
         f = np.asarray(f)
         a3 = a3.copy()
-        a3[i], a3[j] = nice(float(a3[i]), tol / 4), nice(float(a3[j]), tol / 4)
+        from .snap2d import nice_any
+        a3[i], a3[j] = nice_any(float(a3[i]), tol / 4), nice_any(float(a3[j]), tol / 4)
         member[f] = True
         V = mesh.vertices[np.unique(mesh.faces[f])]
         q = V - a3
@@ -435,7 +436,43 @@ def region_solid(loops, a3, e1, k):
     return cq.Solid.revolve(face, 360.0, cq.Vector(*ax0), cq.Vector(*ax1))
 
 
-def features(mesh, k, tol, groups, slabs, secs, snap=True, log=print, prism=None):
+def _to_prism(L, tol, radii, levels):
+    """A line-only profile loop simplified (fitting leaves near-collinear corners where the
+    profile runs along the prism's wall) and its corners put exactly on the prism's radii about
+    the axis and on its levels when within tol / 2 (the prism's loops may be snapped to another
+    grid: a 22.1996 mm bore against a 22.2 mm profile corner leaves a sliver)."""
+    import shapely
+    from .prism25 import Loop
+    if not all(e[0] == "line" for e in L.edges):
+        return L
+    P = np.array([e[1] for e in L.edges], float)
+    Q = np.asarray(shapely.Polygon(P).simplify(tol / 4, preserve_topology=True).exterior.coords)[:-1]
+    if len(Q) < 3:
+        return L
+
+    def fix(q):
+        u, v = float(q[0]), float(q[1])
+        for r in radii:
+            if abs(u - r) <= tol / 2:
+                u = r
+        for z in levels:
+            if abs(v - z) <= tol / 2:
+                v = z
+        return np.array([u, v])
+    Q = [fix(q) for q in Q]
+    R = []
+    for q in Q:                                  # corners that came together are one
+        if not R or np.linalg.norm(q - R[-1]) > 1e-9:
+            R.append(q)
+    if len(R) > 1 and np.linalg.norm(R[0] - R[-1]) <= 1e-9:
+        R.pop()
+    if len(R) < 3:
+        return L
+    Q = R
+    return Loop([("line", Q[n], Q[(n + 1) % len(Q)]) for n in range(len(Q))], L.area)
+
+
+def features(mesh, k, tol, groups, slabs, secs, snap=True, log=print, prism=None, ref=None):
     """Fitted revolved features of all groups: list of dict(op, a3, e1, k, loops, mode, R, solid)
     in build order (disk bosses, local bosses, local cuts); None if a group cannot be fitted."""
     from .snap2d import snap_loops
@@ -460,6 +497,9 @@ def features(mesh, k, tol, groups, slabs, secs, snap=True, log=print, prism=None
                     loops = snap_loops(loops, rings, tol, log=lambda *a: None)
                 from .prism25 import exact_arcs
                 loops = [exact_arcs(L) for L in loops]
+                if ref is not None:
+                    radii = [r for c, r in ref[0] if np.linalg.norm(np.asarray(c) - g["a3"][[i_ for i_ in range(3) if i_ != k]]) < 1e-6]
+                    loops = [_to_prism(L, tol, radii, ref[1]) for L in loops]
                 solid = region_solid(loops, g["a3"], e1, k)
                 if solid is None or not solid.isValid():
                     log(f"  revolved group {gi + 1}: invalid revolved {op}")

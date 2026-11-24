@@ -364,6 +364,13 @@ class Extension:
             # (front view, looking along -z), not necessarily the face containing it
             v = np.array([0.0, 0.0, 1.0])
             return self._ray_face(np.array([x, y, z]) * K + 1000.0 * v, -v)
+        if typ == "EDGE" and m.body is not None:     # the body edge through the point (model, m)
+            v = cq.Vertex.makeVertex(*(np.array([x, y, z]) * K))
+            best = min(m.body.Edges(), key=lambda e: e.distance(v))
+            if best.distance(v) > 1e-6:
+                return False
+            m.sel_list.append(("edge", best))
+            return True
         return self._select_other(name, typ, x, y, z, append)
 
     def SelectByRay(self, x, y, z, dx, dy, dz, radius, typ, append, mark, opt):
@@ -509,7 +516,7 @@ class FeatureManager:
     def __init__(self, model):
         self.model = model
 
-    def _solid(self, sk, rev, h, t0, off, flip, cut):
+    def _solid(self, sk, rev, h, t0, off, flip, cut, draft=None):
         u, v, n = (np.array(a, float) for a in sk.frame)
         o = sk.offset * n
         seen = []
@@ -544,6 +551,24 @@ class FeatureManager:
         if rev:
             d = -d
         solids = []
+        if draft is not None:                        # (angle rad, outward): a tapered extrusion
+            ang, outward = draft
+            out = None
+            for w in wires:
+                es = w.Edges()
+                if len(es) == 1 and es[0].geomType() == "CIRCLE":
+                    # a circle tapered to (nearly) a point is a cone (OCC's tapered prism
+                    # crashes there)
+                    r0 = es[0].radius()
+                    r1 = max(r0 + (1 if outward else -1) * h * math.tan(ang), 0.0)
+                    c0 = np.array(es[0].arcCenter().toTuple()) + n * start
+                    s = cq.Solid.makeCone(r0, r1, h, cq.Vector(*c0), cq.Vector(*(n * d)))
+                else:
+                    f = cq.Face.makeFromWires(w, []).translate(cq.Vector(*(n * start)))
+                    s = cq.Solid.extrudeLinear(f, cq.Vector(*(n * d * h)),
+                                               taper=(-1 if outward else 1) * math.degrees(ang))
+                out = s if out is None else out.fuse(s)
+            return out
         for w in wires:
             f = cq.Face.makeFromWires(w, [])
             # always extruded along +n from the lower end: the same solid, but OCC fuses
@@ -556,12 +581,12 @@ class FeatureManager:
             out = out.fuse(s)
         return out
 
-    def _apply(self, rev, h, t0, off, flip, cut):
+    def _apply(self, rev, h, t0, off, flip, cut, draft=None):
         m = self.model
         sk = m.selected.data
         if getattr(sk, "open", False):
             return None
-        body = self._solid(sk, rev, h, t0, off, flip, cut)
+        body = self._solid(sk, rev, h, t0, off, flip, cut, draft)
         before = m.body
         if cut:
             if before is None:
@@ -667,9 +692,37 @@ class FeatureManager:
         m.features.append(f)
         return f
 
-    def FeatureCut4(self, Sd, Flip, Dir, T1, T2, D1, D2, *rest):
+    def _edge_feature(self, make):
+        m = self.model
+        es = [e for t, e in getattr(m, "sel_list", []) if t == "edge"]
+        if not es or m.body is None:
+            return None
+        try:
+            body = make(m.body, es)
+        except Exception:
+            return None
+        if body is None or not body.isValid():
+            return None
+        before = m.body
+        m.body = body
+        f = Feature(m, "Fillet", dict(before=before))
+        m.features.append(f)
+        m.sel_list = []
+        return f
+
+    def FeatureFillet3(self, opts, r1, r2, rho, ftyp, overflow, conic, *arrays):
+        return self._edge_feature(lambda b, es: b.fillet(r1 * K, es))
+
+    def InsertFeatureChamfer(self, opts, typ, width, angle, other, *rest):
+        if typ == 2:                                  # distance-distance
+            return self._edge_feature(lambda b, es: b.chamfer(width * K, other * K if other else None, es))
+        if typ == 1:                                  # angle-distance
+            return self._edge_feature(lambda b, es: b.chamfer(width * K, width * K * math.tan(angle), es))
+        return None
+
+    def FeatureCut4(self, Sd, Flip, Dir, T1, T2, D1, D2, Dchk1, Dchk2, Ddir1, Ddir2, Dang1, *rest):
         t0, off, flip = rest[-4], rest[-3], rest[-2]
-        return self._apply(Dir, D1, t0, off, flip, True)
+        return self._apply(Dir, D1, t0, off, flip, True, (Dang1, Ddir1) if Dchk1 else None)
 
 
 class SelectionManager:
