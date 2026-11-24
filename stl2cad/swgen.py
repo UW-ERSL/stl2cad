@@ -310,6 +310,15 @@ from win32com.client import VARIANT
 
 MM = 0.001                        # SolidWorks API lengths are in metres
 NOTHING = VARIANT(pythoncom.VT_DISPATCH, None)
+ROUND_DIGITS = globals().get("ROUND_DIGITS", 3)   # significant digits of the final dimensions (0: as fitted)
+
+
+def sig(x, n=None):
+    """x to n (default ROUND_DIGITS) significant digits; unchanged when n is 0."""
+    n = ROUND_DIGITS if n is None else n
+    if not n or x == 0:
+        return x
+    return round(x, n - 1 - int(math.floor(math.log10(abs(x)))))
 
 
 def call0(obj, name):
@@ -404,6 +413,7 @@ class SW:
         self.direct, self.helper_ab = False, None    # revolve profiles: sketch (x, y) = (a, b)
         self.ents, self._picked = [], []
         self.linkable = []                       # (R or D, value mm, dimension name) for linking
+        self.alldims = []                        # (dimension name, value in SI units, is angle) for rounding
         self.use_patterns = True
         self.model = call0(self.app, "NewPart")
         if self.model is None:                   # no default part template set: use it explicitly
@@ -951,6 +961,12 @@ class SW:
             self.dims_failed.append(what)
             return
         self.dims_ok += 1
+        try:                                     # every dimension, for rounding at the end
+            dd = d.GetDimension2(0)
+            self.alldims.append(("@".join(str(dd.FullName).split("@")[:2]), float(dd.SystemValue),
+                                 "angle" in what))
+        except Exception:
+            pass
         if "radius" in what or "diameter" in what:   # candidates for linking across sketches
             try:
                 dd = d.GetDimension2(0)
@@ -977,6 +993,7 @@ class SW:
             self.n_equations = call0(em, "GetCount")     # equations before linking
             n = 0
             for (kind, val), names in sorted(groups.items()):
+                val = sig(val)
                 var = f"{'radius' if kind == 'R' else 'dia'}_{val:g}".replace(".", "_").replace("-", "m")
                 em.Add2(-1, f'"{var}" = {val:g}mm', True)   # units explicit: the template may be in metres
                 for nm in names:
@@ -987,6 +1004,44 @@ class SW:
             return f"linked dimensions: {n} in {len(groups)} global variable(s)"
         except Exception as ex:
             return f"linked dimensions: failed ({type(ex).__name__}: {ex})"
+
+    def round_dimensions(self, tol=0.02):
+        """Every sketch dimension not driven by an equation set to ROUND_DIGITS significant digits
+        (lengths in mm, angles in degrees), one rebuild. If the rebuild fails or the volume changes by
+        more than tol (relative), the values are restored."""
+        if not ROUND_DIGITS:
+            return "dimensions not rounded"
+        linked = {nm for nm, _ in getattr(self, "linked", [])}
+        todo = []
+        for nm, v, ang in self.alldims:
+            if nm in linked:
+                continue
+            x = math.degrees(v) if ang else v / MM
+            r = sig(x)
+            if abs(r - x) > 1e-9 * max(1.0, abs(x)):
+                todo.append((nm, v, math.radians(r) if ang else r * MM))
+        if not todo:
+            return f"dimensions: all at {ROUND_DIGITS} significant digits already"
+        v0 = self.mass()[0]
+        try:
+            for nm, _, new in todo:
+                self.model.Parameter(nm).SystemValue = new
+            ok = bool(call0(self.model, "EditRebuild3"))
+            v1 = self.mass()[0]
+        except Exception as ex:
+            ok, v1 = False, 0.0
+            print(f"  rounding failed: {type(ex).__name__}: {ex}")
+        if ok and v1 > 0 and abs(v1 - v0) <= tol * v0:
+            return (f"rounded {len(todo)} dimension(s) to {ROUND_DIGITS} significant digits; "
+                    f"volume {v0:.3f} -> {v1:.3f} mm^3 ({100 * (v1 / v0 - 1):+.2f} %)")
+        for nm, old, _ in todo:
+            try:
+                self.model.Parameter(nm).SystemValue = old
+            except Exception:
+                pass
+        call0(self.model, "EditRebuild3")
+        return (f"rounding to {ROUND_DIGITS} significant digits undone (rebuild {'ok' if ok else 'failed'}, "
+                f"volume {v0:.3f} -> {v1:.3f} mm^3)")
 
     def unlink_dimensions(self):
         """Delete the equations link_dimensions added (from the last), restore the linked
@@ -999,6 +1054,7 @@ class SW:
                 self.model.Parameter(nm).SystemValue = val * MM
             except Exception as ex:
                 print(f"  could not restore {nm}: {type(ex).__name__}: {ex}")
+        self.linked = []
         call0(self.model, "EditRebuild3")
 
     def remove_helper(self, seg):
@@ -1646,6 +1702,11 @@ def build():
         v2 = sw.mass()[0]
         if abs(v2 - v0) > 1e-4 * v0 + 1e-3:
             raise RuntimeError(f"after removing the equations the volume is {v2:.3f} mm^3, not {v0:.3f}")
+    print(sw.round_dimensions())
+    linked = getattr(sw, "linked", [])
+    nvar = len({val for _, val in linked})
+    print(f"independent dimensions: {sw.dims_ok - len(linked) + nvar} "
+          f"({sw.dims_ok} dimensions, {len(linked)} of them driven by {nvar} global variable(s))")
     print(f"dimensions: {sw.dims_ok} added" + (f", {len(sw.dims_failed)} failed: {sw.dims_failed}" if sw.dims_failed else ""))
     print(f"relations: {sw.rels_ok} added" + (f", {len(sw.rels_failed)} failed: {sw.rels_failed}" if sw.rels_failed else ""))
     print("sketch status: " + ", ".join(sw.status))
@@ -1713,6 +1774,7 @@ def solidworks_script(p25, name, nd=6):
          f"ROT = {[list(map(float, r)) for r in R]}   # STL frame -> build frame (extrusion axis {AX[k]} -> z)",
          f"ROT_BACK = {tuple(back)}   # rotation (rad) about x, y, z back to the STL frame",
          f"FINAL_CENTROID = ({vols[-1][1][0]:.5f}, {vols[-1][1][1]:.5f}, {vols[-1][1][2]:.5f})   # STL frame, mm",
+         "ROUND_DIGITS = 3                # significant digits of the dimensions, set after the checks (0: as fitted)",
          f"SIZE = {_f(size, 3)}                  # part diagonal (mm), scale of the centre-of-mass check",
          f"HELPER_AB = ({_f(helper[0], 3)}, {_f(helper[1], 3)})   # helper circle (a, b), outside the part",
          "",
@@ -2058,6 +2120,7 @@ def solidworks_revolve_script(rv, shape, name, nd=6):
          f"ROT = {[list(map(float, r)) for r in R]}   # STL frame -> build frame (revolve axis {AX[k]} -> y)",
          f"ROT_BACK = {tuple(back)}   # rotation (rad) about x, y, z back to the STL frame",
          f"FINAL_CENTROID = {tuple(round(float(x), 5) for x in shape.Center().toTuple())}   # STL frame, mm",
+         "ROUND_DIGITS = 3                # significant digits of the dimensions, set after the checks (0: as fitted)",
          f"SIZE = {_f(size, 3)}                  # part diagonal (mm), scale of the centre-of-mass check",
          f"HELPER_AB = ({_f(helper[0], 3)}, {_f(helper[1], 3)})   # helper circle (a, b), outside the part",
          "",
