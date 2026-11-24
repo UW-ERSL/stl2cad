@@ -1,4 +1,0 @@
-BicycleCrank           FAILED     12s  RuntimeError: Fillet 1 10 mm: no fillet or chamfer call gives the expected volume
-idler_riser            FAILED     41s  RuntimeError: Chamfer 2 0.79375 mm: no fillet or chamfer call gives the expected volume
-
-0 of 2 part(s) built; 0 with every sketch fully defined

@@ -569,8 +569,21 @@ class FeatureManager:
                                                taper=(-1 if outward else 1) * math.degrees(ang))
                 out = s if out is None else out.fuse(s)
             return out
-        for w in wires:
-            f = cq.Face.makeFromWires(w, [])
+        # nested contours as SolidWorks reads them: a contour inside an odd number of others is a
+        # hole in the contour that directly contains it (even-odd nesting)
+        from shapely.geometry import Polygon as _Poly
+        def _poly(w):                        # the contour in the sketch plane, as a polygon
+            pts = [e.positionAt(t).toTuple() for e in w.Edges() for t in np.linspace(0, 1, 16, endpoint=False)]
+            return _Poly([(np.dot(p, u), np.dot(p, v)) for p in pts]).buffer(0)
+        polys = [_poly(w) for w in wires]
+        def inside(i, j):                    # contour i lies inside contour j
+            return polys[i].area < polys[j].area and polys[j].contains(polys[i].representative_point())
+        parents = [[j for j in range(len(wires)) if j != i and inside(i, j)] for i in range(len(wires))]
+        for i, w in enumerate(wires):
+            if len(parents[i]) % 2:
+                continue                     # a hole: cut from the contour that directly holds it
+            holes = [wires[k] for k in range(len(wires)) if i in parents[k] and len(parents[k]) == len(parents[i]) + 1]
+            f = cq.Face.makeFromWires(w, holes)
             # always extruded along +n from the lower end: the same solid, but OCC fuses
             # coincident faces (a boss on a flange's end arc) reliably only when they are
             # parametrized alike
