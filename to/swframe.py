@@ -3,10 +3,12 @@ straight tapered round members, the original's holes.
 
 Feature tree:
   Mirror x, Mirror z   reference planes through the part's mirror planes (offset from the Right/Top/Front Plane);
+  ZLevel n             planes parallel to the Front Plane at the joints' z (offset from Mirror z, else the Front
+                       Plane): SolidWorks refuses 3D sketch dimensions along z, so z is the plane's offset;
   Frame skeleton       one 3D sketch: a point at every joint and a line per member. Each joint point is
-                       dimensioned to three planes (a mirror plane along a symmetric axis, else the standard plane),
-                       labelled 'joint <orbit> x|y|z': mirror images share one global variable per coordinate
-                       (Equation Manager). A member's end section stops at a point on its line, dimensioned from
+                       dimensioned in x and y to planes (a mirror plane along a symmetric axis, else the standard
+                       plane) and put on its z level by relation; labels 'joint <orbit> x|y|z': mirror images
+                       share one global variable per coordinate (Equation Manager). A member's end section stops at a point on its line, dimensioned from
                        the joint (the trim, linked across members);
   Hub n                Extruded Boss of a circle on a plane offset from the standard plane normal to its axis;
   Node n               Revolve of a semicircle on a plane parallel to the Right Plane through the joint's skeleton
@@ -89,7 +91,6 @@ def write(path, name, R, detail):
 FRAME_CODE = r'''
 # ---- 3D frame ---------------------------------------------------------------------------------------------
 STD = {0: "Right Plane", 1: "Top Plane", 2: "Front Plane"}
-DATUM_Z = -10.0                                  # mm, the datum plane for z (parallel to the Front Plane)
 REF_PARALLEL, REF_PERP, REF_COINC = 1, 2, 4      # swRefPlaneReferenceConstraints_e
 
 
@@ -123,13 +124,78 @@ def mirror_planes(sw, made):
         made["planes"].append(f)
         names[ax] = f.Name
         print(f"mirror plane {'xyz'[ax]} = {CENTRE[ax]:.4f} mm")
-    # SolidWorks refuses every dimension from a 3D sketch point to the Front Plane (sw_probe_frame, run 2); z is
-    # dimensioned to a plane offset from it instead (the z mirror plane, or this datum)
-    p = (0.0, 0.0, DATUM_Z)
-    f = offset_plane(sw, "Front Plane", DATUM_Z, p, "Datum z")
-    made["planes"].append(f)
-    names["datum"] = f.Name
     return names
+
+
+def z_levels(sw, planes, made):
+    """The plane that fixes each joint's z. SolidWorks refuses every 3D sketch dimension measured along z (to the
+    Front Plane or a plane parallel to it, or a distance along z only: sw_probe_frame, sw_probe_frame_z), but a
+    point can be put on a plane parallel to the Front Plane by relation (sw_probe_frame_z, Z2). So each distinct z
+    gets a level plane offset from the z mirror plane (else from the Front Plane); the plane's offset is the
+    parameter, linked across mirror images in z ('joint <orbit> z'); a joint on the mirror plane (or z 0) uses that
+    plane itself. Returns the plane name per joint."""
+    sym = 2 in SYM
+    base, c = (planes[2], CENTRE[2]) if sym else ("Front Plane", 0.0)
+    out, made_at = [], {}
+    for k, p in enumerate(JOINTS):
+        dz = p[2] - c
+        if abs(dz) < 1e-9:
+            out.append(base)
+            continue
+        key = round(dz, 6)
+        if key not in made_at:
+            n = len(made_at) + 1
+            name = f"ZLevel{n}"
+            q = (p[0], p[1], p[2])
+            f = offset_plane(sw, base, abs(dz), q, name)
+            made["planes"].append(f)
+            made_at[key] = f.Name
+            what = f"joint {ORBIT[k]} z"
+            try:                                   # the plane's offset as a linkable joint coordinate
+                d = sw.model.Parameter(f"D1@{f.Name}")
+                v = float(d.SystemValue) / MM if d is not None else None
+            except Exception:
+                v = None
+            if v is not None and abs(v - abs(dz)) < 1e-6:
+                sw.dims_ok += 1
+                sw.alldims.append((f"D1@{f.Name}", abs(dz) * MM, False))
+                sw.linkable.append(("J", what, f"D1@{f.Name}", abs(dz)))
+            else:
+                sw.dims_ok += 1                    # the offset is a dimension, not linked
+        out.append(made_at[key])
+    print(f"z levels: {len(made_at)} plane(s) offset from the {base}")
+    return out
+
+
+def relation_count(sm, model):
+    try:
+        sk = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
+        return int(call0(sk, "RelationManager").GetRelationsCount(0))
+    except Exception:
+        return None
+
+
+def on_plane(sw, obj, plane, what):
+    """Point of the open 3D sketch put on a plane by relation; the relation names are tried until the sketch has
+    one more relation (when SolidWorks reports the count)."""
+    model, sm = sw.model, sw.model.SketchManager
+    for name in ("sgCOINCIDENT", "sgONPLANE", "sgATINTERSECT"):
+        n0 = relation_count(sm, model)
+        try:
+            model.ClearSelection2(True)
+            ok = obj.Select4(False, NOTHING) and model.Extension.SelectByID2(plane, "PLANE", 0, 0, 0, True, 0, NOTHING, 0)
+            if not ok:
+                sw.rels_failed.append(f"{what} (selection)"); return
+            model.SketchAddConstraints(name)
+        except Exception as ex:
+            sw.rels_failed.append(f"{what}: {type(ex).__name__}: {ex}"); return
+        n1 = relation_count(sm, model)
+        if n0 is None or n1 is None or n1 > n0:
+            sw.rels_ok += 1
+            if n0 is not None and name != "sgCOINCIDENT":
+                print(f"  {what}: relation {name}")
+            return
+    sw.rels_failed.append(f"{what}: no point-on-plane relation took")
 
 
 def dim_plane(sw, obj, plane, txt, what, at=None, count_failure=True):
@@ -223,7 +289,7 @@ def open_3d(sw):
     raise RuntimeError("could not open a 3D sketch (" + "; ".join(notes) + ")")
 
 
-def skeleton_sketch(sw, planes, made):
+def skeleton_sketch(sw, planes, made, zplane):
     """The 3D sketch of joints and member lines, with the points where the member sections stand."""
     model = sw.model
     sm = model.SketchManager
@@ -267,15 +333,14 @@ def skeleton_sketch(sw, planes, made):
             objs = at3(P, Q(p))
             if not objs:
                 continue
-            for ax in range(3):
+            on_plane(sw, objs[0], zplane[k], f"joint {k}: on its z level")
+            for ax in (0, 1):
                 # reference planes in order of preference; the label names the plane, so the mirror images of a
                 # joint (same orbit) share a variable only when they are dimensioned the same way
                 cands = []
                 if ax in planes and abs(p[ax] - CENTRE[ax]) > 1e-9:
                     cands.append((planes[ax], "mirror"))
-                if ax == 2:
-                    cands.append((planes["datum"], "datum"))
-                elif abs(p[ax]) > 1e-9:
+                if abs(p[ax]) > 1e-9:
                     cands.append((STD[ax], "origin"))
                 q = Q(tuple(p[i] + (2.0 if i == ax else 0.0) for i in range(3)))
                 what = None
@@ -618,7 +683,8 @@ def build_frame():
     drift = [0.0, [0.0, 0.0, 0.0]]
     made = dict(planes=[], sketches=[])
     planes = mirror_planes(sw, made)
-    skel = skeleton_sketch(sw, planes, made)
+    zplane = z_levels(sw, planes, made)
+    skel = skeleton_sketch(sw, planes, made, zplane)
     for st in STEPS:
         if st["kind"] == "member":
             member3_step(sw, st, drift, made, skel)

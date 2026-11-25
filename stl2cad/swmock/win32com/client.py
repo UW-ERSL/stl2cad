@@ -285,6 +285,15 @@ class Sketch3D:
     def GetSketchSegments(self):
         return [seg for seg in self.edges if not seg.deleted]
 
+    @property
+    def RelationManager(self):
+        m = self.model
+
+        class RM:
+            def GetRelationsCount(self, flt):
+                return len(m.rels)
+        return RM()
+
     def wire(self):
         es = [cq.Edge.makeLine(cq.Vector(*(K * np.asarray(seg.edge[1]))), cq.Vector(*(K * np.asarray(seg.edge[2]))))
               for seg in self.edges if not seg.deleted and not seg.ConstructionGeometry]
@@ -880,7 +889,7 @@ class FeatureManager:
             else:
                 fr, o = FRAMES[base.data], np.zeros(3)
             n = np.array(fr[2], float)
-            data = dict(frame=fr, origin=o + (-1 if c1 & 256 else 1) * d1 * n)
+            data = dict(frame=fr, origin=o + (-1 if c1 & 256 else 1) * d1 * n, offset=d1)
         elif c1 == 1 and c2 == 4:                      # parallel to a selected plane, through a selected point
             base = next((o for k, o, _ in sel if k == "feature" and o.kind == "RefPlane"), None)
             pt = next((o for k, o, mk in sel if k == "point"), None)
@@ -1258,7 +1267,13 @@ class Model:
     def Parameter(self, name):
         class D:
             SystemValue = 0.0
-        return D()
+        d = D()
+        if name.startswith("D1@"):                   # a reference plane's offset (swframe's z levels)
+            f = next((g for g in self.features if g.kind == "RefPlane" and g.Name == name[3:]
+                      and isinstance(g.data, dict) and "offset" in g.data), None)
+            if f is not None:
+                d.SystemValue = f.data["offset"]
+        return d
 
     def EditUndo2(self, steps):
         return True
@@ -1347,6 +1362,14 @@ class Model:
         if rel == "sgATPIERCE":                       # a point and a segment of another (closed) sketch
             assert [k for k, _ in s] == ["point"] and any(k == "segment" for k, _, _ in self.ext_sel), (rel, s)
             self.rels.append(rel)
+            return
+        ext_planes = [o for k, o, _ in self.ext_sel if k == "feature" and o.kind == "RefPlane"]
+        if (rel == "sgCOINCIDENT" and [k for k, _ in s] == ["point"] and len(s[0][1]) == 3 and len(ext_planes) == 1):
+            pl = ext_planes[0]                         # a 3D sketch point on a plane
+            fr, o = (pl.data["frame"], pl.data["origin"]) if isinstance(pl.data, dict) else (FRAMES[pl.data], np.zeros(3))
+            dist = float((np.array(s[0][1]) - np.asarray(o, float)) @ np.array(fr[2], float))
+            assert abs(dist) < 1e-9, ("point not on the plane", dist)
+            self.rels.append("sgCOINCIDENT point-plane")
             return
         ext_pts = [o for k, o, _ in self.ext_sel if k == "point"]
         if rel == "sgCOINCIDENT" and [k for k, _ in s] == ["point"] and len(ext_pts) == 1:
