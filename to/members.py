@@ -26,6 +26,8 @@ MERGE = 3.0           # branch pixels within this form one joint (mm)
 HUB_REACH = 3.0       # a chain end within this of a hub's ring + margin ends on the ring (mm)
 MIN_MEMBER = 2.0      # chains shorter than this between two joints are dropped (mm)
 SHORT_MEMBER = 5.0    # a member shorter than this merges its two joints (mm)
+RADII = {1: 1, 2: 1, 3: 2, 4: 3, 5: 0}      # bend radius classes by detail level (0: every bend its own)
+DIGITS = {1: 2, 2: 2, 3: 2, 4: 3, 5: 3}     # significant digits of the class radii
 HUB_BAND = 4.0        # a hub member whose chain lies mostly within this of the hub's face goes straight to it (mm)
 
 
@@ -64,7 +66,7 @@ def _aim(V, aim):
     return V
 
 
-def _fillet_path(V, chain, tol, rmin=0.0, aim=None):
+def _fillet_path(V, chain, tol, rmin=0.0, aim=None, rset=None):
     """Polyline V (ends fixed) with a tangent arc at each interior vertex: the radius (largest that fits
     between the neighbouring bends) chosen on a grid to bring the path closest to the chain points, and
     not below rmin (a swept section of half-width h folds over itself on an arc of radius < h). A bend
@@ -78,7 +80,7 @@ def _fillet_path(V, chain, tol, rmin=0.0, aim=None):
         turn = math.acos(float(np.clip(a @ b / (La * Lb), -1, 1)))
         tmax = min(0.5 * La if k > 1 else 0.9 * La, 0.5 * Lb if k < n - 2 else 0.9 * Lb)
         if turn > 1e-3 and tmax < rmin * math.tan(turn / 2):
-            return _fillet_path(V[:k] + V[k + 1:], chain, tol, rmin, aim)   # ends aimed again
+            return _fillet_path(V[:k] + V[k + 1:], chain, tol, rmin, aim, rset)   # ends aimed again
     if n == 2:
         return [('line', V[0], V[1])]
     L = [np.linalg.norm(V[k + 1] - V[k]) for k in range(n - 1)]
@@ -105,6 +107,11 @@ def _fillet_path(V, chain, tol, rmin=0.0, aim=None):
             # points beyond the tangent points are on the lines, not the arc: judge only the arc's sector
             if best is None or dev < best[0]:
                 best = (dev, t, r)
+        if rset:                                     # the class radius nearest the fitted one that fits here
+            fit_r = [x for x in rset if rmin <= x <= tmax / math.tan(turn / 2)]
+            if fit_r:
+                r = min(fit_r, key=lambda x: abs(x - best[2]))
+                best = (best[0], r * math.tan(turn / 2), r)
         out_t.append((best[1], best[2], turn))
     edges, start = [], V[0]
     for k in range(1, n - 1):
@@ -122,6 +129,11 @@ def _fillet_path(V, chain, tol, rmin=0.0, aim=None):
         edges.append(('arc', p, m, q)); start = q
     edges.append(('line', start, V[-1]))
     return [tuple([e[0]] + [tuple(map(float, x)) for x in e[1:]]) for e in edges]
+
+
+def _arc_r(e):
+    c = np.array(S_circle(*e[1:]))
+    return float(np.linalg.norm(np.array(e[1]) - c))
 
 
 def path_points(path, h=0.25):
@@ -176,6 +188,10 @@ def members(shadow, hubs, to=None, axis=2, detail=3, pix=S.PIX):
     for p, k in owner.items():
         acc.setdefault(k, []).append(xy(p))
     J = [np.mean(acc[k], axis=0) for k in range(len(J))]
+    # joints at the level's digits (the SolidWorks script links each joint coordinate to one global variable at
+    # its exact value; rounding it there would move the geometry)
+    import swbars
+    J = [np.array([swbars._sig(float(v), DIGITS[detail]) for v in c]) for c in J]
     # ends near a hub go onto its ring
     hub_of = {}
     for k, c in enumerate(J):
@@ -308,8 +324,19 @@ def members(shadow, hubs, to=None, axis=2, detail=3, pix=S.PIX):
             m['d0'] = m['d1'] = float(np.mean(dz)) if dz else 1.0
             m['centre'] = float(np.mean(cz)) if cz else 0.0
     # paths again, with arcs no tighter than the section's half-width (and 0.2 mm)
+    # bend radii in classes (RADII by level; 0: each its own), rounded to the level's digits: equal radii are
+    # linked to one global variable in SolidWorks
     for m in M:
         m['path'] = _fillet_path(m['V'], m['chain'], tol, 0.5 * max(m['w0'], m['w1']) + 0.2, m['aim'])
+    rs = [(_arc_r(e), m) for m in M for e in m['path'] if e[0] == 'arc']
+    rset = None
+    if RADII[detail] and rs:
+        import swbars
+        x = np.array([r for r, _ in rs])
+        cl = swbars.classes(x, np.ones(len(x)), RADII[detail])
+        rset = sorted({swbars._sig(v, DIGITS[detail]) for v in cl})
+    for m in M:
+        m['path'] = _fillet_path(m['V'], m['chain'], tol, 0.5 * max(m['w0'], m['w1']) + 0.2, m['aim'], rset)
         m['length'] = float(path_points(m['path'])[1][-1])
     L = np.array([m['length'] for m in M])
     mid = float(np.average([m['centre'] for m in M], weights=L))

@@ -89,6 +89,7 @@ class Segment:
             V = [cq.Vector(*(K * q)) for q in pts]
             edge = cq.Edge.makeLine(*V) if self.edge[0] == "line" else cq.Edge.makeThreePointArc(*V)
             m.ext_sel.append(("segment", edge, getattr(data, "Mark", 0)))
+            m.ext_segs = getattr(m, "ext_segs", []) + [(self, getattr(data, "Mark", 0))]
             return True
         m.selected = self
         if not append:
@@ -210,6 +211,8 @@ class Sketch:
                 add(e[1]); add(e[3]); add(c)
             elif e[0] == "ellipse":
                 add(e[1]); add(e[2]); add(e[3])
+            elif e[0] == "earc":                       # centre, axis points, ends
+                add(e[1]); add(e[2]); add(e[3]); add(e[4]); add(e[5])
             elif e[0] == "circle":
                 add(e[1])
         for q in getattr(self, "points", []):         # CreatePoint: its own point even where an end point is
@@ -254,6 +257,7 @@ class Feature:
         self.model.selected = self
         if not append:
             self.model.ext_sel = []
+            self.model.ext_segs = []
         self.model.ext_sel.append(("feature", self, mark))
         if self.kind in ("Extrusion", "Revolve", "Fillet"):
             sl = getattr(self.model, "sel_list", None)
@@ -920,6 +924,8 @@ class FeatureManager:
         P = lambda q: cq.Vector(*np.round(K * (canon(q)[0] * u + canon(q)[1] * v + o), 9))
         axes = [seg for seg in sk.edges if not seg.deleted and seg.ConstructionGeometry and seg.edge[0] == "line"
                 and getattr(seg, "centerline", False)]
+        if not axes:                                 # a line of the profile selected as the axis (Mark 4 or 16)
+            axes = [g for g, mk in getattr(m, "ext_segs", []) if mk in (4, 16) and g in sk.edges and g.edge[0] == "line"]
         if len(axes) != 1:
             return None
         es = []
@@ -1135,6 +1141,7 @@ class Model:
         self.selected = None
         self.sel_list = []
         self.ext_sel = []
+        self.ext_segs = []
 
     def AddDimension2(self, x, y, z):
         s = self.sel_list
@@ -1163,6 +1170,9 @@ class Model:
         s = self.sel_list
         if rel == "sgATPIERCE":                       # a point and a segment of another (closed) sketch
             assert [k for k, _ in s] == ["point"] and any(k == "segment" for k, _, _ in self.ext_sel), (rel, s)
+            self.rels.append(rel)
+            return
+        if rel == "sgCOINCIDENT" and sorted(k for k, _ in s) == ["arc", "point"]:     # a point on an arc's circle
             self.rels.append(rel)
             return
         if rel in ("sgSYMMETRIC", "sgATMIDDLE") or (rel == "sgCOINCIDENT" and sorted(k for k, _ in s) == ["line", "point"]):

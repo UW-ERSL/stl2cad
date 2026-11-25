@@ -4,6 +4,8 @@ Every pair in ../models/to at every detail level; the SolidWorks scripts are cop
 ../results/sw_scripts/to/ as NAME_dL_solidworks.py (L = detail level, 1: fewest dimensions ...
 5: smallest model error); the summary goes to summary.txt.
 
+Pairs in SWEEP are also built as swept members (NAME_sweep_dL_solidworks.py, swsweep.py).
+
 Usage (from this folder):  python run_all.py [--levels 1 2 3 4 5] [--jobs 4]
 """
 import argparse, os, re, shutil, subprocess, sys
@@ -21,6 +23,16 @@ PAIRS = [  # original, TO, name, units
     ('CrankArm.STL', 'CrankArm_TO_1.stl', 'crankarm_to', 'in'),
 ]
 PAIRS = [pr for pr in PAIRS if os.path.exists(os.path.join(M, pr[0])) and os.path.exists(os.path.join(M, pr[1]))]
+# pairs also built as swept members (swsweep.py: hubs, curved members with tapered ellipse sections, joint nodes);
+# the method needs hubs (holes of the original that the TO rings)
+SWEEP = {'crankarm_to'}
+
+
+def run_sweep(o, t, name, units, level):
+    base = os.path.join('out_' + os.path.splitext(o)[0], os.path.splitext(o)[0] + '_exact.py')
+    with open(name + '.log', 'w') as f:
+        subprocess.run([sys.executable, 'swsweep.py', base, os.path.join(M, t), name, '--units', units,
+                        '--detail', str(level)], stdout=f, stderr=subprocess.STDOUT, cwd=HERE)
 
 
 def run(o, t, name, units, extra):
@@ -52,8 +64,11 @@ for o, t, n, u in PAIRS:
         done.add(o)
 
 jobs = [(o, t, '%s_d%d' % (n, L), u, ['--sw', '--detail', str(L), '--plot']) for L in a.levels for o, t, n, u in PAIRS]
+sweeps = [(o, t, '%s_sweep_d%d' % (n.replace('_to', ''), L), u, L) for L in a.levels for o, t, n, u in PAIRS
+          if n in SWEEP]
 with ThreadPoolExecutor(a.jobs) as ex:
     list(ex.map(lambda j: run(*j), jobs))
+    list(ex.map(lambda j: run_sweep(*j), sweeps))
 
 lines = ['%-18s %-6s %-10s %-24s %s' % ('pair', 'level', 'stand-in', 'volume vs TO', 'independent dimensions')]
 for o, t, n, u in PAIRS:
@@ -64,5 +79,11 @@ for o, t, n, u in PAIRS:
         lines.append('%-18s %-6d %-10s %-24s %s' % (
             n, L, grab(nm + '.log', r'API stand-in: (\w+)') or 'FAILED', grab(nm + '.log', r'(\([-+][0-9.]* %\))'),
             grab(nm + '_standin.log', r'independent dimensions: (\d+)')))
+for o, t, n, u, L in sweeps:
+    if os.path.exists(n + '_solidworks.py'):
+        shutil.copy(n + '_solidworks.py', OUT)
+    lines.append('%-18s %-6d %-10s %-24s %s' % (
+        n.rsplit('_d', 1)[0], L, grab(n + '.log', r'API stand-in: (\w+)') or 'FAILED',
+        grab(n + '.log', r'volume: TO.*(\([-+][0-9.]* %\))'), grab(n + '_standin.log', r'independent dimensions: (\d+)')))
 print('\n'.join(lines))
 open('summary.txt', 'w').write('\n'.join(lines) + '\n')

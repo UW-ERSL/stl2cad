@@ -1025,7 +1025,9 @@ class SW:
             n = 0
             for (kind, key), names in sorted(groups.items(), key=lambda t: (t[0][0], str(t[0][1]))):
                 if kind == "J":
-                    val = sig(jval[key])
+                    # exact: a coordinate is placed geometry (rounding it here moved hub centres 142.24 -> 142.2
+                    # and changed the volume); the generator rounds joints before building
+                    val = round(jval[key], 6)
                     var = key.replace(" ", "_")                        # joint_7_x
                 else:
                     val = sig(key)
@@ -1036,6 +1038,7 @@ class SW:
                     n += 1
             self.linked = [(nm, jval[key] if kind == "J" else key) for (kind, key), names in groups.items() for nm in names]
             self.joint_vars = sum(1 for k in groups if k[0] == "J")
+            self.n_vars = len(groups)
             call0(self.model, "EditRebuild3")
             return f"linked dimensions: {n} in {len(groups)} global variable(s)"
         except Exception as ex:

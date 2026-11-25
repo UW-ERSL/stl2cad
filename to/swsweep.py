@@ -34,12 +34,18 @@ def mass_props(shape):
     (eps 1e-9) did not finish on the lofted members' B-spline faces."""
     c = shape.Center()
     return float(shape.Volume()), (c.x, c.y, c.z)
-import hubweb, members, swplates
+import hubweb, members, swplates, swbars
 
 EPS = 1e-3
 TAPER = 2.0      # largest ratio of a member's end widths (and end depths)
 HUB_END = 0.6    # widest member end on a hub, x the hub's outer radius
 HUB_FLARE = 1.25 # a member's end on a hub at most this x its other end (width and depth)
+TRIM = 0.5       # mm, members stop this short of a joint's centre, inside its node
+NODE_CAP = 2.5   # a node's radius at most this x the widest member end there
+# detail level: classes of section widths and depths (0: every member end its own), significant digits
+DETAIL = {1: dict(widths=1, depths=1, digits=2), 2: dict(widths=2, depths=1, digits=2),
+          3: dict(widths=2, depths=2, digits=2), 4: dict(widths=3, depths=3, digits=3),
+          5: dict(widths=0, depths=0, digits=3)}
 
 
 def _ellipse_axes(w, d):
@@ -78,11 +84,37 @@ def sections(m, z):
     return out
 
 
+def node_sizes(R, hw, to, pix=0.25):
+    """The TO's size at each joint: radius of the largest disk in the shadow (outside the hub disks) within
+    2 mm of the joint, and half the TO's thickness along the hub axis through it."""
+    from scipy import ndimage
+    from shapely.geometry import Point
+    import skeleton as K
+    reg = hw['shadow']
+    for h in hw['hubs']:
+        reg = reg.difference(Point(*h['c']).buffer(h['ro']))
+    mask, (x0, y0) = K._raster(reg, pix)
+    edt = ndimage.distance_transform_edt(mask) * pix
+    w = int(round(2.0 / pix))
+    out = {}
+    for j, p in enumerate(R['joints']):
+        i0, j0 = int((p[0] - x0) / pix), int((p[1] - y0) / pix)
+        win = edt[max(0, i0 - w): i0 + w + 1, max(0, j0 - w): j0 + w + 1]
+        loc = to.ray.intersects_location([[p[0], p[1], to.bounds[0][2] - 1]], [[0, 0, 1]])[0]
+        half = 0.5 * float(np.ptp(loc[:, 2])) if len(loc) >= 2 else 0.0
+        out[j] = (float(win.max()) if win.size else 0.0, half)
+    return out
+
+
 def fit(original, to, detail):
     hw = hubweb.detect(original, to)
     if hw is None:
         raise ValueError('no hubs: the original has no hole that the TO surrounds')
     R = members.members(hw['shadow'], hw['hubs'], to, hw['axis'], detail)
+    R['detail'] = detail
+    R['node_to'] = node_sizes(R, hw, to)
+    lo_h, hi_h = min(h['lo'] for h in hw['hubs']), max(h['hi'] for h in hw['hubs'])
+    R['c_max'] = min(R['mid'] - lo_h, hi_h - R['mid']) - 0.1
     z = R['mid']
     lo_h, hi_h = min(h['lo'] for h in hw['hubs']), max(h['hi'] for h in hw['hubs'])
     for m in R['members']:
@@ -108,6 +140,26 @@ def fit(original, to, detail):
             m['d0'] = m['d1'] = 0.5 * (m['d0'] + m['d1'])
             if (m['w0'] - m['d0']) * (m['w1'] - m['d1']) < 0:
                 m['w0'] = m['w1'] = 0.5 * (m['w0'] + m['w1'])
+    # section sizes in classes (the detail level sets how many; 0: every end its own): end widths and end depths
+    # of all members, length-weighted; half-axes rounded to the level's digits, so that the linked global
+    # variables (one per class) keep the values exactly
+    D = DETAIL[detail]
+    L = np.array([m_.get('length', 1.0) for m_ in R['members']])
+    for key, k in (('w', D['widths']), ('d', D['depths'])):
+        x = np.array([m_[key + e] for m_ in R['members'] for e in '01'])
+        x = swbars.classes(x, np.repeat(L, 2), k)
+        for i_, m_ in enumerate(R['members']):
+            for e, v in zip('01', x[2 * i_: 2 * i_ + 2]):
+                m_[key + e] = 2 * swbars._sig(v / 2, D['digits'])
+    for m in R['members']:
+        for end, j in ((0, m['i']), (1, m['j'])):            # the hub caps again (classes may exceed them)
+            if j in R['hub_of'] and not (m['i'] in R['hub_of'] and m['j'] in R['hub_of']):
+                k = 'w0' if end == 0 else 'w1'
+                m[k] = min(m[k], 2 * swbars._sig(HUB_END * hw['hubs'][R['hub_of'][j]]['ro'] / 2, D['digits']))
+        if (m['w0'] - m['d0']) * (m['w1'] - m['d1']) < 0:     # major axis on one side along the member
+            m['d0'] = m['d1'] = max(m['d0'], m['d1'])
+            if (m['w0'] - m['d0']) * (m['w1'] - m['d1']) < 0:
+                m['w0'] = m['w1'] = max(m['w0'], m['w1'])
     R['hubs'], R['shadow'], R['axis'] = hw['hubs'], hw['shadow'], hw['axis']
     # members on a hub reach into it until their end section is inside the hub's disk (a wide end section on
     # the ring stuck out past the hub's round face in SolidWorks); what reaches the hole is cut with it
@@ -118,11 +170,12 @@ def fit(original, to, detail):
                 m['path'] = into_hub(m['path'], end, hub, m[k])
     # members stop short of a joint's centre (30 % of the joint node's radius), inside the node:
     # lofts ending at one point in different planes gave invalid solids and hung OCC's Booleans
+    # TRIM (one linked dimension), or 0.3 of a small node's radius
     rj = {j: r for j, r, d in joints_of(R)}
     for m in R['members']:
         for end, j in ((0, m['i']), (1, m['j'])):
             if j in rj:
-                m['path'] = trim(m['path'], end, 0.3 * rj[j])
+                m['path'] = trim(m['path'], end, TRIM if TRIM <= 0.3 * rj[j] else round(0.3 * rj[j], 1))
     return R
 
 
@@ -140,6 +193,15 @@ def into_hub(path, end, hub, w, margin=0.3):
     chord = -b + math.sqrt(max(0.0, b * b - (np.linalg.norm(p - c) ** 2 - (ro - margin) ** 2)))
     # and short of the hole: the hole's cut then meets only the hub (a member reaching into the hole made the
     # cut's volume depend on the lofts' small differences)
+    # first choice: halfway between the hole and the outer face, the same for every member on this hub (the end
+    # distances are then one linked dimension)
+    D = round(0.5 * (hub['ri'] + ro), 1)
+    u = (p - c) / np.linalg.norm(p - c)
+    if abs(u @ t + 1) < 1e-6 and np.linalg.norm(p - c) > D:       # the end segment runs at the centre
+        q = c + u * D
+        if out(q) <= 0 and min(np.linalg.norm(q + k * 0.5 * w * n - c) for k in (-1, 1)) >= hub['ri'] + margin:
+            s = float(np.linalg.norm(p - q))
+            return _extend(path, end, p, q)
     S = [x for x in np.arange(0.0, max(chord, 0.0), 0.1)
          if np.linalg.norm(p + x * t - c) >= hub['ri'] + margin
          and min(np.linalg.norm(p + x * t + k * 0.5 * w * n - c) for k in (-1, 1)) >= hub['ri'] + margin]
@@ -150,7 +212,12 @@ def into_hub(path, end, hub, w, margin=0.3):
     s = float(S[np.argmax(o <= 0)]) if np.any(o <= 0) else float(S[np.argmin(o)])
     if s <= 0:
         return path
-    q = tuple(map(float, p + s * t))
+    return _extend(path, end, p, p + s * t)
+
+
+def _extend(path, end, p, q):
+    """Path extended straight from its end p to q."""
+    q = tuple(map(float, q))
     path = list(path)
     if end == 1:
         e = path[-1]
@@ -165,8 +232,32 @@ def into_hub(path, end, hub, w, margin=0.3):
     return path
 
 
+def edge_length(e):
+    if e[0] == 'line':
+        return float(np.linalg.norm(np.subtract(e[2], e[1])))
+    c = np.array(members.S_circle(*e[1:])); r = np.linalg.norm(np.array(e[1]) - c)
+    ang = lambda v: math.atan2(v[1] - c[1], v[0] - c[0])
+    a0 = ang(e[1]); sw = (ang(e[3]) - a0) % (2 * math.pi)
+    if not ((ang(e[2]) - a0) % (2 * math.pi) < sw):
+        sw = 2 * math.pi - sw
+    return float(r * sw)
+
+
 def trim(path, end, s):
-    """Path with length s taken off its start (end 0) or end (end 1); unchanged if that edge is too short."""
+    """Path with length s taken off its start (end 0) or end (end 1): end edges shorter than what is left to
+    take off are dropped (an unchanged path ended at the joint's centre with the other members, and OCC's
+    unions of such lofts lost material)."""
+    path = list(path)
+    k = 0 if end == 0 else -1
+    while len(path) > 1 and edge_length(path[k]) < s + 0.5:
+        s -= edge_length(path[k])
+        path.pop(k)
+    if s <= 0:
+        return path
+    return _trim_edge(path, end, s)
+
+
+def _trim_edge(path, end, s):
     path = list(path)
     k = 0 if end == 0 else -1
     e = path[k]
@@ -225,7 +316,20 @@ def joints_of(R):
     for m in R['members']:
         for j, w, d in ((m['i'], m['w0'], m['d0']), (m['j'], m['w1'], m['d1'])):
             r, dd = ends.get(j, (0, 0)); ends[j] = (max(r, w / 2), max(dd, d / 2))
-    return [(j, 1.05 * r, 1.05 * c) for j, (r, c) in sorted(ends.items()) if j not in R['hub_of']]
+    dg = DETAIL[R.get('detail', 3)]['digits']
+    out = []
+    for j, (r, c) in sorted(ends.items()):
+        if j in R['hub_of']:
+            continue
+        r, c = 1.05 * r, 1.05 * c
+        # at least the TO's own size there (bulky joints near the hub held ~1200 mm^3 of the TO that the
+        # members' sizes missed): largest disk in the shadow within 2 mm, half the TO's thickness; the radius at
+        # most NODE_CAP x the widest member end, the height inside the hubs' range
+        tr, tc = R.get('node_to', {}).get(j, (0.0, 0.0))
+        r = max(r, min(tr, NODE_CAP * r / 1.05))
+        c = max(c, min(tc, R.get('c_max', tc)))
+        out.append((j, swbars._sig(r, dg), swbars._sig(c, dg)))
+    return out
 
 
 def node_solid(p, r, c, z):
@@ -236,6 +340,30 @@ def node_solid(p, r, c, z):
     ln = cq.Edge.makeLine(Vector(p[0], p[1], z + c), Vector(p[0], p[1], z - c))
     face = cq.Face.makeFromWires(cq.Wire.assembleEdges([arc, ln]), [])
     return cq.Solid.revolve(face, 360, Vector(p[0], p[1], z - c), Vector(p[0], p[1], z + c))
+
+
+def end_refs(R, m):
+    """Reference of each path end: ('joint', j, xy) for an end trimmed back from a joint, ('hub', h, xy) for an end
+    in a hub (its last segment aims at the hub's centre), None otherwise. The reference must lie on the end
+    segment's line or circle: the path end is then dimensioned by its distance from the reference, and the
+    reference's coordinates are shared by every sketch that uses it (one global variable per joint)."""
+    out = []
+    for end, j in ((0, m['i']), (1, m['j'])):
+        e = m['path'][0] if end == 0 else m['path'][-1]
+        if j in R['hub_of']:
+            kind, k, q = 'hub', R['hub_of'][j], np.asarray(R['hubs'][R['hub_of'][j]]['c'], float)
+        else:
+            kind, k, q = 'joint', j, np.asarray(R['joints'][j], float)
+        if e[0] == 'line':
+            a, b = np.array(e[1]), np.array(e[2]); d = b - a
+            off = abs(d[0] * (q - a)[1] - d[1] * (q - a)[0]) / np.linalg.norm(d)
+        else:
+            c = np.array(members.S_circle(*e[1:]))
+            off = abs(np.linalg.norm(q - c) - np.linalg.norm(np.array(e[1]) - c))
+        p = np.array(e[1] if end == 0 else e[-1])
+        ok = off < 1e-6 and np.linalg.norm(p - q) > 0.05
+        out.append((kind, int(k), (float(q[0]), float(q[1]))) if ok else None)
+    return out
 
 
 def steps(R):
@@ -275,11 +403,21 @@ def steps(R):
         s = cq.Workplane().workplane(offset=h['lo']).center(*h['c']).circle(h['ro']).extrude(h['hi'] - h['lo']).val()
         add('extrude', 'Hub %d' % n, s, op='add', lo=h['lo'], hi=h['hi'], loops=[[('circle', tuple(map(float, h['c'])), float(h['ro']))]])
     for n, m in enumerate(R['members'], 1):
-        add('member', 'Member %d' % n, member_solid(m, z), m=m, own=member_solid(m, z).Volume())
+        add('member', 'Member %d' % n, member_solid(m, z), m=m, own=member_solid(m, z).Volume(), refs=end_refs(R, m))
     J = R['joints']
     for n, (j, r, c) in enumerate(joints_of(R), 1):
-        sol = node_solid(J[j], r, c, z)
-        add('node', 'Joint %d' % n, sol, centre=(float(J[j][0]), float(J[j][1]), z), r=r, c=c, own=sol.Volume())
+        # a node that OCC cannot fuse (near-tangent contact with a member: classes make sizes equal) is made
+        # slightly larger
+        dg = DETAIL[R.get('detail', 3)]['digits']
+        for f in (1.0, 1.03, 1.06, 1.1):
+            if f != 1.0:
+                r_, c_ = swbars._sig(f * r, dg), swbars._sig(f * c, dg)
+                f = r_ / r
+            sol = node_solid(J[j], f * r, f * c, z)
+            if combine(sol) is not None:
+                break
+        add('node', 'Joint %d' % n, sol, centre=(float(J[j][0]), float(J[j][1]), z), r=f * r, c=f * c, own=sol.Volume(),
+            joint=int(j))
     for n, h in enumerate(R['hubs'], 1):
         s = cq.Workplane().workplane(offset=h['lo'] - EPS).center(*h['c']).circle(h['ri']).extrude(h['hi'] - h['lo'] + 2 * EPS).val()
         add('extrude', 'Hole %d' % n, s, cut=True, op='cut', lo=h['lo'], hi=h['hi'], loops=[[('circle', tuple(map(float, h['c'])), float(h['ri']))]])
@@ -303,7 +441,9 @@ def write(path, name, R, detail=None, nd=6):
          'After every feature the volume and centre of mass are checked against stl2cad\'s values.', '',
          'Needs: Windows, SolidWorks, Python with pywin32 (pip install pywin32).',
          'Run:   python %s.py [C:\\\\path\\\\part.SLDPRT]' % name, '"""', '',
-         'R_FILLET = 0.0', 'ROUND_DIGITS = 3', 'DEFER_ROUNDING = True', 'DIM_DECIMALS = 2',
+         'R_FILLET = 0.0', 'ROUND_DIGITS = %d                # significant digits of the dimensions, set at the end (0: as fitted)' % DETAIL[detail or 3]['digits'],
+         'DEFER_ROUNDING = True', 'DIM_DECIMALS = 2',
+         'DIMENSION = True                # relations and dimensions in the member sketches (False: geometry only)',
          '# detail level %s (1: fewest dimensions ... 5: smallest model error)' % detail, '',
          'AXIS_I, AXIS_J = 0, 1', 'PLANE_NAME = "Front Plane"', 'PLANE_INDEX = 0',
          'ROT = %s' % [list(map(float, r)) for r in R0], 'ROT_BACK = %s' % (tuple(back),),
@@ -316,8 +456,8 @@ def write(path, name, R, detail=None, nd=6):
     for s in S:
         cb = np.asarray(R0, float) @ s['com']
         if s['kind'] == 'node':
-            L += ['    dict(kind="node", name="%s", volume=%.4f, centroid=%s, own=%.4f, centre=%s, r=%.6f, c=%.6f),'
-                  % (s['name'], s['volume'], t3(cb), s['own'], t3(s['centre']), s['r'], s['c'])]
+            L += ['    dict(kind="node", name="%s", volume=%.4f, centroid=%s, own=%.4f, centre=%s, r=%.6f, c=%.6f, joint=%d),'
+                  % (s['name'], s['volume'], t3(cb), s['own'], t3(s['centre']), s['r'], s['c'], s['joint'])]
             continue
         if s['kind'] == 'extrude':
             L += ['    dict(kind="extrude", name="%s", op="%s", lo=%s, hi=%s, volume=%.4f, centroid=%s, holes=False,'
@@ -329,6 +469,7 @@ def write(path, name, R, detail=None, nd=6):
             secs = sections(m, z)
             L += ['    dict(kind="member", name="%s", volume=%.4f, centroid=%s, own=%.4f,' % (s['name'], s['volume'], t3(cb), s['own']),
                   '         w=(%.4f, %.4f), d=(%.4f, %.4f),' % (m['w0'], m['w1'], m['d0'], m['d1']),
+                  '         refs=%r,' % (s['refs'],),
                   '         path=[']
             for e in m['path']:
                 L.append('             (%r, %s),' % (e[0], ', '.join(P(q) for q in e[1:])))
@@ -395,13 +536,60 @@ def open_sketch(sw, plane):
     return sm, T, helper
 
 
-def close_sketch(sw, sm, helper):
+def close_sketch(sw, sm, helper, name=""):
     sm.AddToDB = False
     if helper is not None:
         sw.remove_helper(helper)
     sm.InsertSketch(True)
     sw.report_status()
+    if sw.status and sw.status[-1] != "fully defined":
+        sw.under = getattr(sw, "under", []) + [f"{name or 'sketch'} ({sw.status[-1]})"]
     return sw.model.FeatureByPositionReverse(0)
+
+
+def sketch_points(sm):
+    """The open sketch's points as (x, y, object), sketch coordinates in m (GetSketchPoints2: a line's, arc's or
+    ellipse's own point methods are not reachable over late binding, sw_probe_dims)."""
+    sk = call0(sm, "ActiveSketch")
+    return [(p.X, p.Y, p) for p in (call0(sk, "GetSketchPoints2") or [])]
+
+
+def at(pts, q, tol=1e-7):
+    return [o for x, y, o in pts if abs(x - q[0]) < tol and abs(y - q[1]) < tol]
+
+
+def rel(sw, name, objs, what):
+    """Relation between selected objects (SketchAddConstraints returns nothing: counted as added)."""
+    try:
+        sw.model.ClearSelection2(True)
+        ok = all(o.Select4(k > 0, NOTHING) for k, o in enumerate(objs))
+        if not ok:
+            sw.rels_failed.append(what + " (selection)"); return
+        sw.model.SketchAddConstraints(name)
+        sw.rels_ok += 1
+    except Exception as ex:
+        sw.rels_failed.append(f"{what}: {type(ex).__name__}: {ex}")
+
+
+def dim(sw, objs, kind, text, what, origin=False):
+    """Dimension of selected objects (and the origin): kind H, V or any; text position in sketch m."""
+    try:
+        sw.model.ClearSelection2(True)
+        ok = all(o.Select4(k > 0, NOTHING) for k, o in enumerate(objs))
+        if origin:
+            ok = ok and sw.model.Extension.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0, 0, 0, True, 0, NOTHING, 0)
+        d = None
+        if ok:
+            d = {"any": sw.model.AddDimension2, "H": sw.model.AddHorizontalDimension2,
+                 "V": sw.model.AddVerticalDimension2}[kind](text[0], text[1], 0.0)
+        sw._count(d, what)
+    except Exception as ex:
+        sw.dims_failed.append(f"{what}: {type(ex).__name__}: {ex}")
+
+
+def axis_name(T, j):
+    """Model axis ('x', 'y' or 'z') along sketch axis j (0: horizontal, 1: vertical) of a sketch's transform."""
+    return "xyz"[max(range(3), key=lambda i: abs(T[3 * i + j]))]
 
 
 def last_feature(sw):
@@ -441,9 +629,58 @@ def mid_plane(sw):
     return f
 
 
+STATUS = {1: "unknown", 2: "under defined", 3: "fully defined", 4: "over defined", 5: "no solution",
+          6: "invalid solution"}
+
+
+def open_status(sm):
+    """Constrained status of the open sketch, or None if SolidWorks does not give it."""
+    try:
+        return STATUS.get(call0(call0(sm, "ActiveSketch"), "GetConstrainedStatus"))
+    except Exception:
+        return None
+
+
+def join_ends(sw, sm, ends, name):
+    """The half-ellipse's ends and the closing line's ends: where the open sketch is under defined, the points
+    found at each end are made coincident pair by pair; a relation that over-defines the sketch is undone
+    (6 of 7 node sketches were under defined in SolidWorks with the dimensions alone; which point at an end is
+    the arc's, the line's or the ellipse's axis point cannot be told from GetSketchPoints2)."""
+    s0 = open_status(sm)
+    log = [f"status with the dimensions: {s0}"]
+    if s0 == "under defined":
+        P = sketch_points(sm)
+        for q in ends:
+            objs = at(P, q)
+            log.append(f"{len(objs)} point(s) at an end")
+            for a in range(len(objs)):
+                for b in range(a + 1, len(objs)):
+                    if open_status(sm) != "under defined":
+                        break
+                    before = sw.rels_ok
+                    rel(sw, "sgCOINCIDENT", [objs[a], objs[b]], f"{name}: ends joined")
+                    s1 = open_status(sm)
+                    if s1 in ("over defined", "no solution", "invalid solution"):
+                        try:
+                            sw.model.EditUndo2(1)
+                        except Exception:
+                            pass
+                        sw.rels_ok = before
+                        log.append(f"pair {a}-{b}: {s1}, undone")
+                    else:
+                        log.append(f"pair {a}-{b}: {s1}")
+        log.append(f"status now: {open_status(sm)}")
+    if not getattr(sw, "_node_logged", False) or open_status(sm) != "fully defined":
+        print(f"  {name} node sketch: " + "; ".join(log))
+        sw._node_logged = True
+
+
 def node_step(sw, st, drift, made):
-    """Joint node: a half-ellipse (r across, c up) on a plane through the joint parallel to the Right Plane,
-    revolved about the vertical through the joint (FeatureRevolve2, as stl2cad's revolves)."""
+    """Joint node: a half-ellipse (r across, c up) closed by a line on the axis, on a plane through the joint
+    parallel to the Right Plane, revolved about that line. Sketch fully defined: centre from the origin
+    (labelled 'joint k ...', shared with the member sketches; the plane's offset carries the third coordinate),
+    major axis along a sketch axis, the line along the vertical and through the centre, the two half-axes.
+    If no revolve about the line works, the sketch is drawn again with a centerline (no dimensions)."""
     x, y, z = st["centre"]
     r, c = st["r"], st["c"]
     if abs(x) > 1e-6:
@@ -451,45 +688,73 @@ def node_step(sw, st, drift, made):
     else:
         plane = sw.model.FeatureByName("Right Plane")
     made["planes"].append(plane)
-    sm, T, h = open_sketch(sw, plane)
-    Q = lambda p: to_sk(T, p)
-    C, top, bot = Q((x, y, z)), Q((x, y, z + c)), Q((x, y, z - c))
-    side = Q((x, y + r, z))
-    if r >= c:
-        A, B = side, top
-    else:
-        A, B = top, side
-    turn = arc_turn(top[:2], side[:2], bot[:2])
-    make(sm.CreateEllipticalArc, C[0], C[1], 0.0, A[0], A[1], 0.0, B[0], B[1], 0.0,
-         top[0], top[1], 0.0, bot[0], bot[1], 0.0, turn)
-    make(sm.CreateLine, bot[0], bot[1], 0.0, top[0], top[1], 0.0)
-    e0, e1 = Q((x, y, z - c - 1.0)), Q((x, y, z + c + 1.0))
-    cl = make(sm.CreateCenterLine, e0[0], e0[1], 0.0, e1[0], e1[1], 0.0)
-    sk = close_sketch(sw, sm, h)
-    made["sketches"].append(sk)
     fm = sw.model.FeatureManager
     v, cc = expected(st, drift)
-    for mark in (None, 4, 16):
+    for variant in (("line", 16), ("line", 4), ("centerline", None), ("centerline", 4), ("centerline", 16)):
+        # counts before this try: a deleted try's dimensions and relations are taken off again
+        snap = (sw.dims_ok, len(sw.linkable), len(sw.alldims), sw.rels_ok, len(sw.status))
+        sm, T, h = open_sketch(sw, plane)
+        Q = lambda p: to_sk(T, p)
+        C, top, bot = Q((x, y, z)), Q((x, y, z + c)), Q((x, y, z - c))
+        side = Q((x, y + r, z))
+        A, B = (side, top) if r >= c else (top, side)
+        turn = arc_turn(top[:2], side[:2], bot[:2])
+        make(sm.CreateEllipticalArc, C[0], C[1], 0.0, A[0], A[1], 0.0, B[0], B[1], 0.0,
+             top[0], top[1], 0.0, bot[0], bot[1], 0.0, turn)
+        ln = make(sm.CreateLine, bot[0], bot[1], 0.0, top[0], top[1], 0.0)
+        axis = ln
+        if variant[0] == "centerline":
+            e0, e1 = Q((x, y, z - c - 1.0)), Q((x, y, z + c + 1.0))
+            axis = make(sm.CreateCenterLine, e0[0], e0[1], 0.0, e1[0], e1[1], 0.0)
+        sm.AddToDB = False
+        if DIMENSION and variant[0] == "line":
+            P = sketch_points(sm)
+            oc, oa = at(P, C), at(P, A)
+            ob = [o for o in at(P, B)]
+            hv = (axis_name(T, 0), axis_name(T, 1))
+            lab = [f"joint {st['joint']} {a}" if a != "z" else "joint mid z" for a in hv]
+            if oc and oa and ob:
+                if abs(C[0]) > 1e-7:
+                    dim(sw, [oc[0]], "H", (C[0] / 2, C[1] - 0.004), lab[0], origin=True)
+                if abs(C[1]) > 1e-7:
+                    dim(sw, [oc[0]], "V", (C[0] - 0.004, C[1] / 2), lab[1], origin=True)
+                rel(sw, "sgHORIZONTALPOINTS2D" if abs(A[1] - C[1]) < 1e-7 else "sgVERTICALPOINTS2D", [oa[0], oc[0]],
+                    f"{st['name']}: major axis")
+                rel(sw, "sgHORIZONTAL2D" if abs(top[1] - bot[1]) < 1e-7 else "sgVERTICAL2D", [ln], f"{st['name']}: axis line")
+                rel(sw, "sgCOINCIDENT", [oc[0], ln], f"{st['name']}: centre on the axis line")
+                for o, q, what in ((oa, A, "major"), (ob, B, "minor")):
+                    txt = (q[0] + 0.5 * (q[0] - C[0]) + 0.001, q[1] + 0.5 * (q[1] - C[1]) + 0.001)
+                    dim(sw, [oc[0], o[0]], "any", txt, f"{st['name']}: node radius ({what} half-axis)")
+                join_ends(sw, sm, [top, bot], st["name"])
+            else:
+                sw.dims_failed.append(f"{st['name']}: node points not found")
+        sk = close_sketch(sw, sm, h, st["name"] + " node")
         sw.model.ClearSelection2(True)
         sk.Select2(False, 0)
-        if mark is not None:
-            sd = call0(sw.model.SelectionManager, "CreateSelectData"); sd.Mark = mark
-            cl.Select4(True, sd)
+        if variant[1] is not None:
+            sd = call0(sw.model.SelectionManager, "CreateSelectData"); sd.Mark = variant[1]
+            axis.Select4(True, sd)
         f = fm.FeatureRevolve2(True, True, False, False, False, False, 0, 0, 2 * math.pi, 0.0,
                                False, False, 0.0, 0.0, 0, 0.0, 0.0, True, True, True)
-        if f is None:
-            print(f"  {st['name']}: revolve{'' if mark is None else f' (centerline Mark {mark})'} returned no feature")
-            continue
-        vv, c2 = sw.mass()
-        # 5 % of the node's own volume: it overlaps the lofts, whose small differences from CadQuery change
-        # the overlap (SolidWorks: 0.15 mm^3 on a 30 mm^3 node; OCC unions on lofts: up to 5 mm^3 on 240 mm^3)
-        if abs(vv - v) <= 0.05 * st["own"] + 1e-3 and math.dist(c2, cc) <= 1e-4 * SIZE + 1e-2:
-            f.Name = st["name"]
-            print(f"{st['name']}: node, volume {vv:.3f} mm^3 (expected {v:.3f})")
-            carry(drift, vv, c2, v, cc)
-            return
-        print(f"  {st['name']}: revolve gave volume {vv:.3f} mm^3, expected {v:.3f}")
-        sw.model.ClearSelection2(True); f.Select2(False, 0); sw.model.Extension.DeleteSelection2(0)
+        if f is not None:
+            vv, c2 = sw.mass()
+            # 5 % of the node's own volume: it overlaps the lofts, whose small differences from CadQuery change
+            # the overlap (SolidWorks: 0.15 mm^3 on a 30 mm^3 node; OCC unions on lofts: up to 5 mm^3 on 240 mm^3)
+            if abs(vv - v) <= 0.05 * st["own"] + 1e-3 and math.dist(c2, cc) <= 1e-4 * SIZE + 1e-2:
+                f.Name = st["name"]
+                made["sketches"].append(sk)
+                print(f"{st['name']}: node, volume {vv:.3f} mm^3 (expected {v:.3f})"
+                      + ("" if variant == ("line", 16) else f" (revolve about the {variant[0]}, Mark {variant[1]})"))
+                carry(drift, vv, c2, v, cc)
+                return
+            print(f"  {st['name']}: revolve about the {variant[0]} (Mark {variant[1]}) gave volume {vv:.3f} mm^3, expected {v:.3f}")
+            sw.model.ClearSelection2(True); f.Select2(False, 0); sw.model.Extension.DeleteSelection2(0)
+        else:
+            print(f"  {st['name']}: revolve about the {variant[0]} (Mark {variant[1]}) returned no feature")
+        sw.model.ClearSelection2(True); sk.Select2(False, 0); sw.model.Extension.DeleteSelection2(0)
+        sw.dims_ok, sw.rels_ok = snap[0], snap[3]
+        del sw.linkable[snap[1]:], sw.alldims[snap[2]:], sw.status[snap[4]:]
+        sw.under = [u for u in getattr(sw, "under", []) if not u.startswith(st["name"] + " node")]
     raise RuntimeError(f"{st['name']}: no revolve gives the expected node")
 
 
@@ -513,7 +778,7 @@ def arc_turn(s, m, t):
     return 1 if (m[0] - s[0]) * (t[1] - s[1]) - (m[1] - s[1]) * (t[0] - s[0]) > 0 else -1
 
 
-def path_sketch(sw, plane, path):
+def path_sketch(sw, plane, path, name="", refs=(None, None)):
     """Centre line on the mid-plane; also a sketch point at each end. Returns the sketch feature, the first and
     last segment and the two end points (COM objects, selected later by object: a pick by coordinates took a
     nearby point of another member's sketch, 1.4 mm away, in SolidWorks)."""
@@ -527,9 +792,62 @@ def path_sketch(sw, plane, path):
             s, m, t = (Q(q) for q in e[1:])
             xc, yc = circle_centre(s, m, t)
             segs.append(make(sm.CreateArc, xc, yc, 0.0, s[0], s[1], 0.0, t[0], t[1], 0.0, arc_turn(s, m, t)))
-    pts = [sm.CreatePoint(*Q(path[0][1]), 0.0), sm.CreatePoint(*Q(path[-1][-1]), 0.0)]
-    f = close_sketch(sw, sm, h)
+    ends = [Q(path[0][1]), Q(path[-1][-1])]
+    pts = [sm.CreatePoint(*ends[0], 0.0), sm.CreatePoint(*ends[1], 0.0)]
+    refq = [None if r is None else Q(r[2]) for r in refs]
+    for q in refq:
+        if q is not None:
+            sm.CreatePoint(*q, 0.0)
+    sm.AddToDB = False
+    if DIMENSION:
+        dimension_path(sw, sm, path, segs, ends, Q, name, refs, refq, T)
+    f = close_sketch(sw, sm, h, name)
     return f, (segs[0], segs[-1]), pts
+
+
+def dimension_path(sw, sm, path, segs, ends, Q, name, refs=(None, None), refq=(None, None), T=None):
+    """Path sketch fully defined: line-arc tangencies; the extra end points coincident with the path's ends;
+    an end with a reference (its joint, or its hub's centre): a point there on the end segment's line or circle,
+    dimensioned from the origin and labelled 'joint k x' (one global variable per joint, in every sketch), and
+    the end's distance from it; other ends and each arc's centre by distance from the origin; each arc's radius."""
+    P = sketch_points(sm)
+    hv = (axis_name(T, 0), axis_name(T, 1)) if T is not None else ("x", "y")
+    for k in range(len(segs) - 1):
+        if (path[k][0] == "arc") != (path[k + 1][0] == "arc"):
+            rel(sw, "sgTANGENT", [segs[k], segs[k + 1]], f"{name}: tangency {k + 1}")
+    for e, q in zip(("start", "end"), ends):
+        two = at(P, q)
+        if len(two) >= 2:
+            rel(sw, "sgCOINCIDENT", two[:2], f"{name}: {e} point")
+    def xy(q, what, labels=None):
+        o = at(P, q)
+        if not o:
+            sw.dims_failed.append(f"{what}: no point"); return
+        lab = labels or (f"{what} x", f"{what} y")
+        if abs(q[0]) > 1e-7:
+            dim(sw, [o[0]], "H", (q[0] / 2, q[1] - 0.004), lab[0], origin=True)
+        if abs(q[1]) > 1e-7:
+            dim(sw, [o[0]], "V", (q[0] - 0.004, q[1] / 2), lab[1], origin=True)
+    for k_, (e, q, r, rq) in enumerate(zip(("start", "end"), ends, refs, refq)):
+        if r is None or rq is None:
+            xy(q, f"{name}: {e}")
+            continue
+        tag = f"{'joint' if r[0] == 'joint' else 'joint hub'} {r[1]}"
+        xy(rq, f"{name}: {tag}", (f"{tag} {hv[0]}", f"{tag} {hv[1]}"))
+        oref, oend = at(P, rq), at(P, q)
+        if oref and oend:
+            rel(sw, "sgCOINCIDENT", [oref[0], segs[0] if k_ == 0 else segs[-1]], f"{name}: {e} segment through its {r[0]}")
+            # labelled as a radius: equal end distances (TRIM; the hub's mid-ring) are linked to one variable
+            dim(sw, [oref[0], oend[0]], "any", ((q[0] + rq[0]) / 2 + 0.002, (q[1] + rq[1]) / 2 + 0.002),
+                f"{name}: {e} from its {r[0]} (radius-like end offset)")
+    for k, e in enumerate(path):
+        if e[0] != "arc":
+            continue
+        s_, m_, t_ = (Q(q) for q in e[1:])
+        c = circle_centre(s_, m_, t_)
+        xy(c, f"{name}: arc {k + 1} centre")
+        txt = (m_[0] + (m_[0] - c[0]) * 0.5, m_[1] + (m_[1] - c[1]) * 0.5)
+        dim(sw, [segs[k]], "any", txt, f"{name}: radius of path arc {k + 1}")
 
 
 def plane_through(sw, plane, p, t):
@@ -584,22 +902,43 @@ def end_plane(sw, path, end, seg, pt, tan):
     raise RuntimeError(f"path end {end}: no plane normal to the path through its end ({'; '.join(tried)})")
 
 
-def section_sketch(sw, plane, sec):
+def section_sketch(sw, plane, sec, seg=None, name=""):
     c, pa, pb = sec[:3]
     sm, T, h = open_sketch(sw, plane)
     C, A, B = (to_sk(T, q) for q in (c, pa, pb))
     if max(abs(C[2]), abs(A[2]), abs(B[2])) > 1e-6:
         raise RuntimeError(f"section not on its plane (sketch z {C[2] / MM:.4f}, {A[2] / MM:.4f}, {B[2] / MM:.4f} mm)")
     make(sm.CreateEllipse, C[0], C[1], 0.0, A[0], A[1], 0.0, B[0], B[1], 0.0)
-    return close_sketch(sw, sm, h)
+    sm.AddToDB = False
+    if DIMENSION and seg is not None:
+        # fully defined (sw_probe_dims): centre pierced by the path's end segment, major axis along a sketch axis,
+        # the two half-axes (labelled radius: equal ones are linked across sketches)
+        P = sketch_points(sm)
+        oc, oa, ob = at(P, C), at(P, A), at(P, B)
+        if oc and oa and ob:
+            rel(sw, "sgATPIERCE", [oc[0], seg], f"{name}: centre on the path")
+            if abs(A[1] - C[1]) < 1e-7:
+                rel(sw, "sgHORIZONTALPOINTS2D", [oa[0], oc[0]], f"{name}: major axis")
+            elif abs(A[0] - C[0]) < 1e-7:
+                rel(sw, "sgVERTICALPOINTS2D", [oa[0], oc[0]], f"{name}: major axis")
+            else:
+                sw.rels_failed.append(f"{name}: major axis not along a sketch axis "
+                                      f"({(A[0] - C[0]) / MM:.4f}, {(A[1] - C[1]) / MM:.4f} mm)")
+            for o, q, what in ((oa, A, "major"), (ob, B, "minor")):
+                txt = (q[0] + 0.5 * (q[0] - C[0]) + 0.001, q[1] + 0.5 * (q[1] - C[1]) + 0.001)
+                dim(sw, [oc[0], o[0]], "any", txt, f"{name}: radius of section ({what} half-axis)")
+        else:
+            sw.dims_failed.append(f"{name}: ellipse points not found")
+    return close_sketch(sw, sm, h, name)
 
 
 def member_step(sw, plane, st, drift, made):
     v0, c0 = sw.mass()
-    path, segs, pts = path_sketch(sw, plane, st["path"])
+    path, segs, pts = path_sketch(sw, plane, st["path"], st["name"] + " path", st.get("refs", (None, None)))
     tans = [tuple(st["sections"][k][3]) for k in (0, 1)]
     pl = [end_plane(sw, st["path"], k, segs[k], pts[k], tans[k]) for k in (0, 1)]
-    secs = [section_sketch(sw, pl[k], st["sections"][k]) for k in (0, 1)]
+    secs = [section_sketch(sw, pl[k], st["sections"][k], segs[k], f"{st['name']} {('start', 'end')[k]} section")
+            for k in (0, 1)]
     made["planes"] += pl
     made["sketches"] += [path] + secs
     m = sw.model
@@ -653,9 +992,24 @@ def build_sweep():
             v, c = expected(st, drift)
             build_step(sw, dict(st, volume=v, centroid=c))
             carry(drift, *sw.mass(), v, c)
+    v0 = sw.mass()[0]
+    print(sw.link_dimensions())
+    v1 = sw.mass()[0]
+    if abs(v1 - v0) > 1e-4 * v0 + 1e-3:
+        print(f"NOTE: linking changed the volume from {v0:.3f} to {v1:.3f} mm^3; the equations are removed")
+        sw.unlink_dimensions()
+    print(sw.round_dimensions())
     hide(sw, made)
+    linked = getattr(sw, "linked", [])
+    nvar = getattr(sw, "n_vars", len({val for _, val in linked})) if linked else 0
+    print(f"independent dimensions: {sw.dims_ok - len(linked) + nvar} "
+          f"({sw.dims_ok} dimensions, {len(linked)} of them driven by {nvar} global variable(s))")
     print(f"dimensions: {sw.dims_ok} added" + (f", {len(sw.dims_failed)} failed: {sw.dims_failed}" if sw.dims_failed else ""))
-    print("sketch status: " + ", ".join(sw.status))
+    print(f"relations: {sw.rels_ok} added" + (f", {len(sw.rels_failed)} failed: {sw.rels_failed}" if sw.rels_failed else ""))
+    st_ = sw.status
+    print("sketch status: " + ", ".join(f"{k} x {st_.count(k)}" for k in sorted(set(st_))))
+    if getattr(sw, "under", None):
+        print("not fully defined: " + "; ".join(sw.under))
     sw.restore_preferences()
     return sw
 
