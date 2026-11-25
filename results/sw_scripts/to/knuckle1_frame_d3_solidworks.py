@@ -2293,16 +2293,50 @@ def section_points():
     return out
 
 
+def open_3d(sw):
+    """Open a 3D sketch; returns (sketch, function that closes it). SketchManager.Insert3DSketch left no active
+    sketch in one SolidWorks session (sw_probe_frame), so the older calls and the 3D Sketch command are tried in
+    turn until a sketch is active."""
+    model, sm, app = sw.model, sw.model.SketchManager, sw.app
+
+    def active():
+        settle(0.3)
+        return call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
+
+    def command():
+        for name in ("swCommands_3DSketch", "swCommands_3D_Sketch", "swCommands_Insert3DSketch"):
+            try:
+                return app.RunCommand(sw_constant(app, "swCommands_e", name), "")
+            except LookupError:
+                continue
+        raise LookupError("no 3D sketch command in swconst.tlb")
+    tries = (("SketchManager.Insert3DSketch(True)", lambda: sm.Insert3DSketch(True), lambda: sm.Insert3DSketch(True)),
+             ("SketchManager.Insert3DSketch(False)", lambda: sm.Insert3DSketch(False), lambda: sm.Insert3DSketch(True)),
+             ("ModelDoc2.Insert3DSketch2(True)", lambda: model.Insert3DSketch2(True), lambda: model.Insert3DSketch2(True)),
+             ("ModelDoc2.Insert3DSketch()", lambda: model.Insert3DSketch(), lambda: model.Insert3DSketch()),
+             ("the 3D Sketch command", command, lambda: sm.InsertSketch(True)))
+    notes = []
+    for label, opener, closer in tries:
+        model.ClearSelection2(True)
+        try:
+            opener()
+        except Exception as ex:
+            notes.append(f"{label}: {type(ex).__name__}: {ex}")
+            continue
+        sk = active()
+        if sk is not None:
+            if notes:
+                print(f"  3D sketch opened by {label} ({'; '.join(notes)})")
+            return sk, closer
+        notes.append(f"{label}: no active sketch")
+    raise RuntimeError("could not open a 3D sketch (" + "; ".join(notes) + ")")
+
+
 def skeleton_sketch(sw, planes, made):
     """The 3D sketch of joints and member lines, with the points where the member sections stand."""
     model = sw.model
     sm = model.SketchManager
-    model.ClearSelection2(True)
-    sm.Insert3DSketch(True)
-    settle()
-    sk = call0(sm, "ActiveSketch")
-    if sk is None:
-        sk = call0(model, "GetActiveSketch2")
+    sk, closer = open_3d(sw)
     try:
         T = list(sk.ModelToSketchTransform.ArrayData)
     except Exception:
@@ -2358,7 +2392,8 @@ def skeleton_sketch(sw, planes, made):
                 dim(sw, [o[0], oj[0]], "any", q, f"member {n + 1}: section from its joint (radius-like end offset)")
     if helper is not None:
         sw.remove_helper(helper)
-    sm.Insert3DSketch(True)
+    closer()
+    settle()
     sw.report_status()
     f = last_feature(sw)
     f.Name = "Frame skeleton"

@@ -19,6 +19,7 @@ Steps:
      revolved about the line (expected sphere 268.08 mm^3, centred at B).
 """
 import math
+import time
 import traceback
 
 import pythoncom
@@ -97,8 +98,61 @@ except Exception:
 
 # ---- 1. 3D sketch ----
 print("== 1. 3D sketch")
-step("Insert3DSketch(True)", lambda: sm.Insert3DSketch(True))
-sk = step("active sketch", lambda: call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2"))
+step("active document is the new part", lambda: call0(call0(app, "ActiveDoc"), "GetTitle") == call0(model, "GetTitle"))
+
+
+def active():
+    pythoncom.PumpWaitingMessages()
+    time.sleep(0.3)
+    pythoncom.PumpWaitingMessages()
+    a = call0(sm, "ActiveSketch")
+    b = call0(model, "GetActiveSketch2")
+    return a or b
+
+
+def command_3d():
+    """swCommands_e member for a 3D sketch, read from swconst.tlb."""
+    import os
+    exe = app.GetExecutablePath
+    exe = str(exe() if callable(exe) else exe)
+    for folder in (exe, os.path.dirname(exe)):
+        for path in (os.path.join(folder, "swconst.tlb"), os.path.join(folder, "api", "swconst.tlb")):
+            if not os.path.exists(path):
+                continue
+            tl = pythoncom.LoadTypeLib(path)
+            for i in range(tl.GetTypeInfoCount()):
+                if tl.GetDocumentation(i)[0] != "swCommands_e":
+                    continue
+                ti = tl.GetTypeInfo(i)
+                for j in range(ti.GetTypeAttr().cVars):
+                    vd = ti.GetVarDesc(j)
+                    nm = ti.GetNames(vd.memid)[0]
+                    if nm in ("swCommands_3DSketch", "swCommands_3D_Sketch", "swCommands_Insert3DSketch"):
+                        return nm, int(vd.value)
+                names = [ti.GetNames(ti.GetVarDesc(j).memid)[0] for j in range(ti.GetTypeAttr().cVars)]
+                return "not found; members with 3D: " + ", ".join(n for n in names if "3D" in n.upper())[:600], None
+    return "swconst.tlb not found", None
+
+
+# ways to open a 3D sketch, tried in turn until a sketch is active (each printed)
+sk = None
+opened_by = None
+for label, fn in (("SketchManager.Insert3DSketch(True)", lambda: sm.Insert3DSketch(True)),
+                  ("SketchManager.Insert3DSketch(False)", lambda: sm.Insert3DSketch(False)),
+                  ("ModelDoc2.Insert3DSketch2(True)", lambda: model.Insert3DSketch2(True)),
+                  ("ModelDoc2.Insert3DSketch()", lambda: model.Insert3DSketch()),
+                  ("RunCommand(swCommands 3D sketch)", lambda: (lambda c: (c, app.RunCommand(c[1], "") if c[1] else None))(command_3d()))):
+    model.ClearSelection2(True)
+    step(label, fn)
+    sk = step(f"  active sketch after {label}", active)
+    if sk is not None:
+        opened_by = label
+        step("  Is3D", lambda: call0(sk, "Is3D"))
+        break
+print(f"3D sketch opened by: {opened_by}")
+if sk is None:
+    print("no way opened a 3D sketch; the rest of the probe needs one")
+    raise SystemExit
 step("ModelToSketchTransform", lambda: [round(v, 6) for v in sk.ModelToSketchTransform.ArrayData])
 sm.AddToDB = True
 pA = step("CreatePoint A", lambda: sm.CreatePoint(*[c * MM for c in A]))
@@ -142,7 +196,12 @@ def dim_ab():
     d = model.AddDimension2(25 * MM, 25 * MM, 35 * MM) if ok else None
     return (ok, None if d is None else round(d.GetDimension2(0).SystemValue / MM, 4), f"expected {L:.4f} (true length)")
 step("dimension A to B", dim_ab)
-step("close 3D sketch", lambda: sm.Insert3DSketch(True))
+step("close 3D sketch (the same call that opened it)", lambda: {
+    "SketchManager.Insert3DSketch(True)": lambda: sm.Insert3DSketch(True),
+    "SketchManager.Insert3DSketch(False)": lambda: sm.Insert3DSketch(True),
+    "ModelDoc2.Insert3DSketch2(True)": lambda: model.Insert3DSketch2(True),
+    "ModelDoc2.Insert3DSketch()": lambda: model.Insert3DSketch()}.get(opened_by, lambda: sm.InsertSketch(True))())
+step("sketch still active after closing (expect None)", lambda: call0(sm, "ActiveSketch"))
 sk3 = model.FeatureByPositionReverse(0)
 step("3D sketch constrained status (3 = fully defined; B is free here)",
      lambda: call0(call0(sk3, "GetSpecificFeature2"), "GetConstrainedStatus"))
