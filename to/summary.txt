@@ -1,0 +1,21 @@
+pair               level  stand-in   volume vs TO             independent dimensions
+lbracket_to        1      ok         (+34.1 %)                48
+lbracket_to        2      ok         (+12.5 %)                90
+lbracket_to        3      ok         (+4.2 %)                 125
+lbracket_to        4      ok         (+2.3 %)                 129
+lbracket_to        5      ok         (+2.8 %)                 183
+cantilever1_to     1      ok         (+0.3 %)                 40
+cantilever1_to     2      ok         (+0.5 %)                 41
+cantilever1_to     3      ok         (-1.6 %)                 47
+cantilever1_to     4      ok         (-2.0 %)                 49
+cantilever1_to     5      ok         (-1.5 %)                 93
+cantilever2_to     1      ok         (-15.6 %)                26
+cantilever2_to     2      ok         (-15.5 %)                28
+cantilever2_to     3      ok         (-15.6 %)                35
+cantilever2_to     4      ok         (-16.2 %)                55
+cantilever2_to     5      ok         (-16.1 %)                83
+cantilever3_to     1      ok         (-6.2 %)                 53
+cantilever3_to     2      ok         (-5.4 %)                 61
+cantilever3_to     3      ok         (-6.9 %)                 86
+cantilever3_to     4      ok         (-6.6 %)                 100
+cantilever3_to     5      ok         (-6.5 %)                 189

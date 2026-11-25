@@ -7,7 +7,7 @@ against the volume and centre of mass of the CadQuery plate model. Re-entrant ed
 (face normals: BRepOffset_Analyse) are filleted last, picked at their midpoints; the radius is a
 parameter of the script.
 """
-import math
+import math, os
 import numpy as np
 import cadquery as cq
 from cadquery import Vector
@@ -92,29 +92,170 @@ class _Loop:                                   # the loop object swgen._loop_cod
         self.edges, self.pattern, self.linear = edges, None, None
 
 
-def concave_edges(solid):
+EPS = 1e-3                 # mm
+MAX_WEDGE = 150.0          # deg: re-entrant edges with a flatter empty wedge are not filleted
+
+
+def _axis_pick(solid, axis, centre, d=0.5):
+    """A ray (start, direction; mm) that hits a cylindrical face of solid whose axis is the plate axis
+    through centre (in-plane coordinates), fired from the empty side; None if there is none."""
+    from OCP.BRepAdaptor import BRepAdaptor_Surface
+    from OCP.GeomAbs import GeomAbs_Cylinder
+    u, v = [i for i in range(3) if i != axis]
+    for f in sorted(solid.Faces(), key=lambda f: -f.Area()):
+        ad = BRepAdaptor_Surface(f.wrapped)
+        if ad.GetType() != GeomAbs_Cylinder:
+            continue
+        ax = ad.Cylinder().Axis(); L = ax.Location(); D = ax.Direction()
+        Lp, Dp = np.array([L.X(), L.Y(), L.Z()]), np.array([D.X(), D.Y(), D.Z()])
+        if abs(abs(Dp[axis]) - 1) > 1e-6 or math.hypot(Lp[u] - centre[0], Lp[v] - centre[1]) > 1e-3:
+            continue
+        R = ad.Cylinder().Radius()
+        bb = f.BoundingBox()
+        mid = 0.5 * ((bb.xmin, bb.ymin, bb.zmin)[axis] + (bb.xmax, bb.ymax, bb.zmax)[axis])
+        for t in np.linspace(0, 2 * math.pi, 24, endpoint=False):    # a point of the face half way up
+            r = np.zeros(3); r[u], r[v] = math.cos(t), math.sin(t)
+            P = Lp.copy(); P[axis] = mid; P = P + R * r
+            if f.distance(cq.Vertex.makeVertex(*P)) > 1e-6:
+                continue
+            for s_ in (1, -1):
+                if not solid.isInside(Vector(*(P + s_ * d * r)), 1e-5):
+                    return (P + s_ * d * r, -s_ * r)
+    return None
+
+
+def _wedge(solid, e, P, b):
+    """Fillet area per unit length and radius^2 at a re-entrant edge: cot(phi/2) - (pi - phi)/2, phi the
+    angle of the empty wedge between the two faces (pi - the angle between their outward normals,
+    oriented here to point into the corner, direction b); 1 - pi/4 for perpendicular faces, 0 when flat."""
+    n = [v if v @ b >= 0 else -v for v in _face_normals(solid, e, P)]
+    phi = math.pi - math.acos(float(np.clip(n[0] @ n[1], -1, 1)))
+    return 1.0 / math.tan(phi / 2) - (math.pi - phi) / 2, math.degrees(phi)
+
+
+def _corner_direction(solid, e, P, d=0.05):
+    """Unit vector at P (a point of re-entrant edge e) into the empty corner: the one of +-n1 +- n2
+    (n1, n2 the two face normals, whatever their orientation) that leads outside the solid."""
+    n = _face_normals(solid, e, P)
+    for s1 in (1, -1):
+        for s2 in (1, -1):
+            v = s1 * n[0] + s2 * n[1]
+            v = v / (np.linalg.norm(v) or 1.0)
+            if not solid.isInside(P + Vector(*(d * v)), 1e-5):
+                return v
+    return v
+
+
+def _face_normals(solid, e, P):
+    from OCP.TopExp import TopExp
+    from OCP.TopTools import TopTools_IndexedDataMapOfShapeListOfShape
+    from OCP.TopAbs import TopAbs_EDGE, TopAbs_FACE
+    m = TopTools_IndexedDataMapOfShapeListOfShape()
+    TopExp.MapShapesAndAncestors_s(solid.wrapped, TopAbs_EDGE, TopAbs_FACE, m)
+    return [np.array(cq.Face(f).normalAt(P).toTuple()) for f in m.FindFromKey(e.wrapped)]
+
+
+def concave_edges(solid, d=0.05):
+    """Re-entrant edges: BRepOffset_Analyse's concave edges, confirmed by the material around the
+    edge midpoint: of the four points P + d(+-n1 +- n2) (n1, n2 the two face normals) a re-entrant
+    edge has three inside the solid, a convex edge one, a seam between coplanar faces two. The
+    analyser alone also returned convex edges of the plate union (face orientation)."""
     an = BRepOffset_Analyse(solid.wrapped, 0.01)
-    return [e for e in solid.Edges()
-            if any(i.Type() == ChFiDS_TypeOfConcavity.ChFiDS_Concave for i in an.Type(e.wrapped))]
+    out = []
+    for e in solid.Edges():
+        if not any(i.Type() == ChFiDS_TypeOfConcavity.ChFiDS_Concave for i in an.Type(e.wrapped)):
+            continue
+        P = e.positionAt(0.5)
+        n = _face_normals(solid, e, P)
+        if len(n) != 2:
+            continue
+        inside = sum(solid.isInside(P + Vector(*(d * (s1 * n[0] + s2 * n[1]))), 1e-5)
+                     for s1 in (1, -1) for s2 in (1, -1))
+        if inside == 3:
+            out.append(e)
+    return out
 
 
-def write(path, base_script, name, plates, box, r_fillet=1.0, nd=6, digits=3, detail=None):
+def write(path, base_script, name, plates, box, r_fillet=1.0, nd=6, digits=3, detail=None, per_cut=True):
     ns = _namespace(base_script)
     t3 = lambda q: '(%.5f, %.5f, %.5f)' % tuple(float(x) for x in q)
-    solids = [ns['plate'](p['axis'], p['lo'], p['hi'], p['cuts'], box) for p in plates]
+    solids = [ns['plate'](p['axis'], p['lo'], p['hi'], p['cuts'], box, p.get('ring')) for p in plates]
     order = sorted(range(len(plates)), key=lambda i: -mass_props(solids[i])[0])   # largest plate first
     k = plates[order[0]]['axis']
     R0, back = swgen.BUILD_FRAME[k]
     i0, j0 = [m for m in range(3) if m != k]
-    union, steps = None, []
-    for n, idx in enumerate(order):
-        p, s = plates[idx], solids[idx]
-        before = None if union is None else np.array(mass_props(union)[1])
-        union = s if union is None else union.fuse(s).clean()
-        vol, com = mass_props(union)
-        steps.append(dict(p=p, idx=idx, loops=region_loops(s, p['axis'], p['lo']),
-                          volume=vol, com=np.array(com), before=before))
     size = float(np.linalg.norm(np.array(box[1]) - np.array(box[0])))
+
+    def prism_of(cut, a, lo, hi):
+        """The cut's prism between the plate's two levels (the Cut-Extrude's extent)."""
+        if cut[0] == 'poly':
+            w = ns['rounded_polygon'](cut[1], a, lo - 1)
+        else:
+            (cx, cy, r, a0, a1), closing = cut[1], cut[2]
+            w = ns['arc_notch'](cx, cy, r, a0, a1, closing, a, lo - 1)
+        # 1e-3 mm past the plate's faces: a prism ending in them leaves those faces whole (OCC)
+        return ns['through'](w, a, lo, hi).intersect(ns['slab'](a, lo - EPS, hi + EPS, box))
+
+    # Each plate: the original between its two levels (Extruded Boss), then, if per_cut, one Cut-Extrude per
+    # cut through the plate (each can be suppressed). The part is built plate by plate in one body, so a
+    # plate's cut also trims other plates where they lie inside it, and a plate's boss refills their cuts
+    # there (about 0.3 % of the volume for the I-beam cantilevers); the expected values follow that order.
+    union, steps = None, []
+    for n, idx in enumerate(order, 1):
+        p = plates[idx]; a, lo, hi = p['axis'], p['lo'], p['hi']
+        before = None if union is None else np.array(mass_props(union)[1])
+        tag = '%s %d ' % (p.get('kind', 'Plate'), n) if len(plates) > 1 else ''
+        feats = []
+        if per_cut:
+            boss = ns['plate'](a, lo, hi, [], box, p.get('ring'))
+            union = boss if union is None else union.fuse(boss).clean()
+            v, c = mass_props(union)
+            kind = p.get('kind', 'Plate')
+            feats.append(dict(name='%s %d %s %.4g to %.4g' % (kind, n, swgen.AX[a], lo, hi) if len(plates) > 1
+                              else '%s %s %.4g to %.4g' % (kind, swgen.AX[a], lo, hi), op='add',
+                              loops=region_loops(boss, a, lo), volume=v, com=np.array(c)))
+            nv = nn = 0
+            sec = p.get('sec')
+            pat = p.get('pattern') if n == 1 else None      # a Circular Pattern only on the first plate
+            cuts = p['cuts']
+            if pat:        # seeds, then the cuts outside the pattern, then the copies (seed by seed)
+                ns_, nc = pat['seeds'], pat['copies']
+                seq = list(range(ns_)) + list(range(ns_ + nc, len(cuts))) + list(range(ns_, ns_ + nc))
+            else:
+                seq = list(range(len(cuts)))
+            names, copies = {}, []
+            for i in seq:
+                cut = cuts[i]
+                prism = prism_of(cut, a, lo, hi)
+                nxt = union - prism
+                v1, c1 = mass_props(nxt)
+                is_copy = pat is not None and ns_ <= i < ns_ + nc
+                if v - v1 < 1e-3 and not is_copy:
+                    continue                          # removes nothing
+                if is_copy:
+                    k = i - ns_; seed = k // (pat['n'] - 1)
+                    nm = '%s copy %d' % (names.get(seed, 'cut %d' % seed), k % (pat['n'] - 1) + 2)
+                else:
+                    notch = sec is not None and not sec.cut_polygon(cut).within(sec.Oout.buffer(1e-6))
+                    nn, nv = (nn + 1, nv) if notch else (nn, nv + 1)
+                    nm = tag + ('Notch %d' % nn if notch else 'Void %d' % nv)
+                    names[i] = nm
+                ft = dict(name=nm, op='cut', loops=region_loops(prism, a, lo - EPS), volume=v1, com=np.array(c1))
+                (copies if is_copy else feats).append(ft)
+                union, v = nxt, v1
+            if pat:
+                feats.append(dict(name=tag + 'Pattern of cuts', op='pattern', n=pat['n'],
+                                  seeds=[names[i] for i in range(ns_) if i in names], copies=copies,
+                                  axis_pick=_axis_pick(union, a, pat['centre']), volume=v, com=np.array(c1),
+                                  loops=[]))
+        else:
+            s_ = solids[idx]
+            union = s_ if union is None else union.fuse(s_).clean()
+            v, c = mass_props(union)
+            feats.append(dict(name='Plate %d %s %.4g to %.4g' % (n, swgen.AX[a], lo, hi), op='add',
+                              loops=region_loops(s_, a, lo), volume=v, com=np.array(c)))
+        steps.append(dict(p=p, idx=idx, feats=feats, loops=[lp for f in feats for lp in f['loops']],
+                          volume=feats[-1]['volume'], com=feats[-1]['com'], before=before))
 
     def plans_of(loops):
         plans, full = [], True
@@ -139,6 +280,8 @@ def write(path, base_script, name, plates, box, r_fillet=1.0, nd=6, digits=3, de
          'Run:   python %s.py [C:\\\\path\\\\part.SLDPRT]' % name, '"""', '',
          'R_FILLET = %.2f                # mm, fillet radius on re-entrant edges (0: none)' % r_fillet,
          'ROUND_DIGITS = %d                # significant digits of the dimensions, set after the checks (0: as fitted)' % digits,
+         'DEFER_ROUNDING = True           # rounding after the junction fillets',
+         'DIM_DECIMALS = 2                # decimal places shown on length dimensions (document units: mm)',
          '# detail level %s (1: fewest dimensions ... 5: smallest model error)' % detail, '',
          'AXIS_I, AXIS_J = %d, %d           # model axes of the sketch coordinates (a, b) of the first plate' % (i0, j0),
          'PLANE_NAME = "Front Plane"', 'PLANE_INDEX = 0',
@@ -146,74 +289,113 @@ def write(path, base_script, name, plates, box, r_fillet=1.0, nd=6, digits=3, de
          'ROT_BACK = %s' % (tuple(back),),
          'FINAL_CENTROID = %s   # after the first plate, STL frame, mm' % t3(steps[0]['com']),
          'SIZE = %s' % swgen._f(size, 3)]
-    allp = np.array([q for st in steps for lp in st['loops'] for e in lp for q in e[1:] if np.ndim(q) == 1])
+    allp = np.array([q for lp in steps[0]['loops'] for e in lp for q in e[1:] if np.ndim(q) == 1])
     L.append('HELPER_AB = (%s, %s)' % (swgen._f(allp[:, 0].min() - 10, 3), swgen._f(allp[:, 1].min() - 10, 3)))
     # ---- first plate: FEATURES -----------------------------------------------------------------
-    st = steps[0]; p = st['p']
-    plans, full = plans_of(st['loops'])
-    cb = np.asarray(R0, float) @ st['com']
+    st = steps[0]; p = st['p']; feats = st['feats']
     L += ['', '# ---- first plate: sketch loops (a, b in mm), levels along its axis, expected volume (mm^3) ----',
-          'FEATURES = [', '    dict(',
-          '        name="Plate 1 %s %.4g to %.4g", op="add", lo=%s, hi=%s, volume=%.4f, centroid=%s, holes=False,'
-          % (swgen.AX[p['axis']], p['lo'], p['hi'], swgen._f(p['lo'], nd), swgen._f(p['hi'], nd), st['volume'], t3(cb)),
-          '        expect="%s",' % ('fully defined' if full else 'under defined'),
-          '        plans=' + repr(swgen._round_plans(plans)) + ',', '        loops=[']
-    for lp in st['loops']:
-        L.append('        ' + swgen._loop_code(_Loop(lp), max(nd, 9)) + ',')
-    L += ['        ],', '    ),', ']', '', 'CYLINDERS = []', 'REVOLVES = []', 'REV_TURN = None', 'REV_DONE = None', 'CUTS = []']
-    # ---- other plates: XCUTS entries with op "add" -----------------------------------------------
-    L += ['', '# ---- other plates: the body is turned so the plate axis is z, the plate added, the body turned back ----',
+          'FEATURES = [']
+    def feature_code(ft, ind):
+        plans, full = plans_of(ft['loops'])
+        cb = np.asarray(R0, float) @ ft['com']
+        out = [ind + 'dict(',
+               ind + '    name="%s", op="%s", lo=%s, hi=%s, volume=%.4f, centroid=%s, holes=False,'
+               % (ft['name'], ft['op'], swgen._f(p['lo'], nd), swgen._f(p['hi'], nd), ft['volume'], t3(cb)),
+               ind + '    expect="%s",' % ('fully defined' if full else 'under defined'),
+               ind + '    plans=' + repr(swgen._round_plans(plans)) + ',', ind + '    loops=[']
+        for lp in ft['loops']:
+            out.append(ind + '    ' + swgen._loop_code(_Loop(lp), max(nd, 9)) + ',')
+        return out + [ind + '    ],', ind + '),']
+
+    for ft in feats:
+        if ft['op'] != 'pattern':
+            L += feature_code(ft, '    ')
+            continue
+        ap = ft['axis_pick']
+        L += ['    dict(',
+              '        name="%s", op="pattern", n=%d, seeds=%r, volume=%.4f,' % (ft['name'], ft['n'], ft['seeds'], ft['volume']),
+              '        axis_pick=%s,   # ray at a cylindrical face on the pattern axis (STL frame)'
+              % ('None' if ap is None else '(%s, %s)' % (t3(ap[0]), t3(ap[1]))),
+              '        copies=[   # built one by one when the pattern fails']
+        for c in ft['copies']:
+            L += feature_code(c, '            ')
+        L += ['        ],', '    ),']
+    L += [']', '', 'CYLINDERS = []', 'REVOLVES = []', 'REV_TURN = None', 'REV_DONE = None', 'CUTS = []']
+    # ---- other plates: XCUTS entries (body turned so the plate axis is z: its boss, then its cuts) ----
+    L += ['', '# ---- other plates: the body is turned so the plate axis is z, the plate added and cut, the body',
+          '# turned back (turn_in on the first entry of a plate, turn_out on its last) ----',
           'XCUTS = [']
-    for n, st in enumerate(steps[1:], 2):
+    for st in steps[1:]:
         p = st['p']; j = p['axis']
         m, ang = swgen.XCUT_TURN[j]
         R = swgen._rot(m, ang)
         u, v = [i for i in range(3) if i != j]
+
         def to_sk(q):
             P3 = np.zeros(3); P3[u], P3[v] = q
             return tuple(float(x) for x in (R @ P3)[:2])
-        loops = []
-        for lp in st['loops']:
-            es = []
-            for e in lp:
-                if e[0] == 'circle':
-                    es.append(('circle', to_sk(e[1]), e[2]))
-                else:
-                    es.append((e[0],) + tuple(to_sk(q) for q in e[1:]))
-            loops.append(es)
         sgn = float((R @ np.eye(3)[j])[2])
         lo, hi = sorted((sgn * p['lo'], sgn * p['hi']))
-        plans, full = plans_of(loops)
-        P = np.array([q for lp in loops for e in lp for q in e[1:] if np.ndim(q) == 1])
-        L += ['    dict(',
-              '        name="Plate %d %s %.4g to %.4g", op="add", axis=%s, angle=%.12f, lo=%s, hi=%s, volume=%.4f,'
-              % (n, swgen.AX[j], p['lo'], p['hi'], m, ang, swgen._f(lo, nd), swgen._f(hi, nd), st['volume']),
-              '        turned=%s, centroid=%s, back=%s, holes=False,' % (t3(R @ st['before']), t3(R @ st['com']), t3(st['com'])),
-              '        helper=(%s, %s),' % (swgen._f(P[:, 0].min() - 10, 3), swgen._f(P[:, 1].min() - 10, 3)),
-              '        expect="%s",' % ('fully defined' if full else 'under defined'),
-              '        plans=' + repr(swgen._round_plans(plans)) + ',', '        loops=[']
-        for lp in loops:
-            L.append('        ' + swgen._loop_code(_Loop(lp), max(nd, 9)) + ',')
-        L += ['        ],', '    ),']
+        allq = []
+        fl = []
+        for ft in st['feats']:
+            loops = []
+            for lp in ft['loops']:
+                es = []
+                for e in lp:
+                    if e[0] == 'circle':
+                        es.append(('circle', to_sk(e[1]), e[2]))
+                    else:
+                        es.append((e[0],) + tuple(to_sk(q) for q in e[1:]))
+                loops.append(es)
+            fl.append(loops)
+            allq += [q for lp in loops for e in lp for q in e[1:] if np.ndim(q) == 1]
+        P = np.array(allq)
+        nf = len(st['feats'])
+        for i, (ft, loops) in enumerate(zip(st['feats'], fl)):
+            plans, full = plans_of(loops)
+            L += ['    dict(',
+                  '        name="%s", op="%s", axis=%s, angle=%.12f, lo=%s, hi=%s, volume=%.4f, turn_in=%s, turn_out=%s,'
+                  % (ft['name'], ft['op'], m, ang, swgen._f(lo, nd), swgen._f(hi, nd), ft['volume'], i == 0, i == nf - 1),
+                  '        turned=%s, centroid=%s, back=%s, holes=False,'
+                  % (t3(R @ st['before']), t3(R @ ft['com']), t3(ft['com'])),
+                  '        helper=(%s, %s),' % (swgen._f(P[:, 0].min() - 10, 3), swgen._f(P[:, 1].min() - 10, 3)),
+                  '        expect="%s",' % ('fully defined' if full else 'under defined'),
+                  '        plans=' + repr(swgen._round_plans(plans)) + ',', '        loops=[']
+            for lp in loops:
+                L.append('        ' + swgen._loop_code(_Loop(lp), max(nd, 9)) + ',')
+            L += ['        ],', '    ),']
     L += [']', 'BLENDS = []']
     # ---- re-entrant edges: picked at their midpoints, with the volume each fillet adds ----------
     E = concave_edges(union)
-    L += ['', '# ---- re-entrant edges (STL frame, mm): midpoint, length; filleted last ----', 'JUNCTIONS = [']
+    if os.environ.get('SWPLATES_DUMP'):
+        cq.exporters.export(cq.Workplane().add(union), os.environ['SWPLATES_DUMP'])
+    L += ['', '# ---- re-entrant edges (STL frame, mm): midpoint, length, direction into the empty corner (the',
+          '# edge is picked with a ray fired back along it), fillet area / r^2 per mm (angle of the empty wedge) ----',
+          'JUNCTIONS = [']
+    nj = 0
     for e in E:
-        L.append('    (%s, %.4f),' % (t3(e.positionAt(0.5).toTuple()), e.Length()))
+        P = e.positionAt(0.5)
+        b = _corner_direction(union, e, P)
+        k, phi = _wedge(union, e, P, b)
+        if phi > MAX_WEDGE:                   # nearly flat: a fillet adds next to nothing
+            continue
+        nj += 1
+        L.append('    (%s, %.4f, %s, %.5f),   # %.0f deg' % (t3(P.toTuple()), e.Length(), t3(b), k, phi))
     L += [']', '']
     rt = swgen._RUNTIME
     head, main = rt.split('if __name__ == "__main__":')
     L.append(head + FILLET_CODE)
     open(path, 'w').write('\n'.join(L) + '\n')
-    return dict(volume=steps[-1]['volume'], concave=len(E), union=union)
+    return dict(volume=steps[-1]['volume'], concave=nj, union=union)
 
 
 FILLET_CODE = r'''
 def junction_fillets(sw, r):
     """Fillet the re-entrant edges with radius r: all in one Fillet feature, else edge by edge.
-    A fillet is kept when the volume grows by about r^2 (1 - pi/4) per mm of edge (the exact
-    amount for two perpendicular plane faces); SolidWorks' failures are reported, not fatal."""
+    A fillet is kept when the volume grows by at least 0.25 times its area (r^2 (cot(phi/2) - (pi - phi)/2)
+    per mm of edge, phi the angle of the empty wedge) and at most 1 % of the part; SolidWorks' failures are
+    reported, not fatal."""
     if r <= 0 or not JUNCTIONS:
         return
     if not sw.turned_back:
@@ -228,14 +410,25 @@ def junction_fillets(sw, r):
                                                                     NOTHING, NOTHING, NOTHING, NOTHING, NOTHING)),
              ("FeatureFillet", lambda: fm.FeatureFillet(195, rm, 0, 0, E, E, E))]
 
+    def pick(p, b, mark):
+        """Select the edge at p. SelectByID2 with a point picks the first entity along the line of sight
+        (seen in SolidWorks: an outer edge in front of the junction edge), so the edge is picked with a ray
+        fired at p from 0.3 mm inside the empty corner (direction b); SelectByID2 is the fall-back."""
+        q, d = sw.in_model_frame(p), sw.in_model_frame(b)
+        start = [(q[i] + 0.3 * d[i]) * MM for i in range(3)]
+        n0 = sw.model.SelectionManager.GetSelectedObjectCount2(-1)
+        if ext.SelectByRay(*start, -d[0], -d[1], -d[2], 0.05 * MM, 1, True, mark, 0):     # 1: swSelEDGES
+            if sw.model.SelectionManager.GetSelectedObjectCount2(-1) > n0:
+                return True
+        return ext.SelectByID2("", "EDGE", *(c * MM for c in q), True, mark, NOTHING, 0)
+
     def attempt(edges, name):
         v0 = sw.mass()[0]
-        est = sum(L for _, L in edges) * r * r * (1 - math.pi / 4)
+        est = sum(L * k for _, L, _, k in edges) * r * r
         for mark in (1, 0):
             for how, mk in makes:
                 sw.model.ClearSelection2(True)
-                if not all(ext.SelectByID2("", "EDGE", *(c * MM for c in sw.in_model_frame(p)), True, mark, NOTHING, 0)
-                           for p, _ in edges):
+                if not all(pick(p, b, mark) for p, _, b, _ in edges):
                     continue
                 f = None
                 try:
@@ -245,10 +438,13 @@ def junction_fillets(sw, r):
                 if f is None:
                     continue
                 dv = sw.mass()[0] - v0
-                if dv > 0 and abs(dv - est) <= 0.6 * est + 1e-3:
+                # kept if it adds material (a fillet on a convex edge removes it), at least about the
+                # amount for the picked edges; more is allowed: SolidWorks runs the fillet on along
+                # tangent-continuous re-entrant edges (a notch side meeting a flange)
+                if 0.25 * est <= dv <= 0.01 * v0:
                     f.Name = name
                     return True
-                print(f"  {name}: {how} added {dv:.3f} mm^3, expected about {est:.3f}; removed")
+                print(f"  {name}: {how} added {dv:.3f} mm^3, expected at least {0.25 * est:.3f}; removed")
                 sw.model.ClearSelection2(True)
                 f.Select2(False, 0)
                 ext.DeleteSelection2(0)
@@ -269,7 +465,8 @@ def junction_fillets(sw, r):
 
 if __name__ == "__main__":
     sw = build()
-    junction_fillets(sw, R_FILLET)
+    junction_fillets(sw, R_FILLET)              # before rounding: the edges are picked at their computed midpoints
+    print(sw.round_dimensions())
     if len(sys.argv) > 1:
         sw.model.SaveAs3(sys.argv[1], 0, 0)
 '''
@@ -303,7 +500,7 @@ def verify(script_path, ref, fillets=False, timeout=900):
     open(py, 'w').write(src)
     pkg = os.path.dirname(stl2cad.__file__)
     env = dict(os.environ, PYTHONPATH=os.pathsep.join([os.path.join(pkg, 'swmock'), os.path.dirname(pkg)]),
-               SWMOCK_CUT_REVERSED='1', SWMOCK_BOSS_REVERSED='0')
+               SWMOCK_CUT_REVERSED='1', SWMOCK_BOSS_REVERSED='0', SWMOCK_EDGE_SIGHT='1')
     r = subprocess.run([sys.executable, py, out], capture_output=True, text=True, timeout=timeout, env=env)
     log = r.stdout + r.stderr
     if r.returncode != 0 or not os.path.exists(out):

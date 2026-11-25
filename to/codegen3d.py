@@ -104,8 +104,20 @@ def fillet_reentrant(solid, r):
     return solid, done, skipped
 
 
-def plate(axis, lo, hi, cuts, box):
+def ring_cylinder(axis, lo, hi, cx, cy, r):
+    """Cylinder of radius r about the axis through (cx, cy) (in-plane coordinates), from lo to hi."""
+    u, v = [i for i in range(3) if i != axis]
+    p = [0.0, 0.0, 0.0]; p[axis], p[u], p[v] = lo, cx, cy
+    d = [0.0, 0.0, 0.0]; d[axis] = 1.0
+    return Solid.makeCylinder(r, hi - lo, Vector(*p), Vector(*d))
+
+
+def plate(axis, lo, hi, cuts, box, ring=None):
+    """The original between lo and hi along axis, minus the cuts; with ring = (cx, cy, r): only the part
+    of it within radius r of the axis through (cx, cy) (a hub around one of the original's holes)."""
     body = original.intersect(slab(axis, lo, hi, box))
+    if ring is not None:
+        body = body.intersect(ring_cylinder(axis, lo, hi, *ring))
     for cut in cuts:
         if cut[0] == "poly":
             body = body - through(rounded_polygon(cut[1], axis, lo - 1), axis, lo, hi)
@@ -137,10 +149,10 @@ def write(path, base_script, name, plates, box, r_fillet=1.0):
                                                       tuple(round(float(x), 4) for x in box[1]))
     for p in plates:
         body += '    dict(  # normal to %s, %.1f mm thick, %d cut(s)\n' % ('xyz'[p['axis']], p['hi'] - p['lo'], len(p['cuts']))
-        body += '        axis=%d, lo=%.4f, hi=%.4f,\n        cuts=[\n' % (p['axis'], p['lo'], p['hi'])
+        body += '        axis=%d, lo=%.4f, hi=%.4f, ring=%r,\n        cuts=[\n' % (p['axis'], p['lo'], p['hi'], p.get('ring'))
         body += ''.join(fmt_cut(c) for c in p['cuts'])
         body += '        ],\n    ),\n'
-    body += ']\n\npart = None\nfor p in PLATES:\n    b = plate(p["axis"], p["lo"], p["hi"], p["cuts"], BOX)\n' \
+    body += ']\n\npart = None\nfor p in PLATES:\n    b = plate(p["axis"], p["lo"], p["hi"], p["cuts"], BOX, p.get("ring"))\n' \
             '    part = b if part is None else part + b\n' \
             '\n# ---- no re-entrant (concave) edges: fillet them ---------------------------------\n' \
             'R_FILLET = %.2f    # fillet radius on re-entrant edges (mm)\n' \

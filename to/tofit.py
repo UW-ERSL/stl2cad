@@ -24,9 +24,9 @@ CUT_MIN = 0.0           # % of the section area: smaller voids and notches of th
 # max_sides: most sides of a void (a notch: max_sides - 1 corners inside the part; 0 = no limit),
 # radii: number of global corner radii (0 = radius per corner), digits: significant digits of dimensions
 DETAIL = {
-    1: dict(tol=2.0, Lmin=12.0, accept=3.0, cut_min=3.0, max_sides=3, min_flat=3.0, radii=1, digits=2),
-    2: dict(tol=1.2, Lmin=8.0, accept=2.0, cut_min=1.5, max_sides=4, min_flat=2.0, radii=2, digits=2),
-    3: dict(tol=0.8, Lmin=6.0, accept=1.5, cut_min=0.5, max_sides=5, min_flat=1.5, radii=2, digits=2),
+    1: dict(tol=2.0, Lmin=6.0, accept=3.0, cut_min=3.0, max_sides=3, min_flat=3.0, radii=1, digits=2),
+    2: dict(tol=1.2, Lmin=5.0, accept=2.0, cut_min=1.5, max_sides=4, min_flat=2.0, radii=2, digits=2),
+    3: dict(tol=0.8, Lmin=4.5, accept=1.5, cut_min=0.5, max_sides=5, min_flat=1.5, radii=2, digits=2),
     4: dict(tol=0.5, Lmin=4.0, accept=1.0, cut_min=0.0, max_sides=0, min_flat=1.0, radii=3, digits=3),
     5: dict(tol=0.25, Lmin=2.5, accept=0.5, cut_min=0.0, max_sides=0, min_flat=0.5, radii=0, digits=3),
 }
@@ -59,14 +59,15 @@ def _line_x(p, q, r, t):
 
 
 CUT_WEIGHT = 4.0
+HOLE_WALL = 2.0         # mm: TO material this close to an original hole is kept by simplified cuts
 
 
-def reduce_sides(V, n, ref, closed=True, cap=np.inf):
+def reduce_sides(V, n, ref, closed=True, cap=np.inf, keep=None):
     """Corner points V (k x 2) reduced to n corners (closed) or n inner corners (open: the two ends stay).
     Each step removes one corner, either by joining its neighbours with a straight side or by extending
     the two neighbouring sides to meet (one side removed), whichever keeps the polygon closest to ref
     (area cut from TO material x CUT_WEIGHT + area of TO void left as material; open profiles are closed by
-    their end chord). Stops early when the next step would put the outline more than cap from ref's
+    their end chord). Candidates that cut into keep are not taken. Stops early when the next step would put the outline more than cap from ref's
     (Hausdorff distance between the two boundaries)."""
     V = [np.asarray(v, float) for v in V]
 
@@ -74,6 +75,8 @@ def reduce_sides(V, n, ref, closed=True, cap=np.inf):
         P = Polygon(W).buffer(0)
         if not P.is_valid or P.area <= 0:
             return np.inf
+        if keep is not None and P.intersection(keep).area > 1e-3:
+            return np.inf                        # cuts into material that must stay (around the original's holes)
         return CUT_WEIGHT * P.difference(ref).area + ref.difference(P).area
     while (len(V) if closed else len(V) - 2) > n:
         m = len(V); best = None
@@ -116,6 +119,9 @@ class Section:
         self.voids = [h for h in self.M.interiors if Polygon(h).area > max(1.0, 0.01 * CUT_MIN * self.Oout.area) and not any(
             Polygon(h).symmetric_difference(o).area < 0.5 * o.area for o in orig)]
         self.R = self.Oout.buffer(4, join_style=2).exterior
+        # TO material within HOLE_WALL of the original's holes: simplified cuts may not remove it
+        holes = unary_union([Polygon(h) for h in self.O.interiors])
+        self.keep = holes.buffer(HOLE_WALL).difference(holes).intersection(self.M) if not holes.is_empty else None
 
     # ---- closing a notch outside the original outline --------------------
     def closing(self, p_end, p_start, body):
@@ -196,7 +202,7 @@ class Section:
                 if not bad and ok: break
             if MAX_SIDES and len(best[5]) > MAX_SIDES:     # fewer sides: corners reduced, then fillets
                 raw = best[7]; ref = Polygon(h).buffer(0); _, Qd = denoise(h)
-                V = reduce_sides([v[:2] for v in best[5]], MAX_SIDES, ref, cap=2 * st['accept'])
+                V = reduce_sides([v[:2] for v in best[5]], MAX_SIDES, ref, cap=2 * st['accept'], keep=self.keep)
                 verts = lf2.fit_radii(Qd, [(float(x), float(y), 0.0) for x, y in V], True)
                 m, x, ok = report(raw, rounded(verts))
                 best = (not ok, x > st['accept'], 0, nseg(verts), m, verts, x, raw)
@@ -243,10 +249,12 @@ class Section:
                 res['notches'].append(('arc', c, r, a0, a1)); res['refs'].append(None); segs += 1; worst = max(worst, x); means.append(m)
                 log.append('notch: single arc r %.1f, mean %.3f max %.3f' % (r, m, x))
             else:
-                if MAX_SIDES and len(best[5]) - 2 > MAX_SIDES - 1:
+                if False and MAX_SIDES and len(best[5]) - 2 > MAX_SIDES - 1:   # notches: no side limit (one notch can run
+                                                                          # around several features, e.g. both arm tops)
                     ends = np.array([best[5][0][:2], best[5][-1][:2]])
                     ref = Polygon(np.vstack([seg, ends[1], ends[0]])).buffer(0)
-                    V = reduce_sides([v[:2] for v in best[5]], MAX_SIDES - 1, ref, closed=False, cap=2 * st['accept'])
+                    V = reduce_sides([v[:2] for v in best[5]], MAX_SIDES - 1, ref, closed=False, cap=2 * st['accept'],
+                                     keep=self.keep)
                     verts = lf2.fit_radii(seg, [(float(x), float(y), 0.0) for x, y in V], False)
                     verts = [(*verts[0][:2], 0.0)] + list(verts[1:-1]) + [(*verts[-1][:2], 0.0)]
                     m, x, ok = report(inner, rounded(verts, closed=False), closed=False)

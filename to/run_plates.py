@@ -20,6 +20,9 @@ ap.add_argument('--detail', type=int, default=4, choices=range(1, 6),
                 help='1: fewest dimensions (larger model error) ... 5: smallest model error')
 ap.add_argument('--radii', type=int, default=None, help='global corner radii (0: radius per corner); default from --detail')
 ap.add_argument('--fit-only', action='store_true')
+ap.add_argument('--mode', default='auto', choices=['auto', 'plates', 'hubweb'],
+                help='plates, or hubs + web (auto: hubs + web when plates cover less than 70 %% of the TO)')
+ap.add_argument('--no-pattern', action='store_true', help='no rotational-symmetry pattern of cuts')
 a = ap.parse_args()
 import tofit
 D = tofit.set_detail(a.detail)
@@ -44,13 +47,35 @@ bodies = to.split(only_watertight=False)
 to = max(bodies, key=lambda b: len(b.faces))
 print('TO: %d bodies, kept the largest (%d facets, %.0f mm^3)' % (len(bodies), len(to.faces), to.volume))
 P = plates.detect(to, a.pitch, bounds=orig.bounds)
+HW = None
+if a.mode == 'hubweb' or (a.mode == 'auto' and sum(p['frac'] for p in P) < 0.7):
+    import hubweb
+    import swplates
+    ns0 = swplates._namespace(base)
+    HW = hubweb.detect(ns0['original'], to, a.pitch)
+    if HW is not None:
+        k, (wlo, whi) = HW['axis'], HW['web']
+        P = [dict(axis=k, lo=wlo, hi=whi, kind='Web', frac=0.0)]
+        for hb in HW['hubs']:
+            P.append(dict(axis=k, lo=hb['lo'], hi=hb['hi'], kind='Hub', ring=(*hb['c'], hb['ro']), cuts=[], refs=[],
+                          stats=dict(segments=0, mean=0.0, max=0.0, fine=[], thin_strips=0, islands=0)))
+        print('hubs and web: web normal to %s from %.2f to %.2f mm; %s'
+              % ('xyz'[k], wlo, whi,
+                 ', '.join('hub at (%.2f, %.2f) r %.2f-%.2f, %.2f to %.2f' % (*hb['c'], hb['ri'], hb['ro'], hb['lo'], hb['hi'])
+                           for hb in HW['hubs'])))
+    elif a.mode == 'hubweb':
+        sys.exit('no hubs: the original has no hole that the TO surrounds')
 T['plates'] = time.time() - t
 
 # ---- 3. one section fit per plate ------------------------------------------------
 t = time.time()
 for p in P:
     lvl = 0.5 * (p['lo'] + p['hi'])
-    sec = Section(plates.section(orig, p['axis'], lvl), plates.section(to, p['axis'], lvl))
+    if p.get('kind') == 'Hub':
+        p['sec'] = None
+        continue
+    M = HW['shadow'] if p.get('kind') == 'Web' else plates.section(to, p['axis'], lvl)
+    sec = Section(plates.section(orig, p['axis'], lvl), M)
     p['cuts'] = sec.fit(); p['stats'] = sec.stats; p['sec'] = sec; p['refs'] = sec.refs
     s = sec.stats
     print('  plate normal to %s at %.2f: %d cuts, %d segments, mean %.3f max %.3f mm%s%s'
@@ -60,6 +85,13 @@ for p in P:
 if a.radii:
     import radii
     RQ = radii.quantize(P, a.radii, accept=D['accept'])
+if not a.no_pattern and len(P) == 1:
+    import pattern
+    if pattern.symmetrize(P[0]) > 1:
+        pt = P[0]['pattern']
+        print('rotational symmetry: %d-fold about (%.2f, %.2f) (TO mismatch %.1f %%); %d seed cut(s) patterned, '
+              '%d cut(s) outside the pattern' % (pt['n'], *pt['centre'], 100 * pt['mismatch'], pt['seeds'],
+                                                  len(P[0]['cuts']) - pt['seeds'] - pt['copies']))
 T['fit'] = time.time() - t
 if a.fit_only:
     print('fit %.1f s' % T['fit']); sys.exit()
@@ -104,6 +136,8 @@ A, B = vox(to), vox(m); both = (A & B).sum()
 print('voxel overlap (1 mm voxels): %.0f %% of the TO is in the model, %.0f %% of the model is in the TO'
       % (100 * both / A.sum(), 100 * both / B.sum()))
 for p in P:
+    if p['sec'] is None:
+        continue
     st = Section.thin_strips(p['sec'], p['sec'].material(p['cuts']))
     inTO = Section.thin_strips(p['sec'], p['sec'].M)
     bad = [g for g in st if not any(g.distance(h) < 0.5 for h in inTO)]
@@ -114,10 +148,13 @@ print('time: ' + ', '.join('%s %.1f s' % kv for kv in T.items()) + ', total %.1f
 
 if a.plot:
     import matplotlib; matplotlib.use('Agg'); import matplotlib.pyplot as plt
-    fig, axs = plt.subplots(1, len(P), figsize=(6 * len(P), 4))
+    PP = [p for p in P if p['sec'] is not None]
+    fig, axs = plt.subplots(1, len(PP), figsize=(9 * len(PP), 4))
     axs = np.atleast_1d(axs)
-    for ax, p in zip(axs, P):
+    for ax, p in zip(axs, PP):
         sec = p['sec']; lvl = 0.5 * (p['lo'] + p['hi'])
+        if sec is None:
+            ax.axis('off'); continue
         def draw(g, **k):
             for q in (g.geoms if hasattr(g, 'geoms') else [g]):
                 if q.is_empty: continue

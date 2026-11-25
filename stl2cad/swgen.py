@@ -311,14 +311,16 @@ from win32com.client import VARIANT
 MM = 0.001                        # SolidWorks API lengths are in metres
 NOTHING = VARIANT(pythoncom.VT_DISPATCH, None)
 ROUND_DIGITS = globals().get("ROUND_DIGITS", 3)   # significant digits of the final dimensions (0: as fitted)
+DIM_DECIMALS = globals().get("DIM_DECIMALS", 2)   # decimal places shown on length dimensions (mm)
 
 
 def sig(x, n=None):
-    """x to n (default ROUND_DIGITS) significant digits; unchanged when n is 0."""
+    """x to n (default ROUND_DIGITS) significant digits, but never coarser than 0.1 (mm or deg): two
+    digits would move a 157.48 mm length to 160; unchanged when n is 0."""
     n = ROUND_DIGITS if n is None else n
     if not n or x == 0:
         return x
-    return round(x, n - 1 - int(math.floor(math.log10(abs(x)))))
+    return round(x, max(1, n - 1 - int(math.floor(math.log10(abs(x))))))
 
 
 def call0(obj, name):
@@ -632,6 +634,17 @@ class SW:
                     except Exception:
                         pass
                     return ext.SelectByID2("", "SKETCHPOINT", cx, cy, 0.0, append, 0, NOTHING, 0)
+                # a hole sharing its centre with an arc of the outline (a boss end): Concentric to that
+                # arc instead of position dimensions (both would fix the centre: over defined)
+                arc = next((t[2] for t in self.ents if t[0] == "arc" and t[2] is not None
+                            and math.dist(t[1][2], (cx, cy)) < 1e-6 * max(1.0, r / MM)), None)
+                if arc is not None and g is not None:
+                    self.model.ClearSelection2(True)
+                    if g.Select4(False, NOTHING) and arc.Select4(True, NOTHING):
+                        self.model.SketchAddConstraints("sgCONCENTRIC")
+                        self.rels_ok += 1
+                        continue
+                    self.rels_failed.append(tag + " concentric (selection)")
                 self.centre_to_origin(tag, cx, cy, pick_centre)
                 for kind, tx, ty in (("H", cx / 2, cy - 3 * r), ("V", cx - 3 * r, cy / 2)):
                     if abs(cx if kind == "H" else cy) < 1e-9:
@@ -774,6 +787,11 @@ class SW:
                     pt = call0(g, name)
                     if (pt is not None and math.dist(P, (pt.X, pt.Y)) < tol
                             and not any(pt == q for q in self._picked)):
+                        return pt
+            for kind, geo, g in self.ents:              # no end point there: an arc's centre point
+                if kind == "arc" and math.dist(P, geo[2]) < tol:
+                    pt = call0(g, "GetCenterPoint2")
+                    if pt is not None and not any(pt == q for q in self._picked):
                         return pt
         return None
 
@@ -967,6 +985,14 @@ class SW:
                                  "angle" in what))
         except Exception:
             pass
+        if what.startswith("joint "):              # a skeleton joint's coordinate: one variable per joint
+            try:
+                dd = d.GetDimension2(0)
+                self.linkable.append(("J", what, "@".join(str(dd.FullName).split("@")[:2]),
+                                      float(dd.SystemValue) / MM))
+            except Exception:
+                pass
+            return
         if "radius" in what or "diameter" in what:   # candidates for linking across sketches
             try:
                 dd = d.GetDimension2(0)
@@ -982,9 +1008,14 @@ class SW:
         """Equal radii and equal diameters in different sketches driven by one global variable each
         (Equation Manager, Add2; sw_probe11: the dimensions follow after a rebuild). A failure is
         reported, not fatal."""
-        groups = {}
-        for kind, val, name in self.linkable:
-            groups.setdefault((kind, round(val, 6)), []).append(name)
+        groups, jval = {}, {}
+        for item in self.linkable:
+            if item[0] == "J":                   # ("J", "joint 7 x", name, value): grouped by the joint
+                _, label, name, val = item
+                groups.setdefault(("J", label), []).append(name); jval[label] = val
+            else:
+                kind, val, name = item
+                groups.setdefault((kind, round(val, 6)), []).append(name)
         groups = {k: sorted(set(v)) for k, v in groups.items() if len(set(v)) > 1}
         if not groups:
             return "linked dimensions: none (no equal radius or diameter in two sketches)"
@@ -992,14 +1023,19 @@ class SW:
             em = call0(self.model, "GetEquationMgr")
             self.n_equations = call0(em, "GetCount")     # equations before linking
             n = 0
-            for (kind, val), names in sorted(groups.items()):
-                val = sig(val)
-                var = f"{'radius' if kind == 'R' else 'dia'}_{val:g}".replace(".", "_").replace("-", "m")
+            for (kind, key), names in sorted(groups.items(), key=lambda t: (t[0][0], str(t[0][1]))):
+                if kind == "J":
+                    val = sig(jval[key])
+                    var = key.replace(" ", "_")                        # joint_7_x
+                else:
+                    val = sig(key)
+                    var = f"{'radius' if kind == 'R' else 'dia'}_{val:g}".replace(".", "_").replace("-", "m")
                 em.Add2(-1, f'"{var}" = {val:g}mm', True)   # units explicit: the template may be in metres
                 for nm in names:
                     em.Add2(-1, f'"{nm}" = "{var}"', True)
                     n += 1
-            self.linked = [(nm, val) for (kind, val), names in groups.items() for nm in names]
+            self.linked = [(nm, jval[key] if kind == "J" else key) for (kind, key), names in groups.items() for nm in names]
+            self.joint_vars = sum(1 for k in groups if k[0] == "J")
             call0(self.model, "EditRebuild3")
             return f"linked dimensions: {n} in {len(groups)} global variable(s)"
         except Exception as ex:
@@ -1624,11 +1660,114 @@ def build_step(sw, st):
     print(f"{st['name']}: volume {v:.3f} mm^3 (expected {st['volume']:.3f})")
 
 
+def sw_constant(app, enum, member):
+    """Value of a SolidWorks API enumeration member, read from swconst.tlb in the SolidWorks folder
+    (pywin32's late binding has no named constants)."""
+    import os
+    exe = app.GetExecutablePath                       # a property under late binding, else a method
+    exe = str(exe() if callable(exe) else exe)        # the folder or the .exe, depending on the version
+    folders = [exe, os.path.dirname(exe)]
+    for path in [os.path.join(f, *sub, "swconst.tlb") for f in folders for sub in ((), ("api",))]:
+        if not os.path.exists(path):
+            continue
+        tl = pythoncom.LoadTypeLib(path)
+        for i in range(tl.GetTypeInfoCount()):
+            if tl.GetDocumentation(i)[0] != enum:
+                continue
+            ti = tl.GetTypeInfo(i)
+            for j in range(ti.GetTypeAttr().cVars):
+                vd = ti.GetVarDesc(j)
+                if ti.GetNames(vd.memid)[0] == member:
+                    return int(vd.value)
+    raise LookupError(f"{enum}.{member} not found")
+
+
+# fall-backs when swconst.tlb cannot be read: swUserPreferenceIntegerValue_e members (from swconst's type
+# library) and swLengthUnit_e.swMM
+SW_UNITS_LINEAR, SW_UNITS_LINEAR_DECIMALS, SW_UNITS_ANGULAR_DECIMALS, SW_MM = 47, 49, 52, 0
+
+
+def set_units(sw):
+    """Document units mm, DIM_DECIMALS decimal places on lengths, 1 on angles: the template may be in
+    metres, which shows every dimension as 0.0x. The unit system is set to MMGS when swconst.tlb can be
+    read; the length unit and decimals are set either way."""
+    ext = sw.model.Extension
+    notes = []
+    try:
+        c = lambda m: sw_constant(sw.app, "swUserPreferenceIntegerValue_e", m)
+        lin, dec, ang = c("swUnitsLinear"), c("swUnitsLinearDecimalPlaces"), c("swUnitsAngularDecimalPlaces")
+        ok = ext.SetUserPreferenceInteger(c("swUnitSystem"), 0,
+                                          sw_constant(sw.app, "swUnitSystem_e", "swUnitSystem_MMGS"))
+        notes.append("unit system MMGS" if ok else "unit system not set")
+    except Exception as ex:
+        lin, dec, ang = SW_UNITS_LINEAR, SW_UNITS_LINEAR_DECIMALS, SW_UNITS_ANGULAR_DECIMALS
+        notes.append(f"swconst.tlb not read ({type(ex).__name__}: {ex})")
+    try:
+        r = [ext.SetUserPreferenceInteger(lin, 0, SW_MM),
+             ext.SetUserPreferenceInteger(dec, 0, DIM_DECIMALS),
+             ext.SetUserPreferenceInteger(ang, 0, 1)]
+        got = ext.GetUserPreferenceInteger(lin, 0)
+        notes.append(f"length unit {'mm' if got == SW_MM else got}, set {r}")
+    except Exception as ex:
+        notes.append(f"failed: {type(ex).__name__}: {ex}")
+    print("units: " + "; ".join(notes))
+
+
+def pattern_step(sw, st):
+    """Circular Pattern of the features named in st["seeds"] (st["n"] instances, equal spacing over
+    360 deg) about the cylindrical face picked with the ray st["axis_pick"] (start, direction; STL
+    frame, mm). Kept if the volume comes out as expected; otherwise the copies are built one by one
+    as their own features (st["copies"], entries like FEATURES')."""
+    m, ext = sw.model, sw.model.Extension
+    v0 = sw.mass()[0]
+    n, two_pi = st["n"], 2 * math.pi
+    makes = [("FeatureCircularPattern5", lambda fm: fm.FeatureCircularPattern5(
+                 n, two_pi, False, "NULL", False, True, False, False, False, False, 1, 0.0, "NULL", False)),
+             ("FeatureCircularPattern4", lambda fm: fm.FeatureCircularPattern4(n, two_pi, False, "NULL", False, True, False)),
+             ("FeatureCircularPattern3", lambda fm: fm.FeatureCircularPattern3(n, two_pi, False, "NULL", False, True))]
+    if st.get("axis_pick"):
+        start, d = st["axis_pick"]
+        q, dd = sw.in_model_frame(start), sw.in_model_frame(d)
+        for how, mk in makes:
+            m.ClearSelection2(True)
+            if not ext.SelectByRay(*(c * MM for c in q), *dd, 0.05 * MM, 2, True, 1, 0):     # 2: swSelFACES
+                print(f"{st['name']}: pattern axis face not picked")
+                break
+            if not all(m.FeatureByName(nm) is not None and m.FeatureByName(nm).Select2(True, 4)
+                       for nm in st["seeds"]):
+                print(f"{st['name']}: seed features not selected")
+                break
+            f = None
+            try:
+                f = mk(m.FeatureManager)
+            except Exception as ex:
+                print(f"  {st['name']}: {how} failed: {type(ex).__name__}: {ex}")
+            if f is None:
+                continue
+            v = sw.mass()[0]
+            if abs(v - st["volume"]) <= 1e-4 * st["volume"]:
+                f.Name = st["name"]
+                print(f"{st['name']}: {n} instances of {len(st['seeds'])} feature(s) ({how}); volume {v:.3f} mm^3 "
+                      f"(expected {st['volume']:.3f})")
+                return
+            print(f"  {st['name']}: {how} gave volume {v:.3f} mm^3, expected {st['volume']:.3f}; removed")
+            m.ClearSelection2(True)
+            f.Select2(False, 0)
+            ext.DeleteSelection2(0)
+    print(f"{st['name']}: copies built one by one")
+    for c in st["copies"]:
+        build_step(sw, c)
+
+
 def build():
     sw = SW()
     print(f"connected to SolidWorks; new part created; building {len(FEATURES)} feature(s)")
+    set_units(sw)
     for n, st in enumerate(FEATURES, 1):
-        build_step(sw, st)
+        if st.get("op") == "pattern":
+            pattern_step(sw, st)
+        else:
+            build_step(sw, st)
     for st in CUTS:                              # straight cuts across a revolved body
         if abs(st["angle"]) > 1e-9:
             r = sw.turn_y(st["angle"], st["turned"], "Turn cut direction to z")
@@ -1672,9 +1811,12 @@ def build():
         v = sw.face_feature(cy)
         print(f"{cy['name']}: volume {v:.3f} mm^3 (expected {cy['volume']:.3f})")
     for st in XCUTS:                             # cuts along a second axis
-        if not sw.turned_back:
+        # consecutive entries along one axis can share a turn: turn_in False keeps the body turned from
+        # the entry before, turn_out False leaves it turned for the next
+        tin, tout = st.get("turn_in", True), st.get("turn_out", True)
+        if tin and not sw.turned_back:
             raise RuntimeError("the cuts along a second axis need the part in the STL's orientation")
-        if st["axis"] is not None:
+        if st["axis"] is not None and tin:
             r = sw.turn_about(st["axis"], st["angle"], st["turned"], "Turn cut axis to z")
             if r is None:
                 raise RuntimeError(f"{st['name']}: no turn brings the cut axis to z")
@@ -1682,7 +1824,7 @@ def build():
         sw.direct, sw.helper_ab = True, st["helper"]
         build_step(sw, st)
         sw.direct, sw.helper_ab = False, None
-        if st["axis"] is not None:
+        if st["axis"] is not None and tout:
             r = sw.turn_about(st["axis"], -st["angle"], st["back"], "Turn back")
             if r is None:
                 raise RuntimeError(f"{st['name']}: no turn brings the body back")
@@ -1702,7 +1844,8 @@ def build():
         v2 = sw.mass()[0]
         if abs(v2 - v0) > 1e-4 * v0 + 1e-3:
             raise RuntimeError(f"after removing the equations the volume is {v2:.3f} mm^3, not {v0:.3f}")
-    print(sw.round_dimensions())
+    if not globals().get("DEFER_ROUNDING"):     # TO scripts round after their junction fillets, which are
+        print(sw.round_dimensions())             # picked at points of the unrounded geometry
     linked = getattr(sw, "linked", [])
     nvar = len({val for _, val in linked})
     print(f"independent dimensions: {sw.dims_ok - len(linked) + nvar} "

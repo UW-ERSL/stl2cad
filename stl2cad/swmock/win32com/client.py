@@ -46,14 +46,31 @@ class MathUtility:
 class Transform:
     """Model -> sketch. ArrayData as in SolidWorks: rotation R (row-major, applied as p R),
     translation, scale; a point on the sketch plane maps to (a, b, 0)."""
-    def __init__(self, frame, offset=0.0):
+    def __init__(self, frame, offset=0.0, origin=None):
         u, v, n = (np.array(a, float) for a in frame)
         self.M = np.vstack([u, v, n])
         R = np.column_stack([u, v, n])
-        self.ArrayData = tuple(R.ravel()) + (0.0, 0.0, -offset, 1.0, 0.0, 0.0, 0.0)
+        t = (0.0, 0.0, -offset) if origin is None else tuple(-(np.asarray(origin, float) @ R))
+        self.ArrayData = tuple(R.ravel()) + tuple(float(x) for x in t) + (1.0, 0.0, 0.0, 0.0)
 
     def __matmul__(self, p):
         return self.M @ p
+
+
+def earc_edge(e, P, n):
+    """CadQuery edge of an elliptical arc ('earc', centre, major point, minor point, start, end, direction) in
+    sketch coordinates; P maps a sketch point to a model Vector (mm), n is the sketch normal."""
+    c, pa, pb, p1, p2 = (np.array(q, float) for q in e[1:6])
+    a, b = np.linalg.norm(pa - c), np.linalg.norm(pb - c)
+    X = (pa - c) / a
+    Y = np.array([-X[1], X[0]])                     # 90 deg counter-clockwise in the sketch
+    t = lambda p: math.degrees(math.atan2((p - c) @ Y / b, (p - c) @ X / a))
+    t1, t2 = t(p1), t(p2)
+    if e[6] < 0:
+        t1, t2 = t2, t1
+    t2 = t1 + (t2 - t1) % 360.0
+    C = P(c)
+    return cq.Edge.makeEllipse(K * a, K * b, C, cq.Vector(*n), P(pa) - C, t1, t2)
 
 
 class Segment:
@@ -64,10 +81,33 @@ class Segment:
 
     def Select4(self, append, data):
         m = self.sm.model
+        sk = getattr(self, "sk", None)
+        if sk is not None and self.sm._sk is not sk:        # sketch closed: selected as an external segment
+            if not append:
+                m.ext_sel = []
+            pts = [sk.to_model(q) for q in self.edge[1:]]
+            V = [cq.Vector(*(K * q)) for q in pts]
+            edge = cq.Edge.makeLine(*V) if self.edge[0] == "line" else cq.Edge.makeThreePointArc(*V)
+            m.ext_sel.append(("segment", edge, getattr(data, "Mark", 0)))
+            return True
         m.selected = self
         if not append:
             m.sel_list = []
         m.sel_list.append((self.edge[0], self))
+        return True
+
+
+class SkPoint:
+    """A sketch point made by CreatePoint; once its sketch is closed, Select4 selects it as an external point."""
+    def __init__(self, sm, xy):
+        self.sm, self.sk, self.xy = sm, sm._sk, (float(xy[0]), float(xy[1]))
+        self.X, self.Y, self.Z = self.xy[0], self.xy[1], 0.0
+
+    def Select4(self, append, data):
+        m = self.sm.model
+        if not append:
+            m.ext_sel = []
+        m.ext_sel.append(("point", self.sk.to_model(self.xy), getattr(data, "Mark", 0)))
         return True
 
     def _end(self, i):
@@ -90,6 +130,14 @@ class Segment:
         if self.edge[0] == "circle":
             if not hasattr(self, "_c"):
                 self._c = SketchPoint(self.sm.model, self.edge[1])
+            return self._c
+        if self.edge[0] == "arc":                      # (start, mid, end): the circle through them
+            if not hasattr(self, "_c"):
+                p, q, r = (np.array(v, float) for v in self.edge[1:4])
+                a = 2 * (p[0] * (q[1] - r[1]) + q[0] * (r[1] - p[1]) + r[0] * (p[1] - q[1]))
+                c = (((p @ p) * (q[1] - r[1]) + (q @ q) * (r[1] - p[1]) + (r @ r) * (p[1] - q[1])) / a,
+                     ((p @ p) * (r[0] - q[0]) + (q @ q) * (p[0] - r[0]) + (r @ r) * (q[0] - p[0])) / a)
+                self._c = SketchPoint(self.sm.model, c)
             return self._c
         return self._pt(0)
 
@@ -129,12 +177,73 @@ def face_frame(n):
 
 
 class Sketch:
-    def __init__(self, plane, frame=None, offset=0.0):
+    def __init__(self, plane, frame=None, offset=0.0, origin=None):
         self.plane = plane
         self.frame = FRAMES[plane] if frame is None else frame
         self.offset = offset                       # m, plane position along its normal
-        self.ModelToSketchTransform = Transform(self.frame, offset)
+        self.origin = None if origin is None else np.asarray(origin, float)   # m, a general plane's origin
+        self.ModelToSketchTransform = Transform(self.frame, offset, self.origin)
         self.edges = []
+
+    def GetSketchPoints2(self):
+        """The sketch's points (SolidWorks: shared end points once, arc and ellipse centres, an ellipse's axis
+        points, points made by CreatePoint), as selectable points."""
+        m = getattr(self, "model", None)
+        out, seen = [], []
+
+        def add(q):
+            q = (float(q[0]), float(q[1]))
+            if not any(abs(q[0] - a) < 1e-12 and abs(q[1] - b) < 1e-12 for a, b in seen):
+                seen.append(q)
+                out.append(SketchPoint(m, q))
+        for seg in self.edges:
+            if seg.deleted:
+                continue
+            e = seg.edge
+            if e[0] == "line":
+                add(e[1]); add(e[2])
+            elif e[0] == "arc":
+                p_, q_, r_ = (np.array(v, float) for v in e[1:4])
+                a = 2 * (p_[0] * (q_[1] - r_[1]) + q_[0] * (r_[1] - p_[1]) + r_[0] * (p_[1] - q_[1]))
+                c = (((p_ @ p_) * (q_[1] - r_[1]) + (q_ @ q_) * (r_[1] - p_[1]) + (r_ @ r_) * (p_[1] - q_[1])) / a,
+                     ((p_ @ p_) * (r_[0] - q_[0]) + (q_ @ q_) * (p_[0] - r_[0]) + (r_ @ r_) * (q_[0] - p_[0])) / a)
+                add(e[1]); add(e[3]); add(c)
+            elif e[0] == "ellipse":
+                add(e[1]); add(e[2]); add(e[3])
+            elif e[0] == "circle":
+                add(e[1])
+        for q in getattr(self, "points", []):         # CreatePoint: its own point even where an end point is
+            out.append(SketchPoint(m, q))
+        return out
+
+    def to_model(self, q):
+        """Sketch point (m) -> model point (m)."""
+        u, v, n = (np.array(a, float) for a in self.frame)
+        o = self.origin if self.origin is not None else self.offset * n
+        return q[0] * u + q[1] * v + o
+
+    def wire(self):
+        """The sketch's edges as one CadQuery wire in model coordinates (mm)."""
+        u, v, n = (np.array(a, float) for a in self.frame)
+        P = lambda q: cq.Vector(*(K * self.to_model(q)))
+        es = []
+        for seg in self.edges:
+            if seg.deleted or seg.ConstructionGeometry:
+                continue
+            e = seg.edge
+            if e[0] == "line":
+                es.append(cq.Edge.makeLine(P(e[1]), P(e[2])))
+            elif e[0] == "arc":
+                es.append(cq.Edge.makeThreePointArc(P(e[1]), P(e[2]), P(e[3])))
+            elif e[0] == "earc":
+                es.append(earc_edge(e, P, n))
+            elif e[0] == "ellipse":
+                c, pa, pb = (np.array(q, float) for q in e[1:4])
+                a, b = np.linalg.norm(pa - c), np.linalg.norm(pb - c)
+                es.append(cq.Edge.makeEllipse(K * a, K * b, P(c), cq.Vector(*n), P(pa) - P(c)))
+            else:
+                es.append(cq.Edge.makeCircle(K * e[2], P(e[1]), cq.Vector(*n)))
+        return cq.Wire.assembleEdges(es)
 
 
 class Feature:
@@ -143,6 +252,14 @@ class Feature:
 
     def Select2(self, append, mark):
         self.model.selected = self
+        if not append:
+            self.model.ext_sel = []
+        self.model.ext_sel.append(("feature", self, mark))
+        if self.kind in ("Extrusion", "Revolve", "Fillet"):
+            sl = getattr(self.model, "sel_list", None)
+            if sl is None or not append:
+                self.model.sel_list = sl = []
+            sl.append(("feature", self))
         return True
 
     def GetTypeName2(self):
@@ -187,9 +304,12 @@ class SketchManager:
             if m.selected.kind == "Face":              # a face sketch keeps its face (seen)
                 fr, off = m.selected.data
                 self._sk = Sketch("face", fr, off)
+            elif isinstance(m.selected.data, dict):    # a plane made by InsertRefPlane keeps its plane (seen)
+                self._sk = Sketch("refplane", m.selected.data["frame"], origin=m.selected.data["origin"])
             else:
                 self._sk = Sketch("Front Plane" if FRONT_ONLY else m.selected.data)
             self._sk.open = False
+            self._sk.model = m
             self._lazy = LAZY
             m.selected = None
         else:
@@ -288,8 +408,16 @@ class SketchManager:
 
     def _add(self, edge):
         seg = Segment(self, edge)
+        seg.sk = self._sk
         self._sk.edges.append(seg)
         return seg
+
+    def CreatePoint(self, x, y, z):
+        self._sk.points = getattr(self._sk, "points", []) + [(x, y)]
+        return SkPoint(self, (x, y))
+
+    def CreateEllipticalArc(self, xc, yc, zc, xa, ya, za, xb, yb, zb, x1, y1, z1, x2, y2, z2, d):
+        return self._add(("earc", (xc, yc), (xa, ya), (xb, yb), (x1, y1), (x2, y2), d))
 
 
 class SelectData:
@@ -313,9 +441,11 @@ class MassProperty:
 class Extension:
     def __init__(self, model):
         self.model = model
+        self._mark = 0
 
     def SelectByID2(self, name, typ, x, y, z, append, mark, callout, opt):
         m = self.model
+        self._mark = mark
         if not append:
             m.sel_list = []
         if typ in ("SKETCHSEGMENT", "SKETCHPOINT") and m.SketchManager._sk is not None:
@@ -364,8 +494,13 @@ class Extension:
             # (front view, looking along -z), not necessarily the face containing it
             v = np.array([0.0, 0.0, 1.0])
             return self._ray_face(np.array([x, y, z]) * K + 1000.0 * v, -v)
-        if typ == "EDGE" and m.body is not None:     # the body edge through the point (model, m)
-            v = cq.Vertex.makeVertex(*(np.array([x, y, z]) * K))
+        if typ == "EDGE" and m.body is not None:
+            if os.environ.get("SWMOCK_EDGE_SIGHT") == "1":
+                # as seen in SolidWorks (TO junction fillets): the first edge along the line of sight
+                # through the point (front view, looking along -z), which may lie in front of it
+                v = np.array([0.0, 0.0, 1.0])
+                return self._ray_edge(np.array([x, y, z]) * K + 1000.0 * v, -v, 1e-6)
+            v = cq.Vertex.makeVertex(*(np.array([x, y, z]) * K))     # the body edge through the point
             best = min(m.body.Edges(), key=lambda e: e.distance(v))
             if best.distance(v) > 1e-6:
                 return False
@@ -374,10 +509,37 @@ class Extension:
         return self._select_other(name, typ, x, y, z, append)
 
     def SelectByRay(self, x, y, z, dx, dy, dz, radius, typ, append, mark, opt):
-        if typ != 2 or self.model.body is None:                  # swSelFACES
+        if typ not in (1, 2) or self.model.body is None:         # swSelEDGES, swSelFACES
             return False
+        self.model.last_ray = (np.array([x, y, z]) * K, np.array([dx, dy, dz], float))
         d = np.array([dx, dy, dz], float)
-        return self._ray_face(np.array([x, y, z]) * K, d / np.linalg.norm(d))
+        if typ == 1:
+            if not append:
+                self.model.sel_list = []
+            return self._ray_edge(np.array([x, y, z]) * K, d / np.linalg.norm(d), max(radius * K, 1e-6))
+        if self._ray_face(np.array([x, y, z]) * K, d / np.linalg.norm(d)):
+            return True
+        v = cq.Vertex.makeVertex(*(np.array([x, y, z]) * K))     # a curved face just ahead (pattern axis)
+        return any(fc.geomType() != "PLANE" and fc.distance(v) < 1.0 for fc in self.model.body.Faces())
+
+    def _ray_edge(self, o, d, tol):
+        """Select the body edge nearest to o along the ray o + t d (t > 0) that passes within tol of it."""
+        from OCP.BRepExtrema import BRepExtrema_DistShapeShape
+        m = self.model
+        ray = cq.Edge.makeLine(cq.Vector(*o), cq.Vector(*(o + 2000.0 * d)))
+        best = None
+        for e in m.body.Edges():
+            ex = BRepExtrema_DistShapeShape(e.wrapped, ray.wrapped)
+            if not ex.IsDone() or ex.Value() > tol:
+                continue
+            q = ex.PointOnShape2(1)
+            t = float((np.array([q.X(), q.Y(), q.Z()]) - o) @ d)
+            if best is None or t < best[0]:
+                best = (t, e)
+        if best is None:
+            return False
+        m.sel_list.append(("edge", best[1]))
+        return True
 
     def _ray_face(self, p0, d):
         """Select the first planar face hit by the ray p0 + t d (mm)."""
@@ -406,12 +568,37 @@ class Extension:
 
     def _select_other(self, name, typ, x, y, z, append):
         m = self.model
+        if not append:
+            m.ext_sel = []
+        if typ in ("EXTSKETCHSEGMENT", "EXTSKETCHPOINT") and name != "Point1@Origin":
+            P = np.array([x, y, z])
+            for f in reversed(m.features):
+                if f.kind != "ProfileFeature":
+                    continue
+                for seg in f.data.edges:
+                    if seg.deleted or seg.ConstructionGeometry or seg.edge[0] not in ("line", "arc"):
+                        continue
+                    e = seg.edge
+                    ends = [f.data.to_model(e[1]), f.data.to_model(e[-1])]
+                    if typ == "EXTSKETCHPOINT":
+                        if min(np.linalg.norm(P - q) for q in ends) < 1e-7:
+                            m.ext_sel.append(("point", P, self._mark))
+                            return True
+                        continue
+                    pts = [f.data.to_model(q) for q in e[1:]]
+                    edge = (cq.Edge.makeLine(cq.Vector(*(K * pts[0])), cq.Vector(*(K * pts[1]))) if e[0] == "line" else
+                            cq.Edge.makeThreePointArc(*(cq.Vector(*(K * q)) for q in pts)))
+                    if edge.distance(cq.Vertex.makeVertex(*(K * P))) < 1e-4:
+                        m.ext_sel.append(("segment", edge, self._mark))
+                        return True
+            return False
         if typ == "EXTSKETCHPOINT" and name == "Point1@Origin":
             m.sel_list.append(("point", (0.0, 0.0)))
             return True
         for f in self.model.features:
-            if f.kind == "RefPlane" and f.data == name:
+            if f.kind == "RefPlane" and (f.data == name or f.Name == name):
                 self.model.selected = f
+                m.ext_sel.append(("feature", f, self._mark))
                 return True
         return False
 
@@ -419,15 +606,22 @@ class Extension:
         b = self.model.body
         if b is None:
             return MassProperty(0.0, (0.0, 0.0, 0.0))
-        from stl2cad.core import mass_props          # accurate, as SolidWorks
-        v, c = mass_props(b)
+        if any(f.geomType() == "BSPLINE" for f in b.Faces()):
+            # lofted members: CadQuery's integration, as the reference (swsweep); stl2cad's fine-tessellation
+            # check does not finish on these faces
+            cc = b.Center()
+            v, c = b.Volume(), (cc.x, cc.y, cc.z)
+        else:
+            from stl2cad.core import mass_props      # accurate, as SolidWorks
+            v, c = mass_props(b)
         return MassProperty(v / K ** 3, tuple(x / K for x in c))   # m^3, m
 
     def DeleteSelection2(self, opt):
         f = self.model.selected
-        assert f is self.model.features[-1] and f.kind in ("Extrusion", "ProfileFeature", "MoveCopyBody", "Revolve")
+        assert f is self.model.features[-1] and f.kind in ("Extrusion", "ProfileFeature", "MoveCopyBody", "Revolve",
+                                                           "Fillet", "Loft", "RefPlane")
         self.model.features.pop()
-        if f.kind in ("Extrusion", "MoveCopyBody", "Revolve"):
+        if f.kind in ("Extrusion", "MoveCopyBody", "Revolve", "Fillet", "Loft"):
             self.model.body = f.data["before"]
         return True
 
@@ -516,9 +710,67 @@ class FeatureManager:
     def __init__(self, model):
         self.model = model
 
+    def InsertRefPlane(self, c1, d1, c2, d2, c3, d3):
+        """Two cases: a plane at distance d1 from a selected plane (c1 = 8, swRefPlaneReferenceConstraint_Distance;
+        256 added: the other side), and a plane normal to a selected sketch segment through a selected point
+        (c1 = 2 Perpendicular, c2 = 4 Coincident; normal along the curve's direction at the point, sketch axes
+        as on faces: seen in sw_probe_sweep)."""
+        m = self.model
+        sel = getattr(m, "ext_sel", [])
+        if c1 & 8:
+            base = next((o for k, o, _ in sel if k == "feature" and o.kind == "RefPlane"), None)
+            if base is None:
+                return None
+            if isinstance(base.data, dict):
+                fr, o = base.data["frame"], base.data["origin"]
+            else:
+                fr, o = FRAMES[base.data], np.zeros(3)
+            n = np.array(fr[2], float)
+            data = dict(frame=fr, origin=o + (-1 if c1 & 256 else 1) * d1 * n)
+        elif c1 == 2 and c2 == 4:
+            seg = next((o for k, o, mk in sel if k == "segment"), None)
+            pt = next((o for k, o, mk in sel if k == "point"), None)
+            if seg is None or pt is None:
+                return None
+            v = cq.Vertex.makeVertex(*(K * pt))
+            ps = [seg.positionAt(t) for t in np.linspace(0, 1, 201)]
+            t = np.linspace(0, 1, 201)[int(np.argmin([(p - v.Center()).Length for p in ps]))]
+            d = np.array(seg.tangentAt(t).toTuple()); d /= np.linalg.norm(d)
+            data = dict(frame=face_frame(d), origin=np.asarray(pt, float))
+        else:
+            return None
+        f = Feature(m, "RefPlane", data)
+        f.Name = "Plane%d" % (sum(1 for g in m.features if g.kind == "RefPlane") - 2)
+        m.features.append(f)
+        return f
+
+    def InsertProtrusionBlend2(self, *args):
+        """Loft through the selected sketches (Mark 1, in order) with a centerline sketch (Mark 4): the
+        sections swept along the centerline (CadQuery's sweep_multi; within 0.04 % of SolidWorks' loft in
+        sw_probe_sweep)."""
+        assert len(args) == 18, len(args)
+        m = self.model
+        sel = getattr(m, "ext_sel", [])
+        profs = [o.data.wire() for k, o, mk in sel if k == "feature" and o.kind == "ProfileFeature" and mk == 1]
+        cl = [o.data.wire() for k, o, mk in sel if k == "feature" and o.kind == "ProfileFeature" and mk == 4]
+        if len(profs) < 2 or len(cl) != 1:
+            return None
+        body = cq.Solid.sweep_multi(profs, cl[0], True, False)
+        before = m.body
+        if before is None:
+            m.body = body
+        else:                                # as the reference (swsweep.steps): plain fuse, fuzzy if that fails
+            u = before.fuse(body).clean()
+            if not (u.isValid() and len(u.Solids()) <= len(before.Solids()) + 1):
+                u = before.fuse(body, tol=1e-4).clean()
+            m.body = u
+        f = Feature(m, "Loft", dict(before=before))
+        m.features.append(f)
+        return f
+
     def _solid(self, sk, rev, h, t0, off, flip, cut, draft=None):
         u, v, n = (np.array(a, float) for a in sk.frame)
-        o = sk.offset * n
+        o = sk.origin if getattr(sk, "origin", None) is not None else sk.offset * n
         seen = []
 
         def canon(q):                        # end points within 1e-9 m are one point (pattern
@@ -538,6 +790,8 @@ class FeatureManager:
                 es.append(cq.Edge.makeLine(P(e[1]), P(e[2])))
             elif e[0] == "arc":
                 es.append(cq.Edge.makeThreePointArc(P(e[1]), P(e[2]), P(e[3])))
+            elif e[0] == "earc":
+                es.append(earc_edge(e, P, n))
             elif e[0] == "ellipse":
                 c, pa, pb = (np.array(q, float) for q in e[1:4])
                 a, b = np.linalg.norm(pa - c), np.linalg.norm(pb - c)
@@ -607,17 +861,53 @@ class FeatureManager:
             m.body = _boolean(before, body, cut=True)
         else:
             m.body = body if before is None else _boolean(before, body, cut=False)
-        f = Feature(m, "Extrusion", dict(before=before))
+        f = Feature(m, "Extrusion", dict(before=before, tool=body, cut=cut))
         m.features.append(f)
         LAST["features"] = m.features
         return f
+
+    def _pattern(self, n):
+        """Circular pattern (n instances, equal spacing) of the selected Extrusion features about the
+        axis of the cylindrical face nearest to the last ray's start."""
+        from OCP.BRepAdaptor import BRepAdaptor_Surface
+        from OCP.GeomAbs import GeomAbs_Cylinder
+        m = self.model
+        ray = getattr(m, "last_ray", None)
+        feats = [f for kind, f in (getattr(m, "sel_list", None) or []) if kind == "feature" and f.kind == "Extrusion"]
+        if ray is None or not feats or m.body is None:
+            return None
+        v0 = cq.Vertex.makeVertex(*ray[0])
+        best = None
+        for fc in m.body.Faces():
+            ad = BRepAdaptor_Surface(fc.wrapped)
+            if ad.GetType() != GeomAbs_Cylinder:
+                continue
+            dd = fc.distance(v0)
+            if best is None or dd < best[0]:
+                ax = ad.Cylinder().Axis()
+                best = (dd, ax.Location(), ax.Direction())
+        if best is None:
+            return None
+        loc = cq.Vector(best[1].X(), best[1].Y(), best[1].Z())
+        dirn = cq.Vector(best[2].X(), best[2].Y(), best[2].Z())
+        before = m.body
+        for f in feats:
+            for k in range(1, n):
+                t = f.data["tool"].rotate(loc, loc + dirn, 360.0 * k / n)
+                m.body = _boolean(m.body, t, cut=f.data["cut"])
+        f = Feature(m, "Extrusion", dict(before=before, tool=None, cut=False))
+        m.features.append(f)
+        return f
+
+    def FeatureCircularPattern4(self, n, spacing, flip, dname, geometry, equal, vary):
+        return self._pattern(int(n))
 
     def FeatureRevolve2(self, single, solid, thin, cut, rev, both, t1, t2, a1, a2, *rest):
         """Revolve the selected sketch's profile about its single construction centerline."""
         m = self.model
         sk = m.selected.data
         u, v, n = (np.array(a, float) for a in sk.frame)
-        o = sk.offset * n
+        o = sk.origin if getattr(sk, "origin", None) is not None else sk.offset * n
         seen = []
 
         def canon(q):                                # end points within 1e-9 m are one point
@@ -641,6 +931,8 @@ class FeatureManager:
                 es.append(cq.Edge.makeLine(P(e[1]), P(e[2])))
             elif e[0] == "arc":
                 es.append(cq.Edge.makeThreePointArc(P(e[1]), P(e[2]), P(e[3])))
+            elif e[0] == "earc":
+                es.append(earc_edge(e, lambda q: cq.Vector(*np.round(K * (q[0] * u + q[1] * v + o), 9)), n))
             else:
                 es.append(cq.Edge.makeCircle(K * e[2], P(e[1]), cq.Vector(*n)))
         wires = sorted(_loops(es), key=lambda w: -cq.Face.makeFromWires(w, []).Area())
@@ -753,7 +1045,8 @@ class SelectionManager:
         return f
 
     def GetSelectedObjectCount2(self, mark):
-        return 0 if self.model.selected is None else 1
+        n = len(getattr(self.model, "sel_list", []) or [])
+        return n if n else (0 if self.model.selected is None else 1)
 
 
 class Model:
@@ -761,6 +1054,7 @@ class Model:
         self.features = [Feature(self, "RefPlane", p) for p in ("Front Plane", "Top Plane", "Right Plane")]
         self.selected = None
         self.sel_list = []
+        self.ext_sel = []                          # (kind, object, mark): sketches, planes, closed-sketch entities
         self.dims = []
         self.rels = []
         self.body = None
@@ -826,11 +1120,21 @@ class Model:
         for f in self.features:
             if f.kind == "RefPlane" and f.data == name:
                 return f
+        for f in self.features:
+            if f.kind != "RefPlane" and f.Name == name:
+                return f
         return None
+
+    def BlankRefGeom(self):
+        pass
+
+    def BlankSketch(self):
+        pass
 
     def ClearSelection2(self, flag):
         self.selected = None
         self.sel_list = []
+        self.ext_sel = []
 
     def AddDimension2(self, x, y, z):
         s = self.sel_list
@@ -857,6 +1161,10 @@ class Model:
 
     def SketchAddConstraints(self, rel):
         s = self.sel_list
+        if rel == "sgATPIERCE":                       # a point and a segment of another (closed) sketch
+            assert [k for k, _ in s] == ["point"] and any(k == "segment" for k, _, _ in self.ext_sel), (rel, s)
+            self.rels.append(rel)
+            return
         if rel in ("sgSYMMETRIC", "sgATMIDDLE") or (rel == "sgCOINCIDENT" and sorted(k for k, _ in s) == ["line", "point"]):
             need = {"sgSYMMETRIC": ["line", "point", "point"], "sgATMIDDLE": ["line", "point"],
                     "sgCOINCIDENT": ["line", "point"]}[rel]
@@ -865,6 +1173,11 @@ class Model:
             return
         if rel == "sgPARALLEL":
             assert sorted(k for k, _ in s) == ["line", "line"], (rel, s)
+            self.rels.append(rel)
+            return
+        if rel == "sgCONCENTRIC":                    # a circle and an arc sharing their centre
+            ks = sorted(k for k, _ in s)
+            assert ks in (["arc", "circle"], ["circle", "circle"], ["arc", "arc"]), (rel, s)
             self.rels.append(rel)
             return
         if rel == "sgSAMELENGTH":                    # Equal: two lines or two arcs/circles
@@ -924,6 +1237,7 @@ class Model:
         with open(path + ".dims.json", "w") as fh:
             json.dump(dict(dims=self.dims, rels=self.rels), fh)
         self.body.exportStep(path)                                        # mm
+        self.body.exportBrep(path + ".brep")     # exact copy: STEP lost a node of revolution (swsweep)
         return 0
 
 
