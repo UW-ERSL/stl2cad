@@ -2238,15 +2238,41 @@ def mirror_planes(sw, made):
     return names
 
 
-def dim_plane(sw, obj, plane, txt, what):
-    """Dimension from a sketch point to a plane (by name)."""
-    try:
-        sw.model.ClearSelection2(True)
-        ok = obj.Select4(False, NOTHING) and sw.model.Extension.SelectByID2(plane, "PLANE", 0, 0, 0, True, 0, NOTHING, 0)
-        d = sw.model.AddDimension2(*txt) if ok else None
-        sw._count(d, what)
-    except Exception as ex:
-        sw.dims_failed.append(f"{what}: {type(ex).__name__}: {ex}")
+def dim_plane(sw, obj, plane, txt, what, at=None):
+    """Dimension from a 3D sketch point to a plane (by name). SolidWorks refused some (sw_probe_frame: the third
+    plane dimension of a point); retried with the plane selected first and the text at the point."""
+    model, ext = sw.model, sw.model.Extension
+    tries = [(False, txt), (True, txt)] + ([(False, at), (True, at)] if at is not None else [])
+    for plane_first, t in tries:
+        try:
+            model.ClearSelection2(True)
+            if plane_first:
+                ok = ext.SelectByID2(plane, "PLANE", 0, 0, 0, False, 0, NOTHING, 0) and obj.Select4(True, NOTHING)
+            else:
+                ok = obj.Select4(False, NOTHING) and ext.SelectByID2(plane, "PLANE", 0, 0, 0, True, 0, NOTHING, 0)
+            d = model.AddDimension2(*t) if ok else None
+        except Exception as ex:
+            d = None
+            err = f"{type(ex).__name__}: {ex}"
+        if d is not None:
+            sw._count(d, what)
+            return
+    sw._count(None, what)
+
+
+def dim_points3(sw, a, b, txts, what):
+    """Distance of two 3D sketch points (true length), several text positions."""
+    for t in txts:
+        try:
+            sw.model.ClearSelection2(True)
+            ok = a.Select4(False, NOTHING) and b.Select4(True, NOTHING)
+            d = sw.model.AddDimension2(*t) if ok else None
+        except Exception:
+            d = None
+        if d is not None:
+            sw._count(d, what)
+            return
+    sw._count(None, what)
 
 
 def section_points():
@@ -2262,9 +2288,8 @@ def section_points():
 
 
 def open_3d(sw):
-    """Open a 3D sketch; returns (sketch, function that closes it). SketchManager.Insert3DSketch left no active
-    sketch in one SolidWorks session (sw_probe_frame), so the older calls and the 3D Sketch command are tried in
-    turn until a sketch is active."""
+    """Open a 3D sketch; returns (sketch, function that closes it). The calls are tried in turn until a sketch is
+    active (the older calls and the 3D Sketch command as fall-backs)."""
     model, sm, app = sw.model, sw.model.SketchManager, sw.app
 
     def active():
@@ -2278,8 +2303,10 @@ def open_3d(sw):
             except LookupError:
                 continue
         raise LookupError("no 3D sketch command in swconst.tlb")
-    tries = (("SketchManager.Insert3DSketch(True)", lambda: sm.Insert3DSketch(True), lambda: sm.Insert3DSketch(True)),
-             ("SketchManager.Insert3DSketch(False)", lambda: sm.Insert3DSketch(False), lambda: sm.Insert3DSketch(True)),
+    # SolidWorks 2025 (sw_probe_frame): Insert3DSketch(False) opens the sketch, Insert3DSketch(True) closes it;
+    # Insert3DSketch(True) on its own opened nothing
+    tries = (("SketchManager.Insert3DSketch(False)", lambda: sm.Insert3DSketch(False), lambda: sm.Insert3DSketch(True)),
+             ("SketchManager.Insert3DSketch(True)", lambda: sm.Insert3DSketch(True), lambda: sm.Insert3DSketch(True)),
              ("ModelDoc2.Insert3DSketch2(True)", lambda: model.Insert3DSketch2(True), lambda: model.Insert3DSketch2(True)),
              ("ModelDoc2.Insert3DSketch()", lambda: model.Insert3DSketch(), lambda: model.Insert3DSketch()),
              ("the 3D Sketch command", command, lambda: sm.InsertSketch(True)))
@@ -2346,7 +2373,7 @@ def skeleton_sketch(sw, planes, made):
                 else:
                     continue
                 q = Q(tuple(p[i] + (2.0 if i == ax else 0.0) for i in range(3)))
-                dim_plane(sw, objs[0], plane, q, f"joint {ORBIT[k]} {'xyz'[ax]}")
+                dim_plane(sw, objs[0], plane, q, f"joint {ORBIT[k]} {'xyz'[ax]}", at=Q(p))
         for n, m in enumerate(MEMBERS):
             for k, (s, j) in enumerate(((m["s0"], m["i"]), (m["s1"], m["j"]))):
                 if s <= 0:
@@ -2357,7 +2384,10 @@ def skeleton_sketch(sw, planes, made):
                 if not o or not oj:
                     sw.dims_failed.append(f"member {n + 1}: section point not found"); continue
                 rel(sw, "sgCOINCIDENT", [o[0], segs[n]], f"member {n + 1}: section point on its line")
-                dim(sw, [o[0], oj[0]], "any", q, f"member {n + 1}: section from its joint (radius-like end offset)")
+                pj = Q(JOINTS[j])
+                mid = tuple(0.5 * (q[c] + pj[c]) for c in range(3))
+                dim_points3(sw, o[0], oj[0], [q, (mid[0], mid[1], mid[2] + 0.003), (mid[0], mid[1] + 0.003, mid[2]), mid],
+                            f"member {n + 1}: section from its joint (radius-like end offset)")
     if helper is not None:
         sw.remove_helper(helper)
     closer()
@@ -2412,11 +2442,46 @@ def section_plane(sw, seg, pt, q, t, name):
     raise RuntimeError(f"{name}: no plane normal to the member ({'; '.join(tried)})")
 
 
+def sketch_on(sw, plane, p, name):
+    """Sketch on a reference plane through the model point p (mm), checked through the sketch's transform (p at
+    sketch z 0). In sw_probe_frame a sketch opened after selecting the plane landed on the Front Plane; then the
+    sketch is deleted and the plane selected by name, after a rebuild, and again by object."""
+    model, sm = sw.model, sw.model.SketchManager
+    ways = (("object", lambda: plane.Select2(False, 0)),
+            ("name", lambda: model.Extension.SelectByID2(plane.Name, "PLANE", 0, 0, 0, False, 0, NOTHING, 0)),
+            ("object after a rebuild", lambda: (model.ForceRebuild3(False), plane.Select2(False, 0))[1]),
+            ("name after a rebuild", lambda: (model.ForceRebuild3(False), model.Extension.SelectByID2(
+                plane.Name, "PLANE", 0, 0, 0, False, 0, NOTHING, 0))[1]))
+    notes = []
+    for how, sel in ways:
+        model.ClearSelection2(True)
+        try:
+            ok = sel()
+        except Exception as ex:
+            notes.append(f"{how}: {type(ex).__name__}"); continue
+        if not ok:
+            notes.append(f"{how}: not selected"); continue
+        sm.InsertSketch(True)
+        settle()
+        sk = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
+        T = list(sk.ModelToSketchTransform.ArrayData) if sk is not None else None
+        z = to_sk(T, p)[2] if T is not None else float("inf")
+        if abs(z) < 1e-6:
+            if notes:
+                print(f"  {name}: sketch on its plane by {how} ({'; '.join(notes)})")
+            sm.AddToDB = True
+            helper = sm.CreateCircleByRadius(-0.5, -0.5, 0.0, HELPER_R * MM)
+            return sm, T, helper
+        notes.append(f"{how}: sketch {z / MM:+.3f} mm off the plane")
+        sm.InsertSketch(True)
+        f = last_feature(sw)
+        model.ClearSelection2(True); f.Select2(False, 0); model.Extension.DeleteSelection2(0)
+    raise RuntimeError(f"{name}: no sketch on its plane ({'; '.join(notes)})")
+
+
 def circle_sketch(sw, plane, c, r, seg, name):
-    sm, T, h = open_sketch(sw, plane)
+    sm, T, h = sketch_on(sw, plane, c, name)
     C = to_sk(T, c)
-    if abs(C[2]) > 1e-6:
-        raise RuntimeError(f"{name}: section centre not on its plane ({C[2] / MM:.4f} mm)")
     circ = make(sm.CreateCircleByRadius, C[0], C[1], 0.0, r * MM)
     sm.AddToDB = False
     if DIMENSION:
@@ -2492,7 +2557,7 @@ def node3_step(sw, st, drift, made, skel):
     v, cc = expected(st, drift)
     for variant in (("line", 16), ("line", 4), ("centerline", None), ("centerline", 4), ("centerline", 16)):
         snap = (sw.dims_ok, len(sw.linkable), len(sw.alldims), sw.rels_ok, len(sw.status), len(sw.rels_failed))
-        sm, T, h = open_sketch(sw, plane)
+        sm, T, h = sketch_on(sw, plane, (x, y, z), st["name"])
         Qs = lambda p: to_sk(T, p)
         C, top, bot, side = Qs((x, y, z)), Qs((x, y + r, z)), Qs((x, y - r, z)), Qs((x, y, z + r))
         arc = make(sm.CreateArc, C[0], C[1], 0.0, top[0], top[1], 0.0, bot[0], bot[1], 0.0, arc_turn(top[:2], side[:2], bot[:2]))
@@ -2559,7 +2624,7 @@ def hub3_step(sw, st, drift, made):
     plane = offset_plane(sw, STD[k], level, axis_point(h, level), st["name"] + " plane")
     made["planes"].append(plane)
     r = h["ro"] if st["kind"] == "hub" else h["ri"]
-    sm, T, hp = open_sketch(sw, plane)
+    sm, T, hp = sketch_on(sw, plane, axis_point(h, level), st["name"])
     C = to_sk(T, axis_point(h, level))
     circ = make(sm.CreateCircleByRadius, C[0], C[1], 0.0, r * MM)
     sm.AddToDB = False

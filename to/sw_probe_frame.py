@@ -87,6 +87,36 @@ def plane_check(model, plane, p, t):
     return round(z0, 6), round(z1, 6)
 
 
+def settle(t=0.3):
+    pythoncom.PumpWaitingMessages(); time.sleep(t); pythoncom.PumpWaitingMessages()
+
+
+def sketch_on(model, plane, p, label):
+    """Open a sketch on a reference plane through p (mm): select by object, by name, each also after a rebuild;
+    every try printed with the sketch z of p (0 when the sketch is on the plane). Returns (sketch, T) or None."""
+    sm = model.SketchManager
+    ways = (("object", lambda: plane.Select2(False, 0)),
+            ("name", lambda: model.Extension.SelectByID2(plane.Name, "PLANE", 0, 0, 0, False, 0, NOTHING, 0)),
+            ("object after a rebuild", lambda: (model.ForceRebuild3(False), plane.Select2(False, 0))[1]),
+            ("name after a rebuild", lambda: (model.ForceRebuild3(False), model.Extension.SelectByID2(
+                plane.Name, "PLANE", 0, 0, 0, False, 0, NOTHING, 0))[1]))
+    for how, sel in ways:
+        model.ClearSelection2(True)
+        ok = sel()
+        sm.InsertSketch(True)
+        settle()
+        s = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
+        T = list(s.ModelToSketchTransform.ArrayData) if s is not None else None
+        z = None if T is None else round(to_sk(T, p)[2] / MM, 4)
+        print(f"  {label}: sketch by {how}: selected {ok}, sketch z of the point {z} mm (0 = on the plane)")
+        if z is not None and abs(z) < 1e-3:
+            return s, T
+        sm.InsertSketch(True)
+        f = model.FeatureByPositionReverse(0)
+        model.ClearSelection2(True); f.Select2(False, 0); model.Extension.DeleteSelection2(0)
+    return None
+
+
 app = win32com.client.Dispatch("SldWorks.Application")
 app.Visible = True
 model = call0(app, "NewPart")
@@ -137,8 +167,8 @@ def command_3d():
 # ways to open a 3D sketch, tried in turn until a sketch is active (each printed)
 sk = None
 opened_by = None
-for label, fn in (("SketchManager.Insert3DSketch(True)", lambda: sm.Insert3DSketch(True)),
-                  ("SketchManager.Insert3DSketch(False)", lambda: sm.Insert3DSketch(False)),
+for label, fn in (("SketchManager.Insert3DSketch(False)", lambda: sm.Insert3DSketch(False)),
+                  ("SketchManager.Insert3DSketch(True)", lambda: sm.Insert3DSketch(True)),
                   ("ModelDoc2.Insert3DSketch2(True)", lambda: model.Insert3DSketch2(True)),
                   ("ModelDoc2.Insert3DSketch()", lambda: model.Insert3DSketch()),
                   ("RunCommand(swCommands 3D sketch)", lambda: (lambda c: (c, app.RunCommand(c[1], "") if c[1] else None))(command_3d()))):
@@ -206,6 +236,60 @@ sk3 = model.FeatureByPositionReverse(0)
 step("3D sketch constrained status (3 = fully defined; B is free here)",
      lambda: call0(call0(sk3, "GetSpecificFeature2"), "GetConstrainedStatus"))
 
+# ---- 2b. dimensions in a 3D sketch: which fail, and why ----
+print("== 2b. dimension variants (fresh 3D sketch: points C = (12, 22, 32), D = (42, 27, 37), line C-D)")
+Cp, Dp = (12.0, 22.0, 32.0), (42.0, 27.0, 37.0)
+model.ClearSelection2(True)
+step("Insert3DSketch(False)", lambda: sm.Insert3DSketch(False))
+settle()
+sk2 = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
+sm.AddToDB = True
+oC = sm.CreatePoint(*[c * MM for c in Cp])
+oD = sm.CreatePoint(*[c * MM for c in Dp])
+lCD = sm.CreateLine(*[c * MM for c in Cp], *[c * MM for c in Dp])
+sm.AddToDB = False
+P2 = list(call0(sk2, "GetSketchPoints2")) if sk2 is not None else []
+atC = [o for o in P2 if math.dist((o.X / MM, o.Y / MM, o.Z / MM), Cp) < 1e-6]
+atD = [o for o in P2 if math.dist((o.X / MM, o.Y / MM, o.Z / MM), Dp) < 1e-6]
+
+
+def dimv(objs, plane, txt, plane_first=False):
+    model.ClearSelection2(True)
+    sel = []
+    if plane and plane_first:
+        sel.append(ext.SelectByID2(plane, "PLANE", 0, 0, 0, False, 0, NOTHING, 0))
+    for k, o in enumerate(objs):
+        sel.append(o.Select4(bool(sel) or k > 0, NOTHING))
+    if plane and not plane_first:
+        sel.append(ext.SelectByID2(plane, "PLANE", 0, 0, 0, True, 0, NOTHING, 0))
+    d = model.AddDimension2(*[c * MM for c in txt])
+    return sel, None if d is None else round(d.GetDimension2(0).SystemValue / MM, 4)
+
+
+if atC and atD:
+    # point-to-plane: Front first now (it failed third in section 2), several text positions and selection orders
+    for plane, expect in (("Front Plane", Cp[2]), ("Right Plane", Cp[0]), ("Top Plane", Cp[1])):
+        for tl, txt in (("offset (+3, +3, +3)", (Cp[0] + 3, Cp[1] + 3, Cp[2] + 3)),
+                        ("half way to the plane", tuple(Cp[k] / 2 if k == {"F": 2, "R": 0, "T": 1}[plane[0]] else Cp[k] + 2 for k in range(3))),
+                        ("at the point", Cp)):
+            for pf in (False, True):
+                step(f"C to {plane}, text {tl}, plane selected {'first' if pf else 'second'} (expect {expect})",
+                     lambda: dimv([atC[0]], plane, txt, pf))
+    L2 = math.dist(Cp, Dp)
+    mid = tuple((Cp[k] + Dp[k]) / 2 for k in range(3))
+    for tl, txt in (("mid + (0, 0, 5)", (mid[0], mid[1], mid[2] + 5)), ("mid + (0, 5, 0)", (mid[0], mid[1] + 5, mid[2])),
+                    ("mid", mid)):
+        step(f"C to D (points), text {tl} (expect {L2:.4f})", lambda: dimv([atC[0], atD[0]], None, txt))
+    step(f"line C-D length (expect {L2:.4f})", lambda: dimv([lCD], None, (mid[0], mid[1] + 5, mid[2])))
+    for dirn in range(0, 7):
+        def ext_dim():
+            model.ClearSelection2(True)
+            atC[0].Select4(False, NOTHING); atD[0].Select4(True, NOTHING)
+            d = ext.AddDimension(mid[0] * MM, (mid[1] + 5) * MM, mid[2] * MM, dirn)
+            return None if d is None else round(d.GetDimension2(0).SystemValue / MM, 4)
+        step(f"C to D by Extension.AddDimension(direction {dirn})", ext_dim)
+step("close the 3D sketch", lambda: sm.Insert3DSketch(True))
+
 # ---- 3. planes normal to the 3D line ----
 print("== 3. planes normal to the 3D line")
 
@@ -230,11 +314,10 @@ print("== 4. circles and lofts")
 
 
 def circle(plane, p, r):
-    model.ClearSelection2(True)
-    plane.Select2(False, 0)
-    sm.InsertSketch(True)
-    s = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
-    T = list(s.ModelToSketchTransform.ArrayData)
+    got = sketch_on(model, plane, p, f"circle r {r}")
+    if got is None:
+        return "no sketch on the plane"
+    s, T = got
     C = to_sk(T, p)
     sm.AddToDB = True
     c = sm.CreateCircleByRadius(C[0], C[1], 0.0, r * MM)
@@ -255,7 +338,7 @@ def circle(plane, p, r):
 
 cA = step("circle r 3 at A", lambda: circle(plA, A, 3.0)) if plA else None
 cB = step("circle r 2 at B", lambda: circle(plB, B, 2.0)) if plB else None
-if cA and cB:
+if isinstance(cA, tuple) and isinstance(cB, tuple):
     for variant in ("no centerline", "centerline Mark 4"):
         def loft():
             model.ClearSelection2(True)
@@ -289,11 +372,10 @@ rN = step("plane parallel to the Right Plane through B (expect (0, +-1))", node_
 if rN and not isinstance(rN[0], bool):
     def sphere():
         r = 4.0
-        model.ClearSelection2(True)
-        rN[0].Select2(False, 0)
-        sm.InsertSketch(True)
-        s = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
-        T = list(s.ModelToSketchTransform.ArrayData)
+        got = sketch_on(model, rN[0], B, "sphere")
+        if got is None:
+            return "no sketch on the plane"
+        s, T = got
         C = to_sk(T, B)
         top, bot, side = to_sk(T, (B[0], B[1] + r, B[2])), to_sk(T, (B[0], B[1] - r, B[2])), to_sk(T, (B[0], B[1], B[2] + r))
         turn = 1 if (side[0] - top[0]) * (bot[1] - top[1]) - (side[1] - top[1]) * (bot[0] - top[0]) > 0 else -1
