@@ -249,6 +249,61 @@ class Sketch:
         return cq.Wire.assembleEdges(es)
 
 
+class Sketch3D:
+    """A 3D sketch (Insert3DSketch): entities in model coordinates (m); its transform is the identity."""
+    def __init__(self):
+        self.plane, self.frame, self.offset, self.origin = "3D", ((1, 0, 0), (0, 1, 0), (0, 0, 1)), 0.0, None
+        self.ModelToSketchTransform = Transform(self.frame)
+        self.edges, self.points3 = [], []
+        self.is3d = True
+
+    def to_model(self, q):
+        return np.asarray(q, float)
+
+    def GetSketchPoints2(self):
+        m = getattr(self, "model", None)
+        out = []
+        for seg in self.edges:
+            if not seg.deleted:
+                out += [SketchPoint3(m, seg.edge[1]), SketchPoint3(m, seg.edge[2])]
+        out += [SketchPoint3(m, q) for q in self.points3]
+        return out
+
+    def wire(self):
+        es = [cq.Edge.makeLine(cq.Vector(*(K * np.asarray(seg.edge[1]))), cq.Vector(*(K * np.asarray(seg.edge[2]))))
+              for seg in self.edges if not seg.deleted and not seg.ConstructionGeometry]
+        return cq.Wire.assembleEdges(es)
+
+
+class SketchPoint3:
+    """A point of an open 3D sketch (model coordinates, m)."""
+    def __init__(self, model, xyz):
+        self.model = model
+        self.X, self.Y, self.Z = (float(v) for v in xyz)
+
+    def Select4(self, append, data):
+        if not append:
+            self.model.sel_list = []
+        self.model.sel_list.append(("point", (self.X, self.Y, self.Z)))
+        return True
+
+
+class SkPoint3:
+    """A point made by CreatePoint in a 3D sketch; once the sketch is closed, Select4 selects it as an external point."""
+    def __init__(self, sm, xyz):
+        self.sm, self.sk = sm, sm._sk
+        self.X, self.Y, self.Z = (float(v) for v in xyz)
+
+    def Select4(self, append, data):
+        m = self.sm.model
+        if self.sm._sk is self.sk:                     # its own sketch is open: an ordinary sketch point
+            return SketchPoint3(m, (self.X, self.Y, self.Z)).Select4(append, data)
+        if not append:
+            m.ext_sel = []
+        m.ext_sel.append(("point", np.array([self.X, self.Y, self.Z]), getattr(data, "Mark", 0)))
+        return True
+
+
 class Feature:
     def __init__(self, model, kind, data=None):
         self.model, self.kind, self.data, self.Name = model, kind, data, kind
@@ -320,7 +375,21 @@ class SketchManager:
             m.features.append(Feature(m, "ProfileFeature", self._sk))
             self._sk = None
 
+    def Insert3DSketch(self, flag):
+        m = self.model
+        if self._sk is None:
+            self._sk = Sketch3D()
+            self._sk.open = False
+            self._sk.model = m
+            self._lazy = 0
+            m.selected = None
+        else:
+            m.features.append(Feature(m, "ProfileFeature", self._sk))
+            self._sk = None
+
     def CreateLine(self, x1, y1, z1, x2, y2, z2):
+        if getattr(self._sk, "is3d", False):
+            return self._add(("line", (x1, y1, z1), (x2, y2, z2)))
         if self._lazy > 0:
             self._lazy -= 1
             return None
@@ -417,6 +486,9 @@ class SketchManager:
         return seg
 
     def CreatePoint(self, x, y, z):
+        if getattr(self._sk, "is3d", False):
+            self._sk.points3.append((x, y, z))
+            return SkPoint3(self, (x, y, z))
         self._sk.points = getattr(self._sk, "points", []) + [(x, y)]
         return SkPoint(self, (x, y))
 
@@ -610,9 +682,11 @@ class Extension:
         b = self.model.body
         if b is None:
             return MassProperty(0.0, (0.0, 0.0, 0.0))
-        if any(f.geomType() == "BSPLINE" for f in b.Faces()):
-            # lofted members: CadQuery's integration, as the reference (swsweep); stl2cad's fine-tessellation
-            # check does not finish on these faces
+        frame = any(f.kind == "ProfileFeature" and getattr(f.data, "is3d", False) for f in self.model.features)
+        if frame or any(f.geomType() == "BSPLINE" for f in b.Faces()):
+            # lofted members, or a 3D frame (swframe: a 3D skeleton sketch, then many spheres and cones):
+            # CadQuery's integration, as the reference; stl2cad's fine-tessellation check does not finish on
+            # lofted faces and runs out of memory on a frame
             cc = b.Center()
             v, c = b.Volume(), (cc.x, cc.y, cc.z)
         else:
@@ -647,6 +721,51 @@ def _loops(edges):
                     todo.append(j)
         out.append(cq.Wire.assembleEdges([edges[i] for i in sorted(comp)]))
     return out
+
+
+SPHERE_AXIS = (0.2672612, 0.5345225, 0.8017837)
+
+
+def _sphere(es, a, b):
+    """A semicircle closed by its diameter, revolved a full turn about that diameter: the sphere, built with a
+    generic axis (frame3d's nodes). OCC's Booleans of a revolved sphere (poles on the revolve axis) with a member
+    cone meeting it near a pole dropped the overlap. None for any other profile."""
+    if len(es) != 2:
+        return None
+    arc = next((e for e in es if e.geomType() == "CIRCLE"), None)
+    ln = next((e for e in es if e.geomType() == "LINE"), None)
+    if arc is None or ln is None:
+        return None
+    c, r = arc.arcCenter(), arc.radius()
+    p, q = ln.startPoint(), ln.endPoint()
+    ax = b - a
+    on_axis = lambda v: (v - a).cross(ax).Length < 1e-6 * max(1.0, ax.Length)
+    if not (on_axis(c) and on_axis(p) and on_axis(q) and abs((p - q).Length - 2 * r) < 1e-6
+            and abs(arc.Length() - math.pi * r) < 1e-6):
+        return None
+    return cq.Solid.makeSphere(r, c, cq.Vector(*SPHERE_AXIS), angleDegrees1=-90, angleDegrees2=90)
+
+
+def _cone(profs):
+    """Two circle sections on parallel planes with their centres on the common normal: the loft is a cone (or a
+    cylinder), built as one (OCC's ruled loft of circles is a B-spline that later Booleans failed on); None
+    otherwise."""
+    if len(profs) != 2:
+        return None
+    es = [w.Edges() for w in profs]
+    if any(len(e) != 1 or e[0].geomType() != "CIRCLE" for e in es):
+        return None
+    (a,), (b,) = es
+    ca, cb = np.array(a.arcCenter().toTuple()), np.array(b.arcCenter().toTuple())
+    na = np.array(a.normal().toTuple()); nb = np.array(b.normal().toTuple())
+    d = cb - ca
+    h = float(np.linalg.norm(d))
+    if h < 1e-9 or abs(abs(na @ nb) - 1) > 1e-9 or np.linalg.norm(np.cross(d / h, na)) > 1e-9:
+        return None
+    ra, rb = a.radius(), b.radius()
+    if abs(ra - rb) < 1e-12:
+        return cq.Solid.makeCylinder(ra, h, cq.Vector(*ca), cq.Vector(*(d / h)))
+    return cq.Solid.makeCone(ra, rb, h, cq.Vector(*ca), cq.Vector(*(d / h)))
 
 
 def _turn(shape, axis, ang):
@@ -731,6 +850,13 @@ class FeatureManager:
                 fr, o = FRAMES[base.data], np.zeros(3)
             n = np.array(fr[2], float)
             data = dict(frame=fr, origin=o + (-1 if c1 & 256 else 1) * d1 * n)
+        elif c1 == 1 and c2 == 4:                      # parallel to a selected plane, through a selected point
+            base = next((o for k, o, _ in sel if k == "feature" and o.kind == "RefPlane"), None)
+            pt = next((o for k, o, mk in sel if k == "point"), None)
+            if base is None or pt is None:
+                return None
+            fr = base.data["frame"] if isinstance(base.data, dict) else FRAMES[base.data]
+            data = dict(frame=fr, origin=np.asarray(pt, float))
         elif c1 == 2 and c2 == 4:
             seg = next((o for k, o, mk in sel if k == "segment"), None)
             pt = next((o for k, o, mk in sel if k == "point"), None)
@@ -757,16 +883,27 @@ class FeatureManager:
         sel = getattr(m, "ext_sel", [])
         profs = [o.data.wire() for k, o, mk in sel if k == "feature" and o.kind == "ProfileFeature" and mk == 1]
         cl = [o.data.wire() for k, o, mk in sel if k == "feature" and o.kind == "ProfileFeature" and mk == 4]
-        if len(profs) < 2 or len(cl) != 1:
+        if len(profs) < 2 or len(cl) > 1:
             return None
-        body = cq.Solid.sweep_multi(profs, cl[0], True, False)
+        if cl:
+            body = cq.Solid.sweep_multi(profs, cl[0], True, False)
+        else:                                # straight loft between the sections
+            body = _cone(profs) or cq.Solid.makeLoft(profs, True)
         before = m.body
         if before is None:
             m.body = body
+        elif not cl:                         # a frame member (swframe): fused with the volume-identity check
+            m.body = _boolean(before, body, cut=False)
         else:                                # as the reference (swsweep.steps): plain fuse, fuzzy if that fails
-            u = before.fuse(body).clean()
+            def fuse(tol):
+                r = before.fuse(body, tol=tol) if tol else before.fuse(body)
+                try:
+                    return r.clean()
+                except Exception:            # OCC's clean failed (a lofted frame member): the fuse as it is
+                    return r
+            u = fuse(None)
             if not (u.isValid() and len(u.Solids()) <= len(before.Solids()) + 1):
-                u = before.fuse(body, tol=1e-4).clean()
+                u = fuse(1e-4)
             m.body = u
         f = Feature(m, "Loft", dict(before=before))
         m.features.append(f)
@@ -954,8 +1091,9 @@ class FeatureManager:
         a, b = axes[0].edge[1], axes[0].edge[2]
         before = m.body
         body = before
+        sph = _sphere(es, P(a), P(b)) if abs(a1 - 2 * math.pi) < 1e-9 else None
         for _, w, holes in outers:                  # one region at a time (coincident faces)
-            part = cq.Solid.revolve(cq.Face.makeFromWires(w, holes), math.degrees(a1), P(a), P(b))
+            part = sph or cq.Solid.revolve(cq.Face.makeFromWires(w, holes), math.degrees(a1), P(a), P(b))
             body = part if body is None else _boolean(body, part, cut=bool(cut))
         m.body = body
         f = Feature(m, "Revolve", dict(before=before))
@@ -1145,6 +1283,13 @@ class Model:
 
     def AddDimension2(self, x, y, z):
         s = self.sel_list
+        planes = [o for k, o, _ in self.ext_sel if k == "feature" and o.kind == "RefPlane"]
+        if len(s) == 1 and s[0][0] == "point" and len(s[0][1]) == 3 and len(planes) == 1:
+            pl = planes[0]
+            fr, o = (pl.data["frame"], pl.data["origin"]) if isinstance(pl.data, dict) else (FRAMES[pl.data], np.zeros(3))
+            d = abs(float((np.array(s[0][1]) - np.asarray(o, float)) @ np.array(fr[2], float)))
+            self.dims.append(("distance", d / 1e-3))
+            return self._ddim()
         if self._two_points() is not None:
             p, q = self._two_points()
             self.dims.append(("distance", float(np.linalg.norm(p - q)) / 1e-3))
@@ -1170,6 +1315,14 @@ class Model:
         s = self.sel_list
         if rel == "sgATPIERCE":                       # a point and a segment of another (closed) sketch
             assert [k for k, _ in s] == ["point"] and any(k == "segment" for k, _, _ in self.ext_sel), (rel, s)
+            self.rels.append(rel)
+            return
+        ext_pts = [o for k, o, _ in self.ext_sel if k == "point"]
+        if rel == "sgCOINCIDENT" and [k for k, _ in s] == ["point"] and len(ext_pts) == 1:
+            sk = self.SketchManager._sk
+            q = s[0][1]
+            p = sk.to_model(q) if len(q) == 2 else np.asarray(q, float)
+            assert np.linalg.norm(p - ext_pts[0]) < 1e-9, ("external point not at the sketch point", p, ext_pts[0])
             self.rels.append(rel)
             return
         if rel == "sgCOINCIDENT" and sorted(k for k, _ in s) == ["arc", "point"]:     # a point on an arc's circle

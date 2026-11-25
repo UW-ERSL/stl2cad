@@ -24,7 +24,7 @@ MIN_RING = 0.6       # a hub needs TO material all round its hole over this frac
 
 
 def holes(original):
-    """Cylindrical holes of the original (material outside the cylinder), grouped by axis line:
+    """Cylindrical holes of the original (material outside the cylinder, closed all round), grouped by axis line:
     list of dict(axis, c=(u, v), r, lo, hi)."""
     out = []
     for f in original.Faces():
@@ -44,14 +44,18 @@ def holes(original):
         q = P.copy(); q[k] = 0.5 * (lo_k + hi_k); q[u] += 0.5 * r
         if original.isInside(__import__('cadquery').Vector(*q), 1e-6):
             continue
+        span = ad.LastUParameter() - ad.FirstUParameter()
         for h in out:
             if h['axis'] == k and math.hypot(h['c'][0] - P[u], h['c'][1] - P[v]) < 1e-3:
                 h['lo'], h['hi'] = min(h['lo'], lo_k), max(h['hi'], hi_k)
                 h['r'] = min(h['r'], r)
+                h['span'] += span
                 break
         else:
-            out.append(dict(axis=k, c=(float(P[u]), float(P[v])), r=float(r), lo=float(lo_k), hi=float(hi_k)))
-    return out
+            out.append(dict(axis=k, c=(float(P[u]), float(P[v])), r=float(r), lo=float(lo_k), hi=float(hi_k), span=span))
+    # a hole closes all round (its faces on one axis line cover 360 deg); a partial cylinder with material outside
+    # it is the fillet of a concave corner (the Knuckle's slot), not a hole
+    return [{k_: v_ for k_, v_ in h.items() if k_ != 'span'} for h in out if h['span'] >= 2 * math.pi - 1e-6]
 
 
 def _ring_radius(to, h, nlev=9):
