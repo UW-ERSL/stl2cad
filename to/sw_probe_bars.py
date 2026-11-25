@@ -315,21 +315,22 @@ if bar1:
     step("bar 2 (volume before, after)", bar2)
 
     def junction_edges():
+        """Edges between a face of Bar 1 and a face of Bar 2 (late binding: methods called through call0)."""
         bodies = model.GetBodies2(0, True)
         body = bodies[0]
-        out = []
-        for e in body.GetEdges:
+        out, seen = [], {}
+        for e in call0(body, "GetEdges") or []:
             try:
-                f1, f2 = e.GetTwoAdjacentFaces2
-                n1, n2 = f1.GetFeature.Name, f2.GetFeature.Name
-            except Exception:
-                try:
-                    fs = e.GetTwoAdjacentFaces2()
-                    n1, n2 = fs[0].GetFeature().Name, fs[1].GetFeature().Name
-                except Exception:
-                    continue
-            if {n1, n2} == {"Bar 1", "Bar 2"}:
+                fs = call0(e, "GetTwoAdjacentFaces2")
+                names = {call0(call0(f, "GetFeature"), "Name") for f in fs}
+            except Exception as ex:
+                seen[type(ex).__name__] = seen.get(type(ex).__name__, 0) + 1
+                continue
+            key = tuple(sorted(names))
+            seen[key] = seen.get(key, 0) + 1
+            if names == {"Bar 1", "Bar 2"}:
                 out.append(e)
+        print(f"  edges by the features of their two faces: {seen}")
         return out
 
     edges = step("edges between Bar 1 and Bar 2 (count)", lambda: len(junction_edges()))
