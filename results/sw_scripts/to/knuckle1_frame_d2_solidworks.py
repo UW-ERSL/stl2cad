@@ -2218,6 +2218,7 @@ def expected(st, drift):
 
 # ---- 3D frame ---------------------------------------------------------------------------------------------
 STD = {0: "Right Plane", 1: "Top Plane", 2: "Front Plane"}
+DATUM_Z = -10.0                                  # mm, the datum plane for z (parallel to the Front Plane)
 REF_PARALLEL, REF_PERP, REF_COINC = 1, 2, 4      # swRefPlaneReferenceConstraints_e
 
 
@@ -2251,10 +2252,16 @@ def mirror_planes(sw, made):
         made["planes"].append(f)
         names[ax] = f.Name
         print(f"mirror plane {'xyz'[ax]} = {CENTRE[ax]:.4f} mm")
+    # SolidWorks refuses every dimension from a 3D sketch point to the Front Plane (sw_probe_frame, run 2); z is
+    # dimensioned to a plane offset from it instead (the z mirror plane, or this datum)
+    p = (0.0, 0.0, DATUM_Z)
+    f = offset_plane(sw, "Front Plane", DATUM_Z, p, "Datum z")
+    made["planes"].append(f)
+    names["datum"] = f.Name
     return names
 
 
-def dim_plane(sw, obj, plane, txt, what, at=None):
+def dim_plane(sw, obj, plane, txt, what, at=None, count_failure=True):
     """Dimension from a 3D sketch point to a plane (by name). SolidWorks refused some (sw_probe_frame: the third
     plane dimension of a point); retried with the plane selected first and the text at the point."""
     model, ext = sw.model, sw.model.Extension
@@ -2272,8 +2279,10 @@ def dim_plane(sw, obj, plane, txt, what, at=None):
             err = f"{type(ex).__name__}: {ex}"
         if d is not None:
             sw._count(d, what)
-            return
-    sw._count(None, what)
+            return True
+    if count_failure:
+        sw._count(None, what)
+    return False
 
 
 def dim_points3(sw, a, b, txts, what):
@@ -2381,15 +2390,32 @@ def skeleton_sketch(sw, planes, made):
                 sw.dims_failed.append(f"joint {k}: no point"); continue
             for o in objs[1:]:
                 rel(sw, "sgCOINCIDENT", [objs[0], o], f"joint {k}: line end")
+        # points read again after the relations (a point merged into another is no longer valid)
+        P = sketch_points3(sm, model)
+        for k, p in enumerate(JOINTS):
+            objs = at3(P, Q(p))
+            if not objs:
+                continue
             for ax in range(3):
+                # reference planes in order of preference; the label names the plane, so the mirror images of a
+                # joint (same orbit) share a variable only when they are dimensioned the same way
+                cands = []
                 if ax in planes and abs(p[ax] - CENTRE[ax]) > 1e-9:
-                    plane = planes[ax]
+                    cands.append((planes[ax], "mirror"))
+                if ax == 2:
+                    cands.append((planes["datum"], "datum"))
                 elif abs(p[ax]) > 1e-9:
-                    plane = STD[ax]
-                else:
-                    continue
+                    cands.append((STD[ax], "origin"))
                 q = Q(tuple(p[i] + (2.0 if i == ax else 0.0) for i in range(3)))
-                dim_plane(sw, objs[0], plane, q, f"joint {ORBIT[k]} {'xyz'[ax]}", at=Q(p))
+                what = None
+                for plane, ref in cands:
+                    what = f"joint {ORBIT[k]} {'xyz'[ax]} from {ref}"
+                    if dim_plane(sw, objs[0], plane, q, what, at=Q(p), count_failure=False):
+                        break
+                else:
+                    if what:
+                        sw._count(None, what)
+        P = sketch_points3(sm, model)
         for n, m in enumerate(MEMBERS):
             for k, (s, j) in enumerate(((m["s0"], m["i"]), (m["s1"], m["j"]))):
                 if s <= 0:
@@ -2415,7 +2441,60 @@ def skeleton_sketch(sw, planes, made):
     if sw.status and sw.status[-1] != "fully defined":
         sw.under = getattr(sw, "under", []) + [f"Frame skeleton ({sw.status[-1]})"]
     print(f"frame skeleton: {len(JOINTS)} joints, {len(MEMBERS)} lines")
-    return dict(points=jp, segs=segs, ends=ends, secs=secs)
+    return dict(points=jp, segs=segs, ends=ends, secs=secs, T=T)
+
+
+REFRESH_ALWAYS = False                           # testing: read the skeleton entities again before every step
+
+
+def alive(skel):
+    try:
+        skel["segs"][0].ConstructionGeometry
+        skel["points"][0].X
+        return not REFRESH_ALWAYS
+    except Exception:
+        return False
+
+
+def refresh_skeleton(sw, skel):
+    """The skeleton's lines and points read again from the 'Frame skeleton' feature, matched by coordinates: the
+    objects kept from building it disconnect after later rebuilds (sw_probe_frame, run 2: 'The object invoked has
+    disconnected from its clients')."""
+    f = sw.model.FeatureByName("Frame skeleton")
+    sk = call0(f, "GetSpecificFeature2")
+    T = skel["T"]
+    Q = lambda p: to_sk(T, p)
+    P = [(p.X, p.Y, p.Z, p) for p in (call0(sk, "GetSketchPoints2") or [])]
+    segs = []
+    for g in (call0(sk, "GetSketchSegments") or []):
+        try:
+            a, b = call0(g, "GetStartPoint2"), call0(g, "GetEndPoint2")
+            segs.append(((a.X, a.Y, a.Z), (b.X, b.Y, b.Z), g))
+        except Exception:
+            continue
+    same = lambda u, v: max(abs(u[i] - v[i]) for i in range(3)) < 1e-7
+    n_ok = 0
+    for n, m in enumerate(MEMBERS):
+        a, b = Q(JOINTS[m["i"]]), Q(JOINTS[m["j"]])
+        g = next((g for u, v, g in segs if (same(u, a) and same(v, b)) or (same(u, b) and same(v, a))), None)
+        if g is not None:
+            skel["segs"][n] = g; n_ok += 1
+        for k in (0, 1):
+            q = skel["secs"][n][k] if (m["s0"], m["s1"])[k] > 0 else JOINTS[(m["i"], m["j"])[k]]
+            o = at3(P, Q(q))
+            if o:
+                skel["ends"][n][k] = o[0]
+    for k, p in enumerate(JOINTS):
+        o = at3(P, Q(p))
+        if o:
+            skel["points"][k] = o[0]
+    print(f"  skeleton entities read again ({n_ok} of {len(MEMBERS)} lines found)")
+
+
+def live_skeleton(sw, skel):
+    if not alive(skel):
+        refresh_skeleton(sw, skel)
+    return skel
 
 
 def plane_by(sw, sel, how, check, name):
@@ -2511,6 +2590,7 @@ def circle_sketch(sw, plane, c, r, seg, name):
 
 
 def member3_step(sw, st, drift, made, skel):
+    live_skeleton(sw, skel)
     n = st["m"]
     m, seg = MEMBERS[n], skel["segs"][n]
     q0, q1, t = skel["secs"][n]
@@ -2564,6 +2644,7 @@ def node_plane(sw, k, pt, name):
 
 def node3_step(sw, st, drift, made, skel):
     """Sphere: a semicircle (top to bottom through +z) closed by a line along y, revolved about the line."""
+    live_skeleton(sw, skel)
     k = st["joint"]
     x, y, z = JOINTS[k]
     r = st["r"]

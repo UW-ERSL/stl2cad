@@ -81,9 +81,17 @@ def plane_check(model, plane, p, t):
     T = list(sk.ModelToSketchTransform.ArrayData)
     z0 = to_sk(T, p)[2] / MM
     z1 = to_sk(T, tuple(p[k] + t[k] for k in range(3)))[2] / MM
+    # a point in the sketch: an empty sketch leaves no feature, and the plane itself was then deleted (run 2)
+    sm.AddToDB = True
+    sm.CreatePoint(-0.0005, -0.0005, 0.0)
+    sm.AddToDB = False
     sm.InsertSketch(True)
     f = model.FeatureByPositionReverse(0)
-    model.ClearSelection2(True); f.Select2(False, 0); model.Extension.DeleteSelection2(0)
+    kind = call0(f, "GetTypeName2")
+    if kind == "ProfileFeature":
+        model.ClearSelection2(True); f.Select2(False, 0); model.Extension.DeleteSelection2(0)
+    else:
+        print(f"  plane check: last feature is a {kind}, not a sketch; nothing deleted")
     return round(z0, 6), round(z1, 6)
 
 
@@ -239,10 +247,27 @@ step("3D sketch constrained status (3 = fully defined; B is free here)",
 # ---- 2b. dimensions in a 3D sketch: which fail, and why ----
 print("== 2b. dimension variants (fresh 3D sketch: points C = (12, 22, 32), D = (42, 27, 37), line C-D)")
 Cp, Dp = (12.0, 22.0, 32.0), (42.0, 27.0, 37.0)
+
+
+def datum():
+    model.ClearSelection2(True)
+    ext.SelectByID2("Front Plane", "PLANE", 0, 0, 0, False, 0, NOTHING, 0)
+    f = fm.InsertRefPlane(8, 0.010, 0, 0, 0, 0)
+    if f is None:
+        return None
+    f = model.FeatureByPositionReverse(0)
+    f.Name = "Datum z"
+    return f
+dz = step("datum plane 10 mm from the Front Plane", datum)
 model.ClearSelection2(True)
 step("Insert3DSketch(False)", lambda: sm.Insert3DSketch(False))
 settle()
 sk2 = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
+if sk2 is None:
+    step("  no sketch; Insert3DSketch(True)", lambda: sm.Insert3DSketch(True))
+    settle()
+    sk2 = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
+print(f"  3D sketch for 2b open: {sk2 is not None}")
 sm.AddToDB = True
 oC = sm.CreatePoint(*[c * MM for c in Cp])
 oD = sm.CreatePoint(*[c * MM for c in Dp])
@@ -275,6 +300,9 @@ if atC and atD:
             for pf in (False, True):
                 step(f"C to {plane}, text {tl}, plane selected {'first' if pf else 'second'} (expect {expect})",
                      lambda: dimv([atC[0]], plane, txt, pf))
+    for pf in (False, True):
+        step(f"C to the datum plane (offset from the Front Plane), plane selected {'first' if pf else 'second'} "
+             f"(expect 22.0 or 42.0)", lambda: dimv([atC[0]], "Datum z", (Cp[0] + 3, Cp[1] + 3, Cp[2] + 3), pf))
     L2 = math.dist(Cp, Dp)
     mid = tuple((Cp[k] + Dp[k]) / 2 for k in range(3))
     for tl, txt in (("mid + (0, 0, 5)", (mid[0], mid[1], mid[2] + 5)), ("mid + (0, 5, 0)", (mid[0], mid[1] + 5, mid[2])),
@@ -368,6 +396,23 @@ def node_plane():
     return f, plane_check(model, f, B, (1.0, 0.0, 0.0))
 
 
+def alive(o):
+    try:
+        o.X
+        return True
+    except Exception as ex:
+        return f"{type(ex).__name__}"
+step("point B object from section 1 still valid", lambda: alive(pB))
+
+
+def read_again():
+    s1 = call0(sk3, "GetSpecificFeature2")
+    pts = [o for o in call0(s1, "GetSketchPoints2") if math.dist((o.X / MM, o.Y / MM, o.Z / MM), B) < 1e-6]
+    segs = list(call0(s1, "GetSketchSegments") or [])
+    return pts, len(segs)
+got = step("point B read again from the 3D sketch feature (points at B, segments)", read_again)
+if got and got[0]:
+    pB = got[0][0]
 rN = step("plane parallel to the Right Plane through B (expect (0, +-1))", node_plane)
 if rN and not isinstance(rN[0], bool):
     def sphere():

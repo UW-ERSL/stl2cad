@@ -98,6 +98,19 @@ class Segment:
         return True
 
 
+def _seg_end(seg, i):
+    """End point of a 3D sketch line (swframe reads the skeleton again); 2D segments keep having none, as before."""
+    e = seg.edge
+    q = e[1] if i == 0 else e[-1]
+    if len(q) != 3:
+        raise AttributeError("GetStartPoint2/GetEndPoint2: 3D sketch lines only in the stand-in")
+    return SketchPoint3(seg.sm.model, q, getattr(seg, "sk", None))
+
+
+Segment.GetStartPoint2 = lambda self: _seg_end(self, 0)
+Segment.GetEndPoint2 = lambda self: _seg_end(self, 1)
+
+
 class SkPoint:
     """A sketch point made by CreatePoint; once its sketch is closed, Select4 selects it as an external point."""
     def __init__(self, sm, xy):
@@ -265,9 +278,12 @@ class Sketch3D:
         out = []
         for seg in self.edges:
             if not seg.deleted:
-                out += [SketchPoint3(m, seg.edge[1]), SketchPoint3(m, seg.edge[2])]
-        out += [SketchPoint3(m, q) for q in self.points3]
+                out += [SketchPoint3(m, seg.edge[1], self), SketchPoint3(m, seg.edge[2], self)]
+        out += [SketchPoint3(m, q, self) for q in self.points3]
         return out
+
+    def GetSketchSegments(self):
+        return [seg for seg in self.edges if not seg.deleted]
 
     def wire(self):
         es = [cq.Edge.makeLine(cq.Vector(*(K * np.asarray(seg.edge[1]))), cq.Vector(*(K * np.asarray(seg.edge[2]))))
@@ -276,15 +292,22 @@ class Sketch3D:
 
 
 class SketchPoint3:
-    """A point of an open 3D sketch (model coordinates, m)."""
-    def __init__(self, model, xyz):
-        self.model = model
+    """A point of a 3D sketch (model coordinates, m): selected as a sketch point while its sketch is open, as an
+    external point once it is closed."""
+    def __init__(self, model, xyz, sk=None):
+        self.model, self.sk = model, sk
         self.X, self.Y, self.Z = (float(v) for v in xyz)
 
     def Select4(self, append, data):
+        m = self.model
+        if self.sk is not None and m.SketchManager._sk is not self.sk:
+            if not append:
+                m.ext_sel = []
+            m.ext_sel.append(("point", np.array([self.X, self.Y, self.Z]), getattr(data, "Mark", 0)))
+            return True
         if not append:
-            self.model.sel_list = []
-        self.model.sel_list.append(("point", (self.X, self.Y, self.Z)))
+            m.sel_list = []
+        m.sel_list.append(("point", (self.X, self.Y, self.Z)))
         return True
 
 
@@ -325,9 +348,17 @@ class Feature:
         return self.kind
 
     def GetSpecificFeature2(self):
+        data = self.data
+
         class S:
             def GetConstrainedStatus(self):
                 return 1
+
+            def GetSketchSegments(self):
+                return data.GetSketchSegments() if hasattr(data, "GetSketchSegments") else []
+
+            def GetSketchPoints2(self):
+                return data.GetSketchPoints2() if hasattr(data, "GetSketchPoints2") else []
         return S()
 
     def GetNextFeature(self):
