@@ -1895,10 +1895,11 @@ def last_feature(sw):
     return sw.model.FeatureByPositionReverse(0)
 
 
-def offset_plane(sw, base, dist, point, name):
+def offset_plane(sw, base, dist, point, name, flip_first=False):
     """Reference plane at distance dist (mm) from the base plane (by name), through the model point (mm):
-    the side is checked through a sketch's transform (the other side tried, flag 256, if the first is wrong)."""
-    for flip in (0, 256):                     # swRefPlaneReferenceConstraint_OptionFlip
+    the side is checked through a sketch's transform (the other side tried, flag 256, if the first is wrong);
+    flip_first: the flagged side first (a plane below its base, as SolidWorks 2025 places it)."""
+    for flip in ((256, 0) if flip_first else (0, 256)):   # swRefPlaneReferenceConstraint_OptionFlip
         sw.model.ClearSelection2(True)
         if not sw.model.Extension.SelectByID2(base, "PLANE", 0, 0, 0, False, 0, NOTHING, 0):
             f = sw.model.FeatureByName(base)
@@ -2331,7 +2332,7 @@ def z_levels(sw, planes, made):
             n = len(made_at) + 1
             name = f"ZLevel{n}"
             q = (p[0], p[1], p[2])
-            f = offset_plane(sw, base, abs(dz), q, name)
+            f = offset_plane(sw, base, abs(dz), q, name, flip_first=dz < 0)
             made["planes"].append(f)
             made_at[key] = f.Name
             what = f"joint {ORBIT[k]} z"
@@ -2565,6 +2566,14 @@ def skeleton_sketch(sw, planes, made, zplane):
 
 
 REFRESH_ALWAYS = False                           # testing: read the skeleton entities again before every step
+FAST_PLANES = True       # section and node planes checked in the sketch made on them, not in a separate test sketch
+FAST_MASS = True         # mass properties without forcing a rebuild of the whole part (rebuilt when a check fails)
+CHECK_EVERY = 10         # volume check after every n-th member or node (and the last of each); 1: after each
+SETTLE = 0.05            # s, wait after opening a sketch on a frame plane
+
+
+class OffPlane(RuntimeError):
+    pass
 
 
 def alive(skel):
@@ -2638,11 +2647,13 @@ def plane_by(sw, sel, how, check, name):
     return None, f"{how[0]}: {note}"
 
 
-def section_plane(sw, seg, pt, q, t, name):
-    """Plane normal to a member's skeleton line through its section point (objects, then coordinates)."""
+def section_plane(sw, seg, pt, q, t, name, checked=True):
+    """Plane normal to a member's skeleton line through its section point (objects, then coordinates). Unchecked
+    (FAST_PLANES): the plane by objects is taken as it is, and the section sketch on it checks it."""
     model = sw.model
     sd = lambda k: (lambda o: (setattr(o, "Mark", k), o)[1])(call0(model.SelectionManager, "CreateSelectData"))
-    check = lambda f: (lambda r: (r[0], f"{r[1]:+.4f} mm off"))(plane_through(sw, f, q, t))
+    check = (lambda f: (lambda r: (r[0], f"{r[1]:+.4f} mm off"))(plane_through(sw, f, q, t))) if checked else \
+        (lambda f: (True, ""))
     tried = []
     for how, sel in ((("objects", (REF_PERP, 0, REF_COINC, 0, 0, 0)), lambda: seg.Select4(False, sd(0)) and pt.Select4(True, sd(1))),
                      (("coordinates", (REF_PERP, 0, REF_COINC, 0, 0, 0)), lambda: (
@@ -2657,7 +2668,7 @@ def section_plane(sw, seg, pt, q, t, name):
     raise RuntimeError(f"{name}: no plane normal to the member ({'; '.join(tried)})")
 
 
-def sketch_on(sw, plane, p, name):
+def sketch_on(sw, plane, p, name, normal=None, ways_max=4):
     """Sketch on a reference plane through the model point p (mm), checked through the sketch's transform (p at
     sketch z 0). In sw_probe_frame a sketch opened after selecting the plane landed on the Front Plane; then the
     sketch is deleted and the plane selected by name, after a rebuild, and again by object."""
@@ -2668,7 +2679,7 @@ def sketch_on(sw, plane, p, name):
             ("name after a rebuild", lambda: (model.ForceRebuild3(False), model.Extension.SelectByID2(
                 plane.Name, "PLANE", 0, 0, 0, False, 0, NOTHING, 0))[1]))
     notes = []
-    for how, sel in ways:
+    for how, sel in ways[:ways_max]:
         model.ClearSelection2(True)
         try:
             ok = sel()
@@ -2682,7 +2693,7 @@ def sketch_on(sw, plane, p, name):
                 model.ClearSelection2(True)
                 sel()
             sm.InsertSketch(True)
-            settle()
+            settle(SETTLE)
             sk = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
             if sk is not None:
                 break
@@ -2690,21 +2701,25 @@ def sketch_on(sw, plane, p, name):
             notes.append(f"{how}: no sketch opened"); continue
         T = list(sk.ModelToSketchTransform.ArrayData)
         z = to_sk(T, p)[2]
+        if normal is not None and abs(z) < 1e-6:         # the plane normal to the given direction
+            z1 = to_sk(T, tuple(p[i] + normal[i] for i in range(3)))[2]
+            if abs(abs(z1 - z) - MM) > 1e-6:
+                z = float("nan")
         if abs(z) < 1e-6:
             if notes:
                 print(f"  {name}: sketch on its plane by {how} ({'; '.join(notes)})")
             sm.AddToDB = True
             helper = sm.CreateCircleByRadius(-0.5, -0.5, 0.0, HELPER_R * MM)
             return sm, T, helper
-        notes.append(f"{how}: sketch {z / MM:+.3f} mm off the plane")
+        notes.append(f"{how}: sketch {z / MM:+.3f} mm off the plane" if z == z else f"{how}: plane not normal")
         sm.InsertSketch(True)
         f = last_feature(sw)
         model.ClearSelection2(True); f.Select2(False, 0); model.Extension.DeleteSelection2(0)
-    raise RuntimeError(f"{name}: no sketch on its plane ({'; '.join(notes)})")
+    raise OffPlane(f"{name}: no sketch on its plane ({'; '.join(notes)})")
 
 
-def circle_sketch(sw, plane, c, r, seg, name):
-    sm, T, h = sketch_on(sw, plane, c, name)
+def circle_sketch(sw, plane, c, r, seg, name, normal=None, ways_max=4):
+    sm, T, h = sketch_on(sw, plane, c, name, normal, ways_max)
     C = to_sk(T, c)
     circ = make(sm.CreateCircleByRadius, C[0], C[1], 0.0, r * MM)
     sm.AddToDB = False
@@ -2723,14 +2738,34 @@ def member3_step(sw, st, drift, made, skel):
     n = st["m"]
     m, seg = MEMBERS[n], skel["segs"][n]
     q0, q1, t = skel["secs"][n]
-    pl = [section_plane(sw, seg, skel["ends"][n][k], q, t, f"{st['name']} plane {('start', 'end')[k]}")
-          for k, q in enumerate((q0, q1))]
-    secs = [circle_sketch(sw, pl[k], q, (m["r0"], m["r1"])[k], seg, f"{st['name']} {('start', 'end')[k]} section")
-            for k, q in enumerate((q0, q1))]
+    pl, secs = [], []
+    for k, q in enumerate((q0, q1)):
+        pname, sname = f"{st['name']} plane {('start', 'end')[k]}", f"{st['name']} {('start', 'end')[k]} section"
+        r = (m["r0"], m["r1"])[k]
+        p = section_plane(sw, seg, skel["ends"][n][k], q, t, pname, checked=not FAST_PLANES)
+        try:
+            sec = circle_sketch(sw, p, q, r, seg, sname, normal=t, ways_max=1 if FAST_PLANES else 4)
+        except OffPlane as ex:
+            if not FAST_PLANES:
+                raise
+            print(f"  {pname}: {ex}; made again with the check")
+            sw.model.ClearSelection2(True); p.Select2(False, 0); sw.model.Extension.DeleteSelection2(0)
+            p = section_plane(sw, seg, skel["ends"][n][k], q, t, pname, checked=True)
+            sec = circle_sketch(sw, p, q, r, seg, sname, normal=t)
+        pl.append(p); secs.append(sec)
     made["planes"] += pl
     made["sketches"] += secs
-    ev, ec = expected(st, drift)
     model = sw.model
+    if not due(st):
+        model.ClearSelection2(True)
+        secs[0].Select2(False, 1); secs[1].Select2(True, 1)
+        f = model.FeatureManager.InsertProtrusionBlend2(False, True, False, 1.0, 0, 0, 1.0, 1.0, True, True, False,
+                                                        0.0, 0.0, 0, True, True, True, 0)
+        if f is not None:
+            f.Name = st["name"]
+            print(f"{st['name']}: loft (checked with a later feature)")
+            return
+    ev, ec = expected(st, drift)
     tried = []
     for variant in ("no centerline", "centerline"):
         model.ClearSelection2(True)
@@ -2742,10 +2777,11 @@ def member3_step(sw, st, drift, made, skel):
                                                         0.0, 0.0, 0, True, True, True, 0)
         if f is None:
             tried.append(f"{variant}: no loft"); continue
-        v, c = sw.mass()
-        if abs(v - ev) <= 0.01 * st["own"] + 1e-3:
+        v, c = checked_mass(sw, ev, tol(st))
+        if abs(v - ev) <= tol(st):
             f.Name = st["name"]
             carry(drift, v, c, ev, ec)
+            done_check(st)
             print(f"{st['name']}: loft, volume {v:.3f} mm^3 (expected {ev:.3f}; difference {v - ev:+.3f})"
                   + (f" ({'; '.join(tried)})" if tried else ""))
             return
@@ -2754,10 +2790,12 @@ def member3_step(sw, st, drift, made, skel):
     raise RuntimeError(f"{st['name']}: no loft gives the expected volume ({'; '.join(tried)})")
 
 
-def node_plane(sw, k, pt, name):
-    """Plane parallel to the Right Plane through the joint's skeleton point; else offset from the Right Plane."""
+def node_plane(sw, k, pt, name, checked=True):
+    """Plane parallel to the Right Plane through the joint's skeleton point; else offset from the Right Plane.
+    Unchecked (FAST_PLANES): the node sketch on it checks it."""
     p = JOINTS[k]
-    check = lambda f: (lambda r: (r[0], f"{r[1]:+.4f} mm off"))(plane_through(sw, f, p, (1.0, 0.0, 0.0)))
+    check = (lambda f: (lambda r: (r[0], f"{r[1]:+.4f} mm off"))(plane_through(sw, f, p, (1.0, 0.0, 0.0)))) \
+        if checked else (lambda f: (True, ""))
 
     def sel():
         sd = call0(sw.model.SelectionManager, "CreateSelectData"); sd.Mark = 0
@@ -2777,13 +2815,25 @@ def node3_step(sw, st, drift, made, skel):
     k = st["joint"]
     x, y, z = JOINTS[k]
     r = st["r"]
-    plane, follows = node_plane(sw, k, skel["points"][k], st["name"] + " plane")
-    made["planes"].append(plane)
+    plane, follows = node_plane(sw, k, skel["points"][k], st["name"] + " plane", checked=not FAST_PLANES)
     fm = sw.model.FeatureManager
     v, cc = expected(st, drift)
+    check_now = due(st)
+    first = True
     for variant in (("line", 16), ("line", 4), ("centerline", None), ("centerline", 4), ("centerline", 16)):
         snap = (sw.dims_ok, len(sw.linkable), len(sw.alldims), sw.rels_ok, len(sw.status), len(sw.rels_failed))
-        sm, T, h = sketch_on(sw, plane, (x, y, z), st["name"])
+        try:
+            sm, T, h = sketch_on(sw, plane, (x, y, z), st["name"], (1.0, 0.0, 0.0), 1 if (FAST_PLANES and first) else 4)
+        except OffPlane as ex:
+            if not (FAST_PLANES and first):
+                raise
+            print(f"  {st['name']} plane: {ex}; made again with the check")
+            sw.model.ClearSelection2(True); plane.Select2(False, 0); sw.model.Extension.DeleteSelection2(0)
+            plane, follows = node_plane(sw, k, skel["points"][k], st["name"] + " plane", checked=True)
+            sm, T, h = sketch_on(sw, plane, (x, y, z), st["name"], (1.0, 0.0, 0.0))
+        if first:
+            made["planes"].append(plane)
+        first = False
         Qs = lambda p: to_sk(T, p)
         C, top, bot, side = Qs((x, y, z)), Qs((x, y + r, z)), Qs((x, y - r, z)), Qs((x, y, z + r))
         arc = make(sm.CreateArc, C[0], C[1], 0.0, top[0], top[1], 0.0, bot[0], bot[1], 0.0, arc_turn(top[:2], side[:2], bot[:2]))
@@ -2819,10 +2869,16 @@ def node3_step(sw, st, drift, made, skel):
             axis.Select4(True, sd)
         f = fm.FeatureRevolve2(True, True, False, False, False, False, 0, 0, 2 * math.pi, 0.0,
                                False, False, 0.0, 0.0, 0, 0.0, 0.0, True, True, True)
+        if f is not None and not check_now:
+            f.Name = st["name"]
+            made["sketches"].append(sk)
+            print(f"{st['name']}: node (checked with a later feature)")
+            return
         if f is not None:
-            vv, c2 = sw.mass()
-            if abs(vv - v) <= 1e-3 * st["own"] + 1e-2 and math.dist(c2, cc) <= 1e-4 * SIZE + 1e-2:
+            vv, c2 = checked_mass(sw, v, tol(st))
+            if abs(vv - v) <= tol(st) and math.dist(c2, cc) <= 1e-4 * SIZE + 1e-2 + 1e-3 * PENDING["n"]:
                 f.Name = st["name"]
+                done_check(st)
                 made["sketches"].append(sk)
                 print(f"{st['name']}: node, volume {vv:.3f} mm^3 (expected {v:.3f})"
                       + ("" if variant == ("line", 16) else f" (revolve about the {variant[0]}, Mark {variant[1]})")
@@ -2865,12 +2921,62 @@ def hub3_step(sw, st, drift, made):
         dim(sw, [circ], "any", (C[0] + 0.7 * r * MM, C[1] + 0.7 * r * MM), f"{st['name']}: diameter")
     sk = close_sketch(sw, sm, hp, st["name"])
     v, c = expected(st, drift)
-    vv = sw.feature(sk, "add" if st["kind"] == "hub" else "cut", 0.0, h["hi"] - h["lo"], v, c, st["name"])
-    carry(drift, *sw.mass(), v, c)
+    fast, sw.mass = sw.mass, sw.mass_rebuilt    # the direction is chosen by the volume: rebuilt values here
+    try:
+        vv = sw.feature(sk, "add" if st["kind"] == "hub" else "cut", 0.0, h["hi"] - h["lo"], v, c, st["name"])
+        carry(drift, *sw.mass(), v, c)
+    finally:
+        sw.mass = fast
+
+
+PENDING = dict(n=0, tol=0.0)        # features since the last volume check, and their combined tolerance
+LAST_OF_KIND = {}
+
+
+def own_tol(st):
+    return 0.01 * st["own"] + 1e-3 if st["kind"] == "member" else 1e-3 * st["own"] + 1e-2
+
+
+def due(st):
+    """Whether this member or node is checked now: every CHECK_EVERY-th, and the last of its kind."""
+    if CHECK_EVERY <= 1 or LAST_OF_KIND.get(st["kind"]) == st["name"] or PENDING["n"] + 1 >= CHECK_EVERY:
+        return True
+    PENDING["n"] += 1
+    PENDING["tol"] += own_tol(st)
+    return False
+
+
+def tol(st):
+    """Tolerance of a check: this feature's, plus those of the features since the last check."""
+    return own_tol(st) + PENDING["tol"]
+
+
+def done_check(st):
+    PENDING["n"], PENDING["tol"] = 0, 0.0
+
+
+def checked_mass(sw, expect, tol_):
+    """Mass properties; with FAST_MASS read without forcing a rebuild, and read again after a rebuild when they do
+    not match (so a stale value never fails a check)."""
+    v, c = sw.mass()
+    if FAST_MASS and abs(v - expect) > tol_:
+        v, c = sw.mass_rebuilt()
+    return v, c
 
 
 def build_frame():
     sw = SW()
+    for st in STEPS:
+        LAST_OF_KIND[st["kind"]] = st["name"]
+    sw.mass_rebuilt = sw.mass
+    if FAST_MASS:
+        def mass_fast():
+            mp = call0(sw.model.Extension, "CreateMassProperty")
+            if mp is None:
+                return 0.0, (0.0, 0.0, 0.0)
+            return mp.Volume / MM ** 3, tuple(c / MM for c in mp.CenterOfMass)
+        sw.mass = mass_fast
+    t_start = time.time()
     print(f"connected to SolidWorks; new part created; {len(STEPS)} step(s)")
     set_units(sw)
     drift = [0.0, [0.0, 0.0, 0.0]]
@@ -2904,6 +3010,7 @@ def build_frame():
     if getattr(sw, "under", None):
         print("not fully defined: " + "; ".join(sw.under))
     sw.restore_preferences()
+    print(f"time {time.time() - t_start:.0f} s")
     return sw
 
 

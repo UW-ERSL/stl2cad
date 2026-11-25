@@ -605,10 +605,11 @@ def last_feature(sw):
     return sw.model.FeatureByPositionReverse(0)
 
 
-def offset_plane(sw, base, dist, point, name):
+def offset_plane(sw, base, dist, point, name, flip_first=False):
     """Reference plane at distance dist (mm) from the base plane (by name), through the model point (mm):
-    the side is checked through a sketch's transform (the other side tried, flag 256, if the first is wrong)."""
-    for flip in (0, 256):                     # swRefPlaneReferenceConstraint_OptionFlip
+    the side is checked through a sketch's transform (the other side tried, flag 256, if the first is wrong);
+    flip_first: the flagged side first (a plane below its base, as SolidWorks 2025 places it)."""
+    for flip in ((256, 0) if flip_first else (0, 256)):   # swRefPlaneReferenceConstraint_OptionFlip
         sw.model.ClearSelection2(True)
         if not sw.model.Extension.SelectByID2(base, "PLANE", 0, 0, 0, False, 0, NOTHING, 0):
             f = sw.model.FeatureByName(base)
