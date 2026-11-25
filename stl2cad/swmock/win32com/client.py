@@ -383,6 +383,18 @@ LAZY = int(os.environ.get("SWMOCK_LAZY_SKETCH", "0"))   # first N creation calls
 HIDE_SKETCH = os.environ.get("SWMOCK_HIDE_SKETCH", "0") == "1"   # ActiveSketch reads as None
 
 
+FIRST_NOOP = os.environ.get("SWMOCK_FIRST_SKETCH_NOOP", "0") == "1"   # as seen in SolidWorks 2025 (swframe run):
+
+
+def _first_noop(m):
+    """the first sketch call after NewPart opens nothing (InsertSketch or Insert3DSketch)."""
+    if FIRST_NOOP and not getattr(m, "_sketch_tried", False):
+        m._sketch_tried = True
+        return True
+    m._sketch_tried = True
+    return False
+
+
 class SketchManager:
     def __init__(self, model):
         self.model = model
@@ -398,6 +410,8 @@ class SketchManager:
 
     def InsertSketch(self, flag):
         m = self.model
+        if self._sk is None and _first_noop(m):
+            return None
         if self._sk is None:
             assert m.selected is not None and m.selected.kind in ("RefPlane", "Face"), "no plane selected"
             if m.selected.kind == "Face":              # a face sketch keeps its face (seen)
@@ -417,6 +431,8 @@ class SketchManager:
 
     def Insert3DSketch(self, flag):
         m = self.model
+        if self._sk is None and _first_noop(m):
+            return None
         if self._sk is None:
             self._sk = Sketch3D()
             self._sk.open = False

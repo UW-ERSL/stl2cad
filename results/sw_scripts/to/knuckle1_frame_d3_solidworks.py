@@ -1779,15 +1779,24 @@ def to_sk(T, p):
 
 
 def open_sketch(sw, plane):
-    """Sketch on a plane feature; its ModelToSketchTransform as a list."""
-    sw.model.ClearSelection2(True)
-    plane.Select2(False, 0)
+    """Sketch on a plane feature; its ModelToSketchTransform as a list. The first sketch call after NewPart opened
+    nothing in SolidWorks 2025 (swframe run): the plane is selected and the call repeated until a sketch is active."""
     sm = sw.model.SketchManager
-    sm.InsertSketch(True)
-    settle()
-    sk = call0(sm, "ActiveSketch")
+    sk = None
+    for attempt in range(3):
+        sw.model.ClearSelection2(True)
+        plane.Select2(False, 0)
+        sm.InsertSketch(True)
+        settle()
+        sk = call0(sm, "ActiveSketch")
+        if sk is None:
+            sk = call0(sw.model, "GetActiveSketch2")
+        if sk is not None:
+            if attempt:
+                print(f"  sketch opened on try {attempt + 1}")
+            break
     if sk is None:
-        sk = call0(sw.model, "GetActiveSketch2")
+        raise RuntimeError("no sketch opened on the plane (3 tries)")
     T = list(sk.ModelToSketchTransform.ArrayData)
     sm.AddToDB = True
     helper = sm.CreateCircleByRadius(-0.5, -0.5, 0.0, HELPER_R * MM)     # lines need another entity first
@@ -2635,11 +2644,20 @@ def sketch_on(sw, plane, p, name):
             notes.append(f"{how}: {type(ex).__name__}"); continue
         if not ok:
             notes.append(f"{how}: not selected"); continue
-        sm.InsertSketch(True)
-        settle()
-        sk = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
-        T = list(sk.ModelToSketchTransform.ArrayData) if sk is not None else None
-        z = to_sk(T, p)[2] if T is not None else float("inf")
+        sk = None
+        for attempt in range(3):                   # the first sketch call after NewPart may open nothing
+            if attempt:
+                model.ClearSelection2(True)
+                sel()
+            sm.InsertSketch(True)
+            settle()
+            sk = call0(sm, "ActiveSketch") or call0(model, "GetActiveSketch2")
+            if sk is not None:
+                break
+        if sk is None:
+            notes.append(f"{how}: no sketch opened"); continue
+        T = list(sk.ModelToSketchTransform.ArrayData)
+        z = to_sk(T, p)[2]
         if abs(z) < 1e-6:
             if notes:
                 print(f"  {name}: sketch on its plane by {how} ({'; '.join(notes)})")
