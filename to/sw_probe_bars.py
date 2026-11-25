@@ -31,6 +31,7 @@ MM = 0.001
 PERP, COINC = 2, 4
 P = [(0.0, 0.0, 0.0), (15.0, 8.0, 4.0), (30.0, 10.0, 12.0), (45.0, 6.0, 20.0)]
 Q = (30.0, 25.0, 12.0)
+FULL = False             # True: also the test lofts of section 3 (settled in run 2: natural spline, linear sections)
 
 
 def call0(obj, name):
@@ -259,14 +260,15 @@ def loft(secs, label):
 
 if all(k in planes for k in (0, 2, 3)):
     s0, s2, s3 = section(0, 3.0), section(2, 2.2), section(3, 2.0)
-    for secs, label, expect in (([s0, s3], "Loft 2 sections", 1014.1), ([s0, s2, s3], "Loft 3 sections", 956.2)):
+    for secs, label, expect in [] if not FULL else (([s0, s3], "Loft 2 sections", 1014.1), ([s0, s2, s3], "Loft 3 sections", 956.2)):
         r = step(f"{label} along the spline (expect about {expect} mm^3)", lambda: loft(secs, label))
         if r:
             model.ClearSelection2(True); r[0].Select2(False, 0); ext.DeleteSelection2(0)
-    s2e = section(2, None, ellipse=(2.8, 1.6, 30.0))
-    r = step("Loft with the ellipse at P2 (expect about 920.6 mm^3)", lambda: loft([s0, s2e, s3], "Loft ellipse"))
-    if r:
-        model.ClearSelection2(True); r[0].Select2(False, 0); ext.DeleteSelection2(0)
+    if FULL:
+        s2e = section(2, None, ellipse=(2.8, 1.6, 30.0))
+        r = step("Loft with the ellipse at P2 (expect about 920.6 mm^3)", lambda: loft([s0, s2e, s3], "Loft ellipse"))
+        if r:
+            model.ClearSelection2(True); r[0].Select2(False, 0); ext.DeleteSelection2(0)
     bar1 = step("Loft 3 sections again (bar 1, kept)", lambda: loft([s0, s2, s3], "Bar 1"))
 else:
     bar1 = None
@@ -334,18 +336,92 @@ if bar1:
         return out
 
     edges = step("edges between Bar 1 and Bar 2 (count)", lambda: len(junction_edges()))
+
+    def const(enum, member, fallback):
+        import os
+        try:
+            exe = app.GetExecutablePath
+            exe = str(exe() if callable(exe) else exe)
+            for folder in (exe, os.path.dirname(exe)):
+                for path in (os.path.join(folder, "swconst.tlb"), os.path.join(folder, "api", "swconst.tlb")):
+                    if not os.path.exists(path):
+                        continue
+                    tl = pythoncom.LoadTypeLib(path)
+                    for i in range(tl.GetTypeInfoCount()):
+                        if tl.GetDocumentation(i)[0] != enum:
+                            continue
+                        ti = tl.GetTypeInfo(i)
+                        for j in range(ti.GetTypeAttr().cVars):
+                            vd = ti.GetVarDesc(j)
+                            if ti.GetNames(vd.memid)[0] == member:
+                                return int(vd.value)
+        except Exception as ex:
+            print(f"  swconst.tlb: {type(ex).__name__}: {ex}")
+        return fallback
+
+    def select_edges(how, mark):
+        es = junction_edges()
+        model.ClearSelection2(True)
+        if how == "Select4":
+            ok = [e.Select4(i > 0, sd(mark)) for i, e in enumerate(es)]
+        elif how == "Select2":
+            ok = [e.Select2(i > 0, mark) for i, e in enumerate(es)]
+        else:                                    # SelectByRay through a point of the edge, along the edge normal
+            ok = []
+            for i, e in enumerate(es):
+                c = call0(e, "GetCurve")
+                prm = call0(e, "GetCurveParams3")
+                t = 0.5 * (prm.UMinValue + prm.UMaxValue)
+                ev = c.Evaluate2(t, 0)
+                x, y, z = ev[0], ev[1], ev[2]
+                ok.append(ext.SelectByID2("", "EDGE", x, y, z, i > 0, mark, NOTHING, 0))
+        smg = model.SelectionManager
+        n = smg.GetSelectedObjectCount2(-1)
+        typ = [smg.GetSelectedObjectType3(k + 1, -1) for k in range(n)]
+        return ok, n, typ
+
+    def attempt(label, how, mark, make, r):
+        def run():
+            sel = select_edges(how, mark)
+            v0 = mass()
+            f = make(r)
+            if f is None:
+                return sel, "no fillet"
+            v1 = mass()
+            model.ClearSelection2(True); f.Select2(False, 0); ext.DeleteSelection2(0)
+            return sel, v0, v1
+        return step(f"fillet r {r} mm, {label}, edges by {how} mark {mark} (selection: ok, count, types; volumes)", run)
+
+    def by_definition(r):
+        fid = const("swFeatureNameID_e", "swFmFillet", None)
+        ftype = const("swSimpleFilletType_e", "swConstRadiusFillet", 0)
+        print(f"  swFmFillet = {fid}, swConstRadiusFillet = {ftype}")
+        if fid is None:
+            return None
+        data = fm.CreateDefinition(fid)
+        data.Initialize(ftype)
+        es = junction_edges()
+        data.Edges = VARIANT(pythoncom.VT_ARRAY | pythoncom.VT_DISPATCH, es)
+        data.DefaultRadius = r * MM
+        return fm.CreateFeature(data)
+
+    makes = [("FeatureFillet3 195", lambda r: fm.FeatureFillet3(195, r * MM, r * MM, 0, 0, 0, 0, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY)),
+             ("FeatureFillet3 194", lambda r: fm.FeatureFillet3(194, r * MM, r * MM, 0, 0, 0, 0, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY)),
+             ("FeatureFillet3 195 Nothing", lambda r: fm.FeatureFillet3(195, r * MM, r * MM, 0, 0, 0, 0, NOTHING, NOTHING, NOTHING, NOTHING, NOTHING, NOTHING, NOTHING)),
+             ("FeatureFillet 195", lambda r: fm.FeatureFillet(195, r * MM, 0, 0, EMPTY, EMPTY, EMPTY))]
     if edges:
-        for mark in (1, 0):
-            def fillet():
-                es = junction_edges()
-                model.ClearSelection2(True)
-                ok = [e.Select4(i > 0, sd(mark)) for i, e in enumerate(es)]
-                v0 = mass()
-                f = fm.FeatureFillet3(195, 1.0 * MM, 1.0 * MM, 0, 0, 0, 0, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY)
-                if f is None:
-                    return ok, "no fillet"
-                return ok, v0, mass()
-            r = step(f"fillet 1 mm on the junction edges (mark {mark}): selected, volume before, after", fillet)
-            if r and len(r) == 3:
+        done = False
+        for r in (1.0, 0.5, 0.25):
+            for label, make in makes:
+                for how, mark in (("Select4", 1), ("SelectByID2", 1), ("Select2", 0)):
+                    res = attempt(label, how, mark, make, r)
+                    if res and len(res) == 3:
+                        done = True
+                        break
+                if done:
+                    break
+            if done:
                 break
+        step("fillet r 1 mm by CreateDefinition / SimpleFilletFeatureData2 (volume after)",
+             lambda: (lambda f: None if f is None else mass())(by_definition(1.0)))
 print("done")
