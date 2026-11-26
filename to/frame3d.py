@@ -46,7 +46,12 @@ ANCHOR_MERGE = 1.0       # mm, anchors on one hub closer than this are one
 ANCHOR_M = 1.5           # an anchor is this x its inscribed radius (+ 0.3 mm) inside every face of its hub
 NODE_F = 1.1             # node radius over the widest member end radius there
 NODE_CAP = 1.3           # the node radius at most this x the widest member end (the TO's own size there)
-TRIM_F = 0.3             # members stop this x the node radius short of a joint's centre
+TRIM_F = 0.3             # members stop this x the node radius short of a joint's centre (junction 'spheres')
+JUNCTION = 'bars'        # 'bars': chains of members between junctions as one loft along a spline (SolidWorks:
+                         # sections normal to the spline, junctions filleted); 'caps': each member a tapered
+                         # capsule; 'spheres': members stop short of a sphere node at each joint
+BAR_TOL = {1: 0.25, 2: 0.2, 3: 0.12, 4: 0.08, 5: 0.04}   # an interior section is kept where the radius departs
+                                                         # from the linear change along the bar by this fraction
 HUB_SHARE_F = 0.25       # members sharing an anchor stop this x the anchor's depth in the hub short of it
 AREA_CAP = 2.0           # area-equivalent scaling of a member's radii at most this factor
 MIN_R = 0.6              # mm, thinnest member radius
@@ -785,9 +790,10 @@ def classes(vals, w, k, digits):
     return [sig(v, digits) for v in x]
 
 
-def fit(original, to, detail=3, log=print):
+def fit(original, to, detail=3, log=print, junction=None):
     """The frame model of a TO result (see the module docstring)."""
     DT = DETAIL[detail]
+    junction = junction or JUNCTION
     hubs = hubs3d.detect(original, to)
     if not hubs:
         raise ValueError('no hubs: the original has no hole that the TO surrounds')
@@ -876,19 +882,24 @@ def fit(original, to, detail=3, log=print):
         for k, rk in ((m['i'], 'r0'), (m['j'], 'r1')):
             if F.hub[k] is not None:
                 dep = hub_depth(hubs[F.hub[k]], F.P[k])
-                sk = 0.0 if share[k] == 1 else sig(HUB_SHARE_F * dep, DT['digits'])
+                sk = 0.0 if (share[k] == 1 or junction in ('caps', 'bars')) else sig(HUB_SHARE_F * dep, DT['digits'])
                 if m[rk] + sk > dep:                  # the end section inside the hub
                     m[rk] = max(MIN_R, sig(dep - sk, DT['digits']) - 10 ** (-DT['digits'] + 1))
                 s.append(sk)
             else:
-                s.append(sig(TRIM_F * node_r[k], DT['digits']))
+                s.append(0.0 if junction in ('caps', 'bars') else sig(TRIM_F * node_r[k], DT['digits']))
         out_m.append(dict(i=i, j=j, r0=float(m['r0']), r1=float(m['r1']), s0=float(s[0]), s1=float(s[1])))
     node_list = [(new[k], float(node_r[k])) for k in ks if k in new]
-    R = dict(hubs=hubs, joints=joints, kind=kind, hub_of=hub_of, members=out_m, nodes=node_list, sym=axes,
+    if junction in ('caps', 'bars'):
+        node_list = []
+    R = dict(hubs=hubs, joints=joints, kind=kind, hub_of=hub_of, members=out_m, nodes=node_list, sym=axes, junction=junction,
              centre=tuple(float(c) for c in centre), orbit=orbit, ops=[orb[k][1] for k in used], detail=detail,
              pitch=pitch)
-    log('frame: %d joints (%d on hubs), %d members, %d nodes, %d joint orbits' % (
-        len(joints), len(hub_of), len(out_m), len(node_list), len(set(orbit))))
+    if junction == 'bars':
+        R['bars'] = make_bars(R, BAR_TOL[detail], DT)
+    log('frame: %d joints (%d on hubs), %d members, %d nodes, %d joint orbits%s' % (
+        len(joints), len(hub_of), len(out_m), len(node_list), len(set(orbit)),
+        '; %d bars, %d sections' % (len(R['bars']), sum(len(b['sec']) for b in R['bars'])) if junction == 'bars' else ''))
     # a truss has slender members; a thick wall (Knuckle_TO_2) gives members about as long as they are wide, and the
     # frame becomes a chain of nodes
     J = np.array(joints)
@@ -898,6 +909,136 @@ def fit(original, to, detail=3, log=print):
         log('WARNING: the TO is not truss-like: %.0f %% of the members are shorter than %.1f x the sum of their end '
             'radii; the frame model is a chain of nodes (a thick wall needs another method)' % (100 * R['stubby'], STUBBY))
     return R
+
+
+# ---- bars -------------------------------------------------------------------------------------------------
+def natural_spline(P):
+    """The natural cubic spline through points P with chord-length parameters (SolidWorks' CreateSpline2 with natural
+    ends: a loft along it matched SolidWorks to 0.03 % in sw_probe_bars). Returns (spline, knots)."""
+    from scipy.interpolate import CubicSpline
+    P = np.asarray(P, float)
+    d = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
+    if len(P) == 2:
+        return (lambda t, nu=0: P[0] + (P[1] - P[0]) * (t / d[1]) if nu == 0 else np.broadcast_to((P[1] - P[0]) / d[1], (np.size(t), 3)) if np.ndim(t) else (P[1] - P[0]) / d[1]), d
+    cs = CubicSpline(d, P, bc_type='natural')
+    return cs, d
+
+
+def arc_lengths(f, d, n=2000):
+    t = np.linspace(0.0, d[-1], n)
+    X = np.array([f(x) for x in t]) if not hasattr(f, 'derivative') else f(t)
+    s = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(X, axis=0), axis=1))]
+    return t, s
+
+
+def make_bars(R, tol, DT):
+    """Bars: chains of members between joints that are not simple bends (degree other than 2, or on a hub); a closed
+    chain with no such joint is cut at its first joint. Per bar: its joints in order and its sections (joint index in
+    the bar, radius): the two ends and every interior joint whose radius departs from the linear change along the
+    bar's arc length by more than tol (Douglas-Peucker on the radius); section radii in classes."""
+    J = np.array(R['joints'])
+    adj = {}
+    for n, m in enumerate(R['members']):
+        adj.setdefault(m['i'], []).append(n); adj.setdefault(m['j'], []).append(n)
+    stop = {k for k in adj if len(adj[k]) != 2 or R['kind'][k] == 'hub'}
+    used, bars = set(), []
+
+    def walk(k0, n0):
+        ks, rs, n, k = [k0], [], n0, k0
+        while True:
+            m = R['members'][n]; used.add(n)
+            a, b = (m['i'], m['j']) if m['i'] == k else (m['j'], m['i'])
+            ra, rb = (m['r0'], m['r1']) if m['i'] == k else (m['r1'], m['r0'])
+            rs.append((ra, rb))
+            ks.append(b)
+            if b in stop or b == k0:
+                return ks, rs
+            n = next(x for x in adj[b] if x != n)
+            k = b
+    for k0 in sorted(stop):
+        for n0 in adj[k0]:
+            if n0 not in used:
+                bars.append(walk(k0, n0))
+    for n0 in range(len(R['members'])):            # closed chains of bends only
+        if n0 not in used:
+            k0 = R['members'][n0]['i']
+            stop.add(k0)
+            bars.append(walk(k0, n0))
+    out = []
+    for ks, rs in bars:
+        # radius at each joint of the bar: the member ends there (the mean of the two at a bend)
+        r = [rs[0][0]] + [0.5 * (rs[i][1] + rs[i + 1][0]) for i in range(len(rs) - 1)] + [rs[-1][1]]
+        f, d = natural_spline(J[ks])
+        t, sl = arc_lengths(f, d)
+        sk = np.interp(d, t, sl)                    # arc length at each joint
+        keep = {0, len(ks) - 1}
+        stack = [(0, len(ks) - 1)]
+        while stack:
+            a, b = stack.pop()
+            if b <= a + 1:
+                continue
+            lin = lambda i: r[a] + (r[b] - r[a]) * (sk[i] - sk[a]) / max(sk[b] - sk[a], 1e-9)
+            dev = [(abs(r[i] - lin(i)) / max(r[i], 1e-9), i) for i in range(a + 1, b)]
+            e, i = max(dev)
+            if e > tol:
+                keep.add(i); stack += [(a, i), (i, b)]
+        out.append(dict(joints=[int(k) for k in ks], sec=[[i, float(r[i])] for i in sorted(keep)]))
+    vals = [sc[1] for b in out for sc in b['sec']]
+    cv = classes(vals, np.ones(len(vals)), DT['rclass'], DT['digits'])
+    k = 0
+    for b in out:
+        for sc in b['sec']:
+            sc[1] = float(cv[k]); k += 1
+    return out
+
+
+def bar_path(R, b):
+    """(spline, knots, arc-length table) of bar b."""
+    f, d = natural_spline(np.array(R['joints'])[b['joints']])
+    t, sl = arc_lengths(f, d)
+    return f, d, t, sl
+
+
+def bar_tangent(f, d, i):
+    if hasattr(f, 'derivative'):
+        v = f(d[i], 1)
+    else:
+        v = f(d[i], 1)
+    v = np.asarray(v, float).reshape(-1)[:3]
+    return v / np.linalg.norm(v)
+
+
+def bar_solid(R, b, n_seg=60, ext=0.0, pieces_only=False):
+    """The bar as SolidWorks lofts it: between consecutive sections the circle radius changes linearly with the
+    arc length along the spline (sw_probe_bars: 0.12 % for three sections); built as two-section sweeps along
+    the pieces of the spline, fused."""
+    f, d, t, sl = bar_path(R, b)
+    pieces = []
+    secs = b['sec']
+    last = len(secs) - 2
+    for k, ((i0, r0), (i1, r1)) in enumerate(zip(secs[:-1], secs[1:])):
+        tt = np.linspace(d[i0], d[i1], n_seg)
+        P = [np.asarray(f(x), float).reshape(-1)[:3] for x in tt]
+        if ext > 0 and k == 0:                     # ends a little past their joints (OCC: several bars ending at
+            P[0] = P[0] - ext * bar_tangent(f, d, i0)      # one point gave no valid Boolean; reference only)
+        if ext > 0 and k == last:
+            P[-1] = P[-1] + ext * bar_tangent(f, d, i1)
+        pts = [Vector(*p) for p in P]
+        path = cq.Edge.makeSpline(pts) if len(pts) > 2 and hasattr(f, 'derivative') else cq.Edge.makeLine(pts[0], pts[-1])
+        w = cq.Wire.assembleEdges([path])
+        # sections normal to the spline's own tangent, so two pieces share the same circle exactly
+        c0 = cq.Wire.assembleEdges([cq.Edge.makeCircle(r0, pts[0], Vector(*bar_tangent(f, d, i0)))])
+        c1 = cq.Wire.assembleEdges([cq.Edge.makeCircle(r1, pts[-1], Vector(*bar_tangent(f, d, i1)))])
+        pieces.append(cq.Solid.sweep_multi([c0, c1], w, True, False))
+    if pieces_only:
+        return pieces
+    out = pieces[0]
+    for p in pieces[1:]:
+        u = out.fuse(p, glue=True).clean()        # pieces share a section face
+        if not (u.isValid() and len(u.Solids()) == 1):
+            u = out.fuse(p).clean()
+        out = u
+    return out
 
 
 # ---- CadQuery model --------------------------------------------------------------------------------------
@@ -923,6 +1064,41 @@ def member_geom(R, m):
     return A + m['s0'] * t, B - m['s1'] * t, t, m['r0'], m['r1']
 
 
+def capsule_points(A, B, r0, r1, w):
+    """Tapered capsule from joint A (radius r0) to joint B (r1): the convex hull of the two spheres. Half profile
+    in the plane of the axis and the unit vector w normal to it: cap tip P1 = A - r0 t, tangent points T0 (on the
+    circle about A) and T1 (about B) of the common tangent line, cap tip P4 = B + r1 t, and the arc midpoints
+    M0, M1. Returns (P1, M0, T0, T1, M1, P4)."""
+    A, B, w = (np.asarray(v, float) for v in (A, B, w))
+    L = float(np.linalg.norm(B - A)); t = (B - A) / L
+    sa = (r0 - r1) / L
+    ca = math.sqrt(max(0.0, 1 - sa * sa))
+    at = lambda c, r, phi: c + r * (math.cos(phi) * t + math.sin(phi) * w)
+    phi0 = math.atan2(ca, sa)                         # cos phi0 = sin a, sin phi0 = cos a
+    return (at(A, r0, math.pi), at(A, r0, 0.5 * (math.pi + phi0)), at(A, r0, phi0),
+            at(B, r1, phi0), at(B, r1, 0.5 * phi0), at(B, r1, 0.0))
+
+
+def any_normal(t):
+    t = np.asarray(t, float)
+    a = np.eye(3)[int(np.argmin(np.abs(t)))]
+    w = np.cross(t, a)
+    return w / np.linalg.norm(w)
+
+
+def capsule_solid(R, m, shrink=0.0):
+    """The member's capsule; shrink (mm) takes that off both radii: members with equal end radii at a joint have
+    the same cap sphere, and OCC's Booleans fail on such coincident faces (SolidWorks does not), so the reference
+    retries with a cap 0.5 um smaller, strictly inside the other (volume change ~0.01 mm^3)."""
+    A, B = np.array(R['joints'][m['i']]), np.array(R['joints'][m['j']])
+    w = any_normal(B - A)
+    P1, M0, T0, T1, M1, P4 = (Vector(*p) for p in capsule_points(A, B, m['r0'] - shrink, m['r1'] - shrink, w))
+    es = [cq.Edge.makeThreePointArc(P1, M0, T0), cq.Edge.makeLine(T0, T1), cq.Edge.makeThreePointArc(T1, M1, P4),
+          cq.Edge.makeLine(P4, P1)]
+    face = cq.Face.makeFromWires(cq.Wire.assembleEdges(es), [])
+    return cq.Solid.revolve(face, 360, Vector(*A), Vector(*B))
+
+
 def member_solid(R, m):
     p0, p1, t, r0, r1 = member_geom(R, m)
     h = float(np.linalg.norm(p1 - p0))
@@ -939,11 +1115,114 @@ def node_solid(R, j, r):
     return cq.Solid.makeSphere(r, Vector(*R['joints'][j]), Vector(*NODE_AXIS), angleDegrees1=-90, angleDegrees2=90)
 
 
-def steps(R):
-    """Features in build order (hubs, nodes, members, holes) with the volume and centre of mass after each."""
-    out, union = [], None
+MESH_TOL = (0.01, 0.1)   # mm, rad: tessellation of the mesh reference
 
-    def combine(solid, cut=False):
+
+def to_manifold(shape, tol=MESH_TOL):
+    import trimesh, manifold3d as mf
+    vs, fs = shape.tessellate(*tol)
+    t = trimesh.Trimesh(np.array([v.toTuple() for v in vs]), np.array(fs), process=True)
+    t.merge_vertices(); t.fix_normals()
+    return mf.Manifold(mf.Mesh(np.asarray(t.vertices, np.float32), np.asarray(t.faces, np.uint32)))
+
+
+def manifold_props(M):
+    import trimesh
+    m = M.to_mesh()
+    t = trimesh.Trimesh(np.asarray(m.vert_properties)[:, :3], np.asarray(m.tri_verts), process=False)
+    return float(t.volume), tuple(float(x) for x in t.center_mass)
+
+
+def exact_props(solids):
+    """Volume and centre of mass of solids that touch only at faces (a bar's pieces), from OCC's integration."""
+    v = sum(x.Volume() for x in solids)
+    c = sum(np.array(x.Center().toTuple()) * x.Volume() for x in solids) / v
+    return v, c
+
+
+def fuse_pieces(pieces):
+    out = pieces[0]
+    for p in pieces[1:]:
+        u = out.fuse(p, glue=True).clean()
+        if not (u.isValid() and len(u.Solids()) == 1):
+            u = out.fuse(p).clean()
+        out = u
+    return out
+
+
+def steps_mesh(R):
+    """Features of the bar model in build order (hubs, bars, holes) with the volume and centre of mass after each,
+    by mesh Booleans (manifold3d): OCC's Booleans failed where several bars end at one joint and on some swept bars.
+    The B-rep union is also made where OCC manages (for the STEP file); else the solids are returned as a compound."""
+    out, M, union, occ_ok = [], None, None, True
+    parts = [('hub', 'Hub %d' % (n + 1), hub_solid(h, h['ro']), dict(hub=n), False) for n, h in enumerate(R['hubs'])]
+    parts += [('bar', 'Bar %d' % (n + 1), bar_solid(R, b, pieces_only=True), dict(bar=n), False)
+              for n, b in enumerate(R['bars'])]
+    parts += [('hole', 'Hole %d' % (n + 1), hub_solid(h, h['ri'], EPS), dict(hub=n), True) for n, h in enumerate(R['hubs'])]
+    solids = []
+    corr_v, corr_m = 0.0, np.zeros(3)
+    for kind, name, solid, kw, cut in parts:
+        is_bar = isinstance(solid, list)
+        if is_bar:                       # bar pieces: union in mesh space, OCC fuse may fail at shared sections
+            mp = None
+            for p in solid:
+                q = to_manifold(p)
+                mp = q if mp is None else mp + q
+            pieces = solid
+            try:
+                solid = pieces[0] if len(pieces) == 1 or not occ_ok else fuse_pieces(pieces)
+                if not (solid.isValid() and len(solid.Solids()) == 1):
+                    occ_ok = False
+            except Exception:
+                occ_ok = False
+            if not occ_ok:
+                solid = cq.Compound.makeCompound(pieces)
+        else:
+            mp = to_manifold(solid)
+        if mp.is_empty():
+            raise RuntimeError('%s: mesh not manifold' % name)
+        vb = 0.0 if M is None else M.volume()
+        M = mp if M is None else (M - mp if cut else M + mp)
+        vm, cm = manifold_props(M)
+        # tessellation error: the exact volume and first moment of the feature minus its mesh's, scaled by the
+        # share of the feature that changed the part (first order; the features' own meshes err by ~5e-4)
+        own_m = float(mp.volume())
+        ve, ce = exact_props(pieces if is_bar else [solid])
+        cmm = np.array(manifold_props(mp)[1])
+        share = abs(vm - vb) / own_m if own_m > 0 else 0.0
+        sign = -1.0 if cut else 1.0
+        corr_v += sign * share * (ve - own_m)
+        corr_m += sign * share * (ve * np.array(ce) - own_m * cmm)
+        v = vm + corr_v
+        c = (vm * np.array(cm) + corr_m) / v
+        out.append(dict(kind=kind, name=name, volume=v, com=np.array(c), own=ve, **kw))
+        solids.append((solid, cut))
+        if occ_ok:
+            try:
+                if union is None:
+                    u = solid
+                else:
+                    u = (union.cut(solid) if cut else union.fuse(solid)).clean()
+                if u.isValid() and abs(u.Volume() - v) <= 5e-3 * v + 0.1:
+                    union = u
+                else:
+                    occ_ok = False
+            except Exception:
+                occ_ok = False
+    if not occ_ok:
+        union = cq.Compound.makeCompound([s for s, cut in solids if not cut])
+    R['mesh'] = M
+    R['occ_union'] = occ_ok
+    return out, union
+
+
+def steps(R):
+    """Features in build order (hubs, nodes, members, holes) with the volume and centre of mass after each; with
+    junction 'caps' the members are capsules and there are no nodes."""
+    out, union = [], None
+    caps_check = R.get('junction') in ('caps', 'bars')
+
+    def combine(solid, cut=False, member=False):
         if union is None:
             return solid
         n0, v0, vs = len(union.Solids()), union.Volume(), solid.Volume()
@@ -955,13 +1234,26 @@ def steps(R):
             v = u.Volume()
             e = 1e-4 * (v0 + vs) + 1e-2
             ok_v = (v0 - vs - e <= v <= v0 + e) if cut else (max(v0, vs) - e <= v <= v0 + vs + e)
+            if ok_v and caps_check:
+                # the volume identity (a fuse that lost material passed the bounds: Knuckle level 1)
+                try:
+                    common = union.intersect(solid, tol=tol).Volume() if tol else union.intersect(solid).Volume()
+                    want = v0 - common if cut else v0 + vs - common
+                    ok_v = abs(v - want) <= 1e-4 * (v0 + vs) + 1e-2
+                except Exception:
+                    ok_v = False
             if u.isValid() and len(u.Solids()) <= n0 + (0 if cut else 1) and ok_v:
                 return u
         return None
 
-    def add(kind, name, solid, cut=False, **kw):
+    def add(kind, name, solid, cut=False, alt=(), **kw):
         nonlocal union
-        u = combine(solid, cut)
+        u = combine(solid, cut, kind == 'member')
+        for a in alt:                                 # retries with a slightly different solid (coincident faces)
+            if u is not None:
+                break
+            solid = a()
+            u = combine(solid, cut, kind == 'member')
         if u is None:
             raise RuntimeError('%s: no valid Boolean' % name)
         union = u
@@ -972,8 +1264,15 @@ def steps(R):
         add('hub', 'Hub %d' % (n + 1), hub_solid(h, h['ro']), hub=n)
     for n, (j, r) in enumerate(R['nodes']):
         add('node', 'Node %d' % (n + 1), node_solid(R, j, r), joint=j, r=r)
+    caps = R.get('junction') == 'caps'
+    if R.get('junction') == 'bars':
+        return steps_mesh(R)
     for n, m in enumerate(R['members']):
-        add('member', 'Member %d' % (n + 1), member_solid(R, m), m=n)
+        if caps:
+            add('member', 'Member %d' % (n + 1), capsule_solid(R, m), m=n,
+                alt=[lambda m=m, d=d: capsule_solid(R, m, d) for d in (5e-4, 2e-3)])
+        else:
+            add('member', 'Member %d' % (n + 1), member_solid(R, m), m=n)
     for n, h in enumerate(R['hubs']):
         add('hole', 'Hole %d' % (n + 1), hub_solid(h, h['ri'], EPS), cut=True, hub=n)
     return out, union

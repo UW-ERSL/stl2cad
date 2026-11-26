@@ -44,6 +44,7 @@ then built as a 3D frame:
 | frame3d.py | 3D skeleton -> joints, straight tapered round members, sphere nodes; mirror symmetry; CadQuery model |
 | swframe.py | SolidWorks script (3D skeleton sketch, lofts, revolved nodes, hubs and holes) and its stand-in check |
 | sw_probe_frame.py | probe of the SolidWorks calls swframe adds (3D sketch, point-to-plane dimensions, ...) |
+| sw_probe_bars.py | probe of the bar calls (3D spline, planes normal to it, lofts along it, fillet by CreateDefinition) |
 
 Usage, from this folder (the original's exact model first, once):
 
@@ -67,7 +68,19 @@ holes as extrusions on offset planes (coaxial hubs share their centre variables)
 their skeleton points (they follow the joints); members as lofts between circles on planes normal to their
 skeleton lines. Run `sw_probe_frame.py` once on a new SolidWorks version and check its log first.
 
-Limits: members are round (a flat TO wall becomes a round member of equal area); junctions are spheres, so the
-re-entrant edges where members meet nodes and hubs are not filleted; a hollow hub in the TO (the Knuckle's boss)
-is modelled solid; the hubs must come from full holes of the original; TO-only input is not handled.
+Bars (frame3d.JUNCTION = 'bars', the default; 'spheres' gives the member and node model above): each chain of
+members between junctions or hubs is one bar, a Loft along a 3D spline through its joints (CreateSpline2 with
+natural ends, in the skeleton sketch). Its sections are circles on planes normal to the spline at the two ends
+and at the interior joints where the radius departs from the linear change along the bar by more than a
+tolerance set by `--detail`; between sections the radius changes linearly with the arc length, as SolidWorks
+lofts it (`sw_probe_bars.py`: 0.03 % for two sections, 0.12 % for three). No spheres: the bars end at the
+junction points, and one fillet of radius R_FILLET (half the smallest section radius) covers every edge where
+bars and hubs meet. The reference volumes after each feature come from mesh Booleans (manifold3d) of the CadQuery
+features with a first-order correction for the tessellation error, since OCC's Booleans fail where several
+swept bars end at one point; the STEP file is then a compound of the features.
+
+Limits: members are round (a flat TO wall becomes a round member of equal area); a hollow hub in the TO (the
+Knuckle's boss) is modelled solid; the hubs must come from full holes of the original; TO-only input is not
+handled. The stand-in check of the bar model runs with a volume check after every feature, since OCC's fuse
+fails on some bars there; the fillet is not checked by the stand-in.
 

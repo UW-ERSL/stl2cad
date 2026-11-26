@@ -485,14 +485,17 @@ def write(path, name, R, detail=None, nd=6):
     return dict(volume=S[-1]['volume'], union=union, steps=len(S))
 
 
-def verify(script_path, ref, timeout=900):
+def verify(script_path, ref, timeout=900, subs=()):
     """Run the script on the API stand-in (swmock) and compare the result with ref by volume, centre of mass
     and bounding box (swplates.verify's Booleans and Gauss-Kronrod volumes do not finish on lofted faces)."""
     import re, subprocess, tempfile
     import stl2cad
     d = tempfile.mkdtemp(prefix='swsweep_')
     py, out = os.path.join(d, 'part.py'), os.path.join(d, 'part.step')
-    open(py, 'w').write(re.sub(r'^R_FILLET = [0-9.]+', 'R_FILLET = 0.0', open(script_path).read(), flags=re.M))
+    text = re.sub(r'^R_FILLET = [0-9.]+', 'R_FILLET = 0.0', open(script_path).read(), flags=re.M)
+    for pat, rep in subs:                 # settings for the stand-in, e.g. a check after every feature
+        text = re.sub(pat, rep, text, flags=re.M)
+    open(py, 'w').write(text)
     pkg = os.path.dirname(stl2cad.__file__)
     env = dict(os.environ, PYTHONPATH=os.pathsep.join([os.path.join(pkg, 'swmock'), os.path.dirname(pkg)]),
                SWMOCK_CUT_REVERSED='1', SWMOCK_BOSS_REVERSED='0', SWMOCK_EDGE_SIGHT='1')
@@ -501,10 +504,14 @@ def verify(script_path, ref, timeout=900):
     if r.returncode != 0 or not os.path.exists(out):
         return False, log
     s = cq.Shape.importBrep(out + '.brep') if os.path.exists(out + '.brep') else cq.importers.importStep(out).val()
-    (v, c), (vr, cr) = mass_props(s), mass_props(ref)
-    b, br = s.BoundingBox(), ref.BoundingBox()
-    db = max(abs(x - y) for x, y in zip((b.xmin, b.ymin, b.zmin, b.xmax, b.ymax, b.zmax),
-                                         (br.xmin, br.ymin, br.zmin, br.xmax, br.ymax, br.zmax)))
+    v, c = mass_props(s)
+    b = s.BoundingBox()
+    if isinstance(ref, tuple):            # (volume, centre of mass, (xmin, ymin, zmin, xmax, ymax, zmax)): a mesh reference
+        vr, cr, bb = ref
+    else:
+        (vr, cr), br = mass_props(ref), ref.BoundingBox()
+        bb = (br.xmin, br.ymin, br.zmin, br.xmax, br.ymax, br.zmax)
+    db = max(abs(x - y) for x, y in zip((b.xmin, b.ymin, b.zmin, b.xmax, b.ymax, b.zmax), bb))
     dc = math.dist(c, cr)
     # 0.1 %: Booleans on lofted faces differ by a few mm^3 between runs of OCC; boxes of B-spline faces are loose
     ok = abs(v - vr) <= 1e-3 * vr and dc <= 0.05 and db <= 0.5

@@ -87,7 +87,10 @@ class Segment:
                 m.ext_sel = []
             pts = [sk.to_model(q) for q in self.edge[1:]]
             V = [cq.Vector(*(K * q)) for q in pts]
-            edge = cq.Edge.makeLine(*V) if self.edge[0] == "line" else cq.Edge.makeThreePointArc(*V)
+            if self.edge[0] == "spline":
+                edge = _spline_edge(K * np.array(pts, float))
+            else:
+                edge = cq.Edge.makeLine(*V) if self.edge[0] == "line" else cq.Edge.makeThreePointArc(*V)
             m.ext_sel.append(("segment", edge, getattr(data, "Mark", 0)))
             m.ext_segs = getattr(m, "ext_segs", []) + [(self, getattr(data, "Mark", 0))]
             return True
@@ -96,6 +99,58 @@ class Segment:
             m.sel_list = []
         m.sel_list.append((self.edge[0], self))
         return True
+
+
+def natural_spline(P):
+    """SolidWorks' CreateSpline2 with natural ends (sw_probe_bars): the natural cubic spline through P with
+    chord-length parameters. Returns (f(t, nu=0), knots)."""
+    from scipy.interpolate import CubicSpline
+    P = np.asarray(P, float)
+    d = np.r_[0.0, np.cumsum(np.linalg.norm(np.diff(P, axis=0), axis=1))]
+    if len(P) == 2:
+        return (lambda t, nu=0: P[0] + (P[1] - P[0]) * (t / d[1]) if nu == 0 else (P[1] - P[0]) / d[1]), d
+    return CubicSpline(d, P, bc_type="natural"), d
+
+
+def _spline_edge(P, t0=None, t1=None, n=40, m=None):
+    """Edge along the natural spline through P (mm), between parameters t0 and t1 (default: all of it), as a
+    B-spline through n samples per span."""
+    f, d = natural_spline(P)
+    t0 = d[0] if t0 is None else t0
+    t1 = d[-1] if t1 is None else t1
+    m = m or max(2, int(n * max(1, len(P) - 1) * (t1 - t0) / max(d[-1] - d[0], 1e-12)) + 1)
+    X = [np.asarray(f(x), float).reshape(-1)[:3] for x in np.linspace(t0, t1, m)]
+    if len(P) == 2:
+        return cq.Edge.makeLine(cq.Vector(*X[0]), cq.Vector(*X[-1]))
+    return cq.Edge.makeSpline([cq.Vector(*x) for x in X])
+
+
+def _spline_loft(P, profs):
+    """Loft of circle sections along the natural spline through P (mm), as SolidWorks (sw_probe_bars): between
+    consecutive sections the radius changes linearly with the arc length. Pieces between sections, fused."""
+    f, d = natural_spline(P)
+    T = np.linspace(d[0], d[-1], 4001)
+    X = np.array([np.asarray(f(x), float).reshape(-1)[:3] for x in T])
+    secs = []
+    for w in profs:
+        es = w.Edges()
+        if len(es) != 1 or es[0].geomType() != "CIRCLE":
+            return None
+        c = np.array(es[0].arcCenter().toTuple())
+        secs.append((T[int(np.argmin(np.linalg.norm(X - c, axis=1)))], es[0].radius()))
+        if os.environ.get("SWMOCK_DEBUG"):
+            print("  [stand-in] spline %s..%s section centre %s r %.3f" % (np.round(P[0], 3), np.round(P[-1], 3), np.round(c, 3), es[0].radius()))
+    secs.sort()
+    pieces = []
+    for (t0, r0), (t1, r1) in zip(secs[:-1], secs[1:]):
+        path = cq.Wire.assembleEdges([_spline_edge(P, t0, t1, m=60)])   # as stl2cad's reference (frame3d.bar_solid)
+        circ = []
+        for t, r in ((t0, r0), (t1, r1)):
+            p = np.asarray(f(t), float).reshape(-1)[:3]
+            v = np.asarray(f(t, 1), float).reshape(-1)[:3]
+            circ.append(cq.Wire.assembleEdges([cq.Edge.makeCircle(r, cq.Vector(*p), cq.Vector(*(v / np.linalg.norm(v))))]))
+        pieces.append(cq.Solid.sweep_multi(circ, path, True, False))
+    return pieces
 
 
 def _seg_end(seg, i):
@@ -278,7 +333,7 @@ class Sketch3D:
         out = []
         for seg in self.edges:
             if not seg.deleted:
-                out += [SketchPoint3(m, seg.edge[1], self), SketchPoint3(m, seg.edge[2], self)]
+                out += [SketchPoint3(m, q, self) for q in seg.edge[1:]]
         out += [SketchPoint3(m, q, self) for q in self.points3]
         return out
 
@@ -295,7 +350,8 @@ class Sketch3D:
         return RM()
 
     def wire(self):
-        es = [cq.Edge.makeLine(cq.Vector(*(K * np.asarray(seg.edge[1]))), cq.Vector(*(K * np.asarray(seg.edge[2]))))
+        es = [_spline_edge(K * np.array(seg.edge[1:], float)) if seg.edge[0] == "spline" else
+              cq.Edge.makeLine(cq.Vector(*(K * np.asarray(seg.edge[1]))), cq.Vector(*(K * np.asarray(seg.edge[2]))))
               for seg in self.edges if not seg.deleted and not seg.ConstructionGeometry]
         return cq.Wire.assembleEdges(es)
 
@@ -540,6 +596,13 @@ class SketchManager:
         seg.sk = self._sk
         self._sk.edges.append(seg)
         return seg
+
+    def CreateSpline2(self, pts, natural):
+        """Spline through points (flat x, y, z in m) in a 3D sketch; natural ends (the only case swframe uses)."""
+        v = list(pts.value if isinstance(pts, VARIANT) else pts)
+        if not getattr(self._sk, "is3d", False) or len(v) < 6 or not natural:
+            return None
+        return self._add(("spline",) + tuple(tuple(v[k:k + 3]) for k in range(0, len(v), 3)))
 
     def CreatePoint(self, x, y, z):
         if getattr(self._sk, "is3d", False):
@@ -885,6 +948,77 @@ def _boolean(a, b, cut):
     return r
 
 
+def _mesh(shape, tol=(0.01, 0.1)):
+    import trimesh, manifold3d as mf
+    vs, fs = shape.tessellate(*tol)
+    t = trimesh.Trimesh(np.array([v.toTuple() for v in vs]), np.array(fs), process=True)
+    t.merge_vertices(); t.fix_normals()
+    return mf.Manifold(mf.Mesh(np.asarray(t.vertices, np.float32), np.asarray(t.faces, np.uint32)))
+
+
+def _mesh_added(a, b):
+    try:
+        A, B = _mesh(a), _mesh(b)
+        if any(M.is_empty() or abs(M.volume() - x.Volume()) > 1e-2 * x.Volume() for M, x in ((A, a), (B, b))):
+            return None                    # a mesh that is not closed
+        return (A + B).volume() - A.volume()
+    except Exception:
+        return None
+
+
+def _reread(shape):
+    """The shape written to BREP and read back (OCC then fused some bars it had failed on, Knuckle frame)."""
+    import io
+    buf = io.BytesIO()
+    shape.exportBrep(buf)
+    buf.seek(0)
+    return cq.Shape.importBrep(buf)
+
+
+def _clean(r):
+    try:
+        return r.clean()
+    except Exception:
+        return None
+
+
+def _fuse_checked(a, b):
+    """a + b for frame bars: _boolean, then other OCC options while the result is invalid or smaller than a or b
+    (OCC's Booleans fail on some bars that end at one joint; seen on the Knuckle frame)."""
+    va, vb = a.Volume(), b.Volume()
+    added = _mesh_added(a, b)              # the volume b adds, by mesh Booleans (errors of a's mesh cancel)
+    for x in (a, a.fix()) if added is None else ():   # else from the common volume with each solid of a
+        try:
+            added = vb - sum(y.intersect(b).Volume() for y in x.Solids())
+            if 0 <= added <= vb + 1e-6:
+                break
+            added = None
+        except Exception:
+            added = None
+    # an invalid result is kept when its volume is right (OCC: a bar ending in a junction of bars; the next fuse,
+    # or the same with fix(), still worked)
+    ok = lambda r: (r is not None and (r.isValid() or added is not None) and max(va, vb) - 1e-6 <= r.Volume() <= va + vb + 1e-6
+                    and (added is None or abs(r.Volume() - va - added) <= 3e-3 * vb + 0.3))
+    r = _boolean(a, b, cut=False)
+    if ok(r):
+        return r
+    for make in (lambda: a.fuse(b), lambda: a.fuse(b, glue=True), lambda: b.fuse(a), lambda: a.fuse(b, tol=1e-3),
+                 lambda: a.fuse(b, tol=1e-2), lambda: _reread(a).fuse(_reread(b)),
+                 lambda: _reread(a).fuse(_reread(b), tol=1e-3), lambda: a.fix().fuse(b.fix())):
+        try:
+            r1 = make()
+        except Exception:
+            continue
+        for r2 in (r1, _clean(r1)):
+            if ok(r2):
+                return r2
+    if os.environ.get("SWMOCK_DEBUG"):
+        k = len([f for f in os.listdir(".") if f.startswith("fail_a")])
+        a.exportBrep("fail_a%d.brep" % k); b.exportBrep("fail_b%d.brep" % k)
+        print("  [stand-in] fuse failed (mesh: adds %s); saved fail_a%d.brep, fail_b%d.brep" % (added, k, k))
+    return r
+
+
 class FeatureManager:
     def __init__(self, model):
         self.model = model
@@ -939,8 +1073,22 @@ class FeatureManager:
         sel = getattr(m, "ext_sel", [])
         profs = [o.data.wire() for k, o, mk in sel if k == "feature" and o.kind == "ProfileFeature" and mk == 1]
         cl = [o.data.wire() for k, o, mk in sel if k == "feature" and o.kind == "ProfileFeature" and mk == 4]
-        if len(profs) < 2 or len(cl) > 1:
+        segs = [g for g, mk in getattr(m, "ext_segs", []) if mk == 4]
+        if len(profs) < 2 or len(cl) + len(segs) > 1:
             return None
+        if segs:                             # a bar along a 3D sketch spline (swframe, bars)
+            pieces = _spline_loft(K * np.array(segs[0].edge[1:], float), profs)
+            if pieces is None:
+                return None
+            before = m.body
+            for p in pieces:
+                m.body = p if m.body is None else _fuse_checked(m.body, p)
+                if os.environ.get("SWMOCK_DEBUG"):
+                    print("  [stand-in] piece %.3f valid %s, body %.3f valid %s solids %d" % (
+                        p.Volume(), p.isValid(), m.body.Volume(), m.body.isValid(), len(m.body.Solids())))
+            f = Feature(m, "Loft", dict(before=before))
+            m.features.append(f)
+            return f
         if cl:
             body = cq.Solid.sweep_multi(profs, cl[0], True, False)
         else:                                # straight loft between the sections
