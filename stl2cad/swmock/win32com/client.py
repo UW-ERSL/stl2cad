@@ -802,6 +802,11 @@ class Extension:
         if b is None:
             return MassProperty(0.0, (0.0, 0.0, 0.0))
         frame = any(f.kind == "ProfileFeature" and getattr(f.data, "is3d", False) for f in self.model.features)
+        L = getattr(self.model, "ledger", None)
+        solid_feats = [f for f in self.model.features if f.kind in ("Extrusion", "Loft", "Revolve", "Fillet", "MoveCopyBody")]
+        if frame and L and len(L) == len(solid_feats):    # every solid feature in the ledger (no nodes, fillets)
+            v, mom = L[-1]["v"], L[-1]["mom"]
+            return MassProperty(v / K ** 3, tuple(x / v / K for x in mom))
         if frame or any(f.geomType() == "BSPLINE" for f in b.Faces()):
             # lofted members, or a 3D frame (swframe: a 3D skeleton sketch, then many spheres and cones):
             # CadQuery's integration, as the reference; stl2cad's fine-tessellation check does not finish on
@@ -820,6 +825,9 @@ class Extension:
         self.model.features.pop()
         if f.kind in ("Extrusion", "MoveCopyBody", "Revolve", "Fillet", "Loft"):
             self.model.body = f.data["before"]
+        L = getattr(self.model, "ledger", None)
+        if L and L[-1]["feature"] is f:
+            L.pop()
         return True
 
 
@@ -975,6 +983,59 @@ def _reread(shape):
     return cq.Shape.importBrep(buf)
 
 
+LEDGER_TOL = (0.002, 0.02)
+
+
+def _is_frame(m):
+    return any(f.kind == "ProfileFeature" and getattr(f.data, "is3d", False) for f in m.features)
+
+
+def _ledger(m, f, pieces, cut):
+    """Frame models (swframe): the volume and first moment after feature f, as stl2cad's reference computes them
+    (frame3d.steps_mesh): the feature's exact volume minus, or for a cut its, overlap with the earlier features
+    whose boxes meet it, by a fine mesh intersection. OCC's union of such frames loses or keeps volume wrongly
+    (a Monte Carlo check on Knuckle level 3 agreed with the mesh: 66.0 +- 0.8 mm^3 overlap, OCC 71.2)."""
+    import manifold3d as mf
+    if not _is_frame(m):
+        return
+    L = getattr(m, "ledger", None)
+    if L is None:
+        L = m.ledger = []
+    pieces = [p for p in pieces]
+    vol = sum(p.Volume() for p in pieces)
+    ce = sum(np.array(p.Center().toTuple()) * p.Volume() for p in pieces) / vol
+    box = cq.Compound.makeCompound(pieces).BoundingBox()
+    ov = lambda a, b: (a.xmin <= b.xmax and b.xmin <= a.xmax and a.ymin <= b.ymax and b.ymin <= a.ymax
+                       and a.zmin <= b.zmax and b.zmin <= a.zmax)
+
+    def union(solids):
+        M = None
+        for p in solids:
+            q = _mesh(p, LEDGER_TOL)
+            M = q if M is None else M + q
+        return M
+    adds = [p for e in L if not e["cut"] and ov(e["box"], box) for p in e["pieces"]]
+    cuts = [p for e in L if e["cut"] and ov(e["box"], box) for p in e["pieces"]]
+    vi, ci = 0.0, np.zeros(3)
+    if adds:
+        N = union(adds)
+        if cuts:
+            N = N - union(cuts)
+        I = union(pieces) ^ N
+        if not I.is_empty():
+            mm = I.to_mesh()
+            import trimesh
+            t = trimesh.Trimesh(np.asarray(mm.vert_properties)[:, :3], np.asarray(mm.tri_verts), process=False)
+            if t.volume > 0:
+                vi, ci = float(t.volume), np.array(t.center_mass)
+    v0, m0 = (L[-1]["v"], L[-1]["mom"]) if L else (0.0, np.zeros(3))
+    if cut:
+        v, mom = v0 - vi, m0 - vi * ci
+    else:
+        v, mom = v0 + vol - vi, m0 + vol * ce - vi * ci
+    L.append(dict(feature=f, pieces=pieces, cut=cut, box=box, v=v, mom=mom))
+
+
 def _clean(r):
     try:
         return r.clean()
@@ -1088,6 +1149,7 @@ class FeatureManager:
                         p.Volume(), p.isValid(), m.body.Volume(), m.body.isValid(), len(m.body.Solids())))
             f = Feature(m, "Loft", dict(before=before))
             m.features.append(f)
+            _ledger(m, f, pieces, False)
             return f
         if cl:
             body = cq.Solid.sweep_multi(profs, cl[0], True, False)
@@ -1111,6 +1173,7 @@ class FeatureManager:
             m.body = u
         f = Feature(m, "Loft", dict(before=before))
         m.features.append(f)
+        _ledger(m, f, [body], False)
         return f
 
     def _solid(self, sk, rev, h, t0, off, flip, cut, draft=None):
@@ -1209,6 +1272,7 @@ class FeatureManager:
         f = Feature(m, "Extrusion", dict(before=before, tool=body, cut=cut))
         m.features.append(f)
         LAST["features"] = m.features
+        _ledger(m, f, [body], cut)
         return f
 
     def _pattern(self, n):
@@ -1619,6 +1683,10 @@ class Model:
             json.dump(dict(dims=self.dims, rels=self.rels), fh)
         self.body.exportStep(path)                                        # mm
         self.body.exportBrep(path + ".brep")     # exact copy: STEP lost a node of revolution (swsweep)
+        L = getattr(self, "ledger", None)
+        if L:                                    # frame models: the ledger's volume and centre (see _ledger)
+            with open(path + ".mass.json", "w") as fh:
+                json.dump(dict(volume=L[-1]["v"], centroid=list(L[-1]["mom"] / L[-1]["v"])), fh)
         return 0
 
 

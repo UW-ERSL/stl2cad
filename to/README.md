@@ -68,7 +68,18 @@ holes as extrusions on offset planes (coaxial hubs share their centre variables)
 their skeleton points (they follow the joints); members as lofts between circles on planes normal to their
 skeleton lines. Run `sw_probe_frame.py` once on a new SolidWorks version and check its log first.
 
-Bars (frame3d.JUNCTION = 'bars', the default; 'spheres' gives the member and node model above): each chain of
+Overlap (frame3d.JUNCTION = 'overlap', the default): no spheres. Each straight tapered member runs past its free
+joints by r cot(a/2), a the smallest angle to another member there (at least 0.1 r, at most r and 0.4 x its
+length), so neighbouring members overlap and the outside of a bend is filled; one fillet of radius R_FILLET (half
+the smallest member radius) on every edge where members and hubs meet. SolidWorks: the section points stand on
+the extensions of the skeleton lines; each member is a straight Loft (the calls of the sphere model, which built
+in SolidWorks 2025). Joints are 3D sketch points edited by their X, Y, Z parameters (JOINT_DIMS = False in the
+script; True restores the x, y dimensions and the ZLevel planes for z). Reference volumes: each feature adds its
+exact volume (OCC's integration) minus its overlap with the earlier features whose boxes meet it, by a fine mesh
+intersection (frame3d.steps_mesh); OCC's union of these frames was wrong by several mm^3 on some members (a Monte
+Carlo check agreed with the mesh). The stand-in computes its volumes the same way for frame models.
+
+Bars (frame3d.JUNCTION = 'bars'; 'spheres' gives the member and node model above): each chain of
 members between junctions or hubs is one bar, a Loft along a 3D spline through its joints (CreateSpline2 with
 natural ends, in the skeleton sketch). Its sections are circles on planes normal to the spline at the two ends
 and at the interior joints where the radius departs from the linear change along the bar by more than a
@@ -77,7 +88,10 @@ lofts it (`sw_probe_bars.py`: 0.03 % for two sections, 0.12 % for three). No sph
 junction points, and one fillet of radius R_FILLET (half the smallest section radius) covers every edge where
 bars and hubs meet. The reference volumes after each feature come from mesh Booleans (manifold3d) of the CadQuery
 features with a first-order correction for the tessellation error, since OCC's Booleans fail where several
-swept bars end at one point; the STEP file is then a compound of the features.
+swept bars end at one point; the STEP file is then a compound of the features. In SolidWorks 2025 the loft of a
+sharply bent bar (Knuckle level 3, Bar 4: end planes 96 deg apart) failed for every variant probed
+(sw_probe_bar4*.py: with and without centerline, guide curve, Merge off, new circles, aligned connectors), so
+bars are not the default.
 
 Limits: members are round (a flat TO wall becomes a round member of equal area); a hollow hub in the TO (the
 Knuckle's boss) is modelled solid; the hubs must come from full holes of the original; TO-only input is not

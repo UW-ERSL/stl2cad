@@ -3,8 +3,9 @@ straight tapered round members, the original's holes.
 
 Feature tree:
   Mirror x, Mirror z   reference planes through the part's mirror planes (offset from the Right/Top/Front Plane);
-  ZLevel n             planes parallel to the Front Plane at the joints' z (offset from Mirror z, else the Front
-                       Plane): SolidWorks refuses 3D sketch dimensions along z, so z is the plane's offset;
+  ZLevel n             (JOINT_DIMS only) planes parallel to the Front Plane at the joints' z (offset from Mirror z,
+                       else the Front Plane): SolidWorks refuses 3D sketch dimensions along z, so z is the plane's
+                       offset. By default the joints are 3D sketch points edited by their X, Y, Z parameters;
   Frame skeleton       one 3D sketch: a point at every joint and a line per member. Each joint point is
                        dimensioned in x and y to planes (a mirror plane along a symmetric axis, else the standard
                        plane) and put on its z level by relation; labels 'joint <orbit> x|y|z': mirror images
@@ -15,7 +16,10 @@ Feature tree:
                        point, its centre coincident with that point (the node follows the joint);
   Member n             Loft between two circles on planes normal to the member's skeleton line at its end points;
   Hole n               Cut-Extrude of the original's hole.
-Bar mode (frame3d.JUNCTION = 'bars', the default): no nodes or members; instead
+Overlap mode (frame3d.JUNCTION = 'overlap', the default): no nodes; each member's sections stand past its free
+joints (negative s0, s1: the section point on the line's extension), so members overlap at the joints; one
+Junction fillet (R_FILLET) on the edges where members and hubs meet, before the holes.
+Bar mode (frame3d.JUNCTION = 'bars'): no nodes or members; instead
   Frame skeleton       also a 3D spline (CreateSpline2, natural ends) through the joints of each bar (a line for two);
   Bar n                Loft through circles on planes normal to its spline at the kept joints (the ends, and interior
                        joints where the radius departs from the linear change), the spline as centerline;
@@ -47,6 +51,11 @@ def write(path, name, R, detail):
                 % (len(R['hubs']), len(J), len(R['bars'])),
                 'along 3D splines through the joints), one fillet where bars and hubs meet, and the original\'s holes. '
                 'Mirror symmetry imposed ']
+    elif R.get('junction') == 'overlap':
+        what = ['The part is built as %d hub(s), a 3D skeleton sketch of %d joints, %d member(s) (Lofts between circles'
+                % (len(R['hubs']), len(J), len(R['members'])),
+                'normal to their skeleton lines, running past the joints), one fillet where members and hubs meet, and '
+                'the original\'s holes. Mirror symmetry imposed ']
     else:
         what = ['The part is built as %d hub(s), a 3D skeleton sketch of %d joints, %d sphere node(s), %d member(s)'
                 % (len(R['hubs']), len(J), len(R['nodes']), len(R['members'])),
@@ -57,9 +66,11 @@ def write(path, name, R, detail):
          'After every feature the volume and centre of mass are checked against stl2cad\'s values.', '',
          'Needs: Windows, SolidWorks, Python with pywin32 (pip install pywin32).',
          'Run:   python %s.py [C:\\\\path\\\\part.SLDPRT]' % name, '"""', '',
-         *([] if R.get('junction') == 'bars' else ['R_FILLET = 0.0']), 'ROUND_DIGITS = %d                # significant digits of the dimensions, set at the end (0: as fitted)' % dg,
+         *([] if R.get('junction') in ('bars', 'overlap') else ['R_FILLET = 0.0']), 'ROUND_DIGITS = %d                # significant digits of the dimensions, set at the end (0: as fitted)' % dg,
          'DEFER_ROUNDING = True', 'DIM_DECIMALS = 2',
          'DIMENSION = True                # relations and dimensions (False: geometry only)',
+         'JOINT_DIMS = False              # joints dimensioned (x, y to planes; z by ZLevel planes); False: the joints are',
+         '                                # 3D sketch points edited by their X, Y, Z parameters',
          '# detail level %d (1: fewest dimensions ... 5: smallest model error)' % detail, '',
          'AXIS_I, AXIS_J = 0, 1', 'PLANE_NAME = "Front Plane"', 'PLANE_INDEX = 0',
          'ROT = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]', 'ROT_BACK = (0.0, 0.0, 0.0)',
@@ -93,6 +104,9 @@ def write(path, name, R, detail):
               % swgen._f(fillet_radius(R), 2)]
     else:
         L += ['BARS = []']
+        if R.get('junction') == 'overlap':
+            L += ['R_FILLET = %s                 # mm, one radius on every edge where members and hubs meet (0: none)'
+                  % swgen._f(fillet_radius(R), 2)]
     L += ['# hubs; coaxial hubs share an axis line (one pair of centre variables)', 'HUBS = [']
     lines = []
     for h in R['hubs']:
@@ -115,12 +129,13 @@ def write(path, name, R, detail):
     helpers = swsweep.SWEEP_CODE.split('def build_sweep():')[0]
     L.append(head + helpers + FRAME_CODE)
     open(path, 'w').write('\n'.join(L) + '\n')
-    return dict(volume=S[-1]['volume'], union=union, steps=len(S))
+    return dict(volume=S[-1]['volume'], com=S[-1]['com'], union=union, steps=len(S))
 
 
 def fillet_radius(R):
     """The junction fillet: half the smallest section radius, 2 significant digits."""
-    r = min(sc[1] for b in R['bars'] for sc in b['sec'])
+    r = (min(sc[1] for b in R['bars'] for sc in b['sec']) if R.get('junction') == 'bars'
+         else min(min(m['r0'], m['r1']) for m in R['members']))
     return float('%.2g' % (0.5 * r))
 
 
@@ -366,7 +381,7 @@ def skeleton_sketch(sw, planes, made, zplane):
     for n, m in enumerate(MEMBERS):
         e = []
         for k, (s, j) in enumerate(((m["s0"], m["i"]), (m["s1"], m["j"]))):
-            e.append(make(sm.CreatePoint, *Q(secs[n][k])) if s > 0 else jp[j])
+            e.append(make(sm.CreatePoint, *Q(secs[n][k])) if s != 0 else jp[j])
         ends.append(e)
     sm.AddToDB = False
     if DIMENSION:
@@ -379,7 +394,7 @@ def skeleton_sketch(sw, planes, made, zplane):
                 rel(sw, "sgCOINCIDENT", [objs[0], o], f"joint {k}: line end")
         # points read again after the relations (a point merged into another is no longer valid)
         P = sketch_points3(sm, model)
-        for k, p in enumerate(JOINTS):
+        for k, p in enumerate(JOINTS if JOINT_DIMS else []):
             objs = at3(P, Q(p))
             if not objs:
                 continue
@@ -404,7 +419,7 @@ def skeleton_sketch(sw, planes, made, zplane):
         P = sketch_points3(sm, model)
         for n, m in enumerate(MEMBERS):
             for k, (s, j) in enumerate(((m["s0"], m["i"]), (m["s1"], m["j"]))):
-                if s <= 0:
+                if s == 0:
                     continue
                 q = Q(secs[n][k])
                 o = at3(P, q)
@@ -474,7 +489,7 @@ def refresh_skeleton(sw, skel):
         if g is not None:
             skel["segs"][n] = g; n_ok += 1
         for k in (0, 1):
-            q = skel["secs"][n][k] if (m["s0"], m["s1"])[k] > 0 else JOINTS[(m["i"], m["j"])[k]]
+            q = skel["secs"][n][k] if (m["s0"], m["s1"])[k] != 0 else JOINTS[(m["i"], m["j"])[k]]
             o = at3(P, Q(q))
             if o:
                 skel["ends"][n][k] = o[0]
@@ -894,7 +909,7 @@ SW_FM_FILLET, SW_CONST_RADIUS = 1, 0     # swFeatureNameID_e.swFmFillet, swSimpl
 
 
 def junction_edges(sw, pairs=False):
-    """Edges between faces of two different Bar or Hub features; with pairs, grouped by the pair of features."""
+    """Edges between faces of two different Bar, Member or Hub features; with pairs, grouped by the pair of features."""
     groups = {}
     for body in (sw.model.GetBodies2(0, True) or []):
         for e in call0(body, "GetEdges") or []:
@@ -902,7 +917,7 @@ def junction_edges(sw, pairs=False):
                 names = {call0(call0(f, "GetFeature"), "Name") for f in call0(e, "GetTwoAdjacentFaces2")}
             except Exception:
                 continue
-            if len(names) == 2 and all(nm.startswith(("Bar ", "Hub ")) for nm in names):
+            if len(names) == 2 and all(nm.startswith(("Bar ", "Hub ", "Member ")) for nm in names):
                 groups.setdefault(tuple(sorted(names)), []).append(e)
     return groups if pairs else [e for es in groups.values() for e in es]
 
@@ -997,12 +1012,14 @@ def build_frame():
     set_units(sw)
     drift = [0.0, [0.0, 0.0, 0.0]]
     made = dict(planes=[], sketches=[])
-    planes = mirror_planes(sw, made)
-    zplane = z_levels(sw, planes, made)
+    # joints: 3D sketch points at their coordinates (edited by their X, Y, Z parameters); with JOINT_DIMS, x and
+    # y dimensioned to planes and z by ZLevel planes (SolidWorks refuses z dimensions in a 3D sketch)
+    planes = mirror_planes(sw, made) if JOINT_DIMS else {}
+    zplane = z_levels(sw, planes, made) if JOINT_DIMS else {}
     skel = skeleton_sketch(sw, planes, made, zplane)
     filleted = False
     for st in STEPS:
-        if st["kind"] == "hole" and BARS and R_FILLET > 0 and not filleted:
+        if st["kind"] == "hole" and R_FILLET > 0 and not filleted:
             fillet_step(sw, drift, made)
             filleted = True
         if st["kind"] == "bar":
@@ -1082,7 +1099,7 @@ if __name__ == '__main__':
         mm = R['mesh'].to_mesh()          # file holds the overlapping solids as a compound)
         m = trimesh.Trimesh(np.asarray(mm.vert_properties)[:, :3], np.asarray(mm.tri_verts))
         m.export(a.name + '.stl')
-        ref = (float(m.volume), tuple(float(x) for x in m.center_mass), tuple(m.bounds.reshape(-1)))
+        ref = (float(info['volume']), tuple(float(x) for x in info['com']), tuple(m.bounds.reshape(-1)))
         print('B-rep union by OCC: %s' % ('yes' if R['occ_union'] else 'no (STEP: compound of the features)'))
     else:
         cq.exporters.export(cq.Workplane().add(s), a.name + '.stl', tolerance=0.02, angularTolerance=0.2)
@@ -1090,7 +1107,10 @@ if __name__ == '__main__':
     import sweepref
     print('model valid %s, solids %d' % (s.isValid(), len(s.Solids())))
     print('volume: TO %.0f, model %.0f mm^3 (%+.1f %%)' % (to.volume, m.volume, 100 * (m.volume / to.volume - 1)))
-    print('voxel overlap: %.0f %% of the TO in the model, %.0f %% of the model in the TO' % sweepref.compare(to, m))
+    try:
+        print('voxel overlap: %.0f %% of the TO in the model, %.0f %% of the model in the TO' % sweepref.compare(to, m))
+    except MemoryError:
+        print('voxel overlap: not computed (out of memory)')
     print('SolidWorks script: %s_solidworks.py (%d steps)' % (a.name, info['steps']))
     if a.plot:
         plot(R, to, a.name + '_frame.png')

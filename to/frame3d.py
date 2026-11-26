@@ -46,8 +46,13 @@ ANCHOR_MERGE = 1.0       # mm, anchors on one hub closer than this are one
 ANCHOR_M = 1.5           # an anchor is this x its inscribed radius (+ 0.3 mm) inside every face of its hub
 NODE_F = 1.1             # node radius over the widest member end radius there
 NODE_CAP = 1.3           # the node radius at most this x the widest member end (the TO's own size there)
+EXT_MIN, EXT_MAX = 0.1, 1.0   # junction 'overlap': a member runs past a free joint by r cot(a/2) (a: the smallest
+                              # angle to another member there), at least EXT_MIN r (no coincident end faces), at
+                              # most EXT_MAX r and 0.4 x its length
 TRIM_F = 0.3             # members stop this x the node radius short of a joint's centre (junction 'spheres')
-JUNCTION = 'bars'        # 'bars': chains of members between junctions as one loft along a spline (SolidWorks:
+JUNCTION = 'overlap'     # 'overlap': straight tapered members that run past their joints so neighbours overlap,
+                         # junctions filleted (SolidWorks: one straight Loft per member, one fillet);
+                         # 'bars': chains of members between junctions as one loft along a spline (SolidWorks:
                          # sections normal to the spline, junctions filleted); 'caps': each member a tapered
                          # capsule; 'spheres': members stop short of a sphere node at each joint
 BAR_TOL = {1: 0.25, 2: 0.2, 3: 0.12, 4: 0.08, 5: 0.04}   # an interior section is kept where the radius departs
@@ -790,6 +795,23 @@ def classes(vals, w, k, digits):
     return [sig(v, digits) for v in x]
 
 
+def overlap_ext(P, members, m, k, r, digits):
+    """How far member m runs past its free joint k: r cot(a/2), a the smallest angle between m and another member
+    at k (both directions away from k), so the outside of the bend is filled; between EXT_MIN r and EXT_MAX r, at
+    most 0.4 x the member's length; 0 at a free end."""
+    other = lambda q: q['j'] if q['i'] == k else q['i']
+    d = lambda q: (lambda v: v / np.linalg.norm(v))(np.asarray(P[other(q)], float) - np.asarray(P[k], float))
+    dm = d(m)
+    angs = [math.acos(max(-1.0, min(1.0, float(dm @ d(q))))) for q in members
+            if q is not m and k in (q['i'], q['j'])]
+    if not angs:
+        return 0.0
+    a = min(angs)
+    e = r * min(EXT_MAX, max(EXT_MIN, 1.0 / math.tan(0.5 * a) if a > 1e-6 else EXT_MAX))
+    L = float(np.linalg.norm(np.asarray(P[m['j']], float) - np.asarray(P[m['i']], float)))
+    return sig(min(e, 0.4 * L), digits)
+
+
 def fit(original, to, detail=3, log=print, junction=None):
     """The frame model of a TO result (see the module docstring)."""
     DT = DETAIL[detail]
@@ -882,15 +904,17 @@ def fit(original, to, detail=3, log=print, junction=None):
         for k, rk in ((m['i'], 'r0'), (m['j'], 'r1')):
             if F.hub[k] is not None:
                 dep = hub_depth(hubs[F.hub[k]], F.P[k])
-                sk = 0.0 if (share[k] == 1 or junction in ('caps', 'bars')) else sig(HUB_SHARE_F * dep, DT['digits'])
+                sk = 0.0 if (share[k] == 1 or junction in ('caps', 'bars', 'overlap')) else sig(HUB_SHARE_F * dep, DT['digits'])
                 if m[rk] + sk > dep:                  # the end section inside the hub
                     m[rk] = max(MIN_R, sig(dep - sk, DT['digits']) - 10 ** (-DT['digits'] + 1))
                 s.append(sk)
+            elif junction == 'overlap':
+                s.append(-overlap_ext(F.P, members, m, k, m[rk], DT['digits']))
             else:
                 s.append(0.0 if junction in ('caps', 'bars') else sig(TRIM_F * node_r[k], DT['digits']))
         out_m.append(dict(i=i, j=j, r0=float(m['r0']), r1=float(m['r1']), s0=float(s[0]), s1=float(s[1])))
     node_list = [(new[k], float(node_r[k])) for k in ks if k in new]
-    if junction in ('caps', 'bars'):
+    if junction in ('caps', 'bars', 'overlap'):
         node_list = []
     R = dict(hubs=hubs, joints=joints, kind=kind, hub_of=hub_of, members=out_m, nodes=node_list, sym=axes, junction=junction,
              centre=tuple(float(c) for c in centre), orbit=orbit, ops=[orb[k][1] for k in used], detail=detail,
@@ -1150,67 +1174,78 @@ def fuse_pieces(pieces):
     return out
 
 
+FINE_TOL = (0.002, 0.02)   # mm, rad: tessellation of the overlaps in the reference volumes
+
+
+def _overlap(a, b):
+    """Whether two bounding boxes overlap."""
+    return (a.xmin <= b.xmax and b.xmin <= a.xmax and a.ymin <= b.ymax and b.ymin <= a.ymax
+            and a.zmin <= b.zmax and b.zmin <= a.zmax)
+
+
+def _mesh_union(solids, tol):
+    M = None
+    for s in solids:
+        for p in (s if isinstance(s, list) else [s]):
+            q = to_manifold(p, tol)
+            if q.is_empty():
+                raise RuntimeError('mesh not manifold')
+            M = q if M is None else M + q
+    return M
+
+
 def steps_mesh(R):
-    """Features of the bar model in build order (hubs, bars, holes) with the volume and centre of mass after each,
-    by mesh Booleans (manifold3d): OCC's Booleans failed where several bars end at one joint and on some swept bars.
-    The B-rep union is also made where OCC manages (for the STEP file); else the solids are returned as a compound."""
-    out, M, union, occ_ok = [], None, None, True
+    """Features of the bar or overlap model in build order (hubs, bars or members, holes) with the volume and centre
+    of mass after each. Each feature changes the part by its exact volume (OCC's integration) minus, or for a cut
+    by, its overlap with the part so far; the overlap is a mesh intersection (manifold3d, FINE_TOL) with only the
+    earlier features whose boxes meet it, so the error is that of the overlap's surface, not the part's, and does
+    not add up. (OCC's union failed where several bars end at one joint, and lost 3.2 mm^3 silently on a member at
+    Knuckle level 4.) The coarse mesh of the whole part is kept in R['mesh'] (STL); the B-rep union is returned
+    where OCC's agrees with these volumes, else the solids as a compound."""
     parts = [('hub', 'Hub %d' % (n + 1), hub_solid(h, h['ro']), dict(hub=n), False) for n, h in enumerate(R['hubs'])]
-    parts += [('bar', 'Bar %d' % (n + 1), bar_solid(R, b, pieces_only=True), dict(bar=n), False)
-              for n, b in enumerate(R['bars'])]
+    if R.get('junction') == 'bars':
+        parts += [('bar', 'Bar %d' % (n + 1), bar_solid(R, b, pieces_only=True), dict(bar=n), False)
+                  for n, b in enumerate(R['bars'])]
+    else:
+        parts += [('member', 'Member %d' % (n + 1), member_solid(R, m), dict(m=n), False)
+                  for n, m in enumerate(R['members'])]
     parts += [('hole', 'Hole %d' % (n + 1), hub_solid(h, h['ri'], EPS), dict(hub=n), True) for n, h in enumerate(R['hubs'])]
-    solids = []
-    corr_v, corr_m = 0.0, np.zeros(3)
+    out, done, M = [], [], None
+    v, mom = 0.0, np.zeros(3)
+    union, occ_ok = None, True
     for kind, name, solid, kw, cut in parts:
-        is_bar = isinstance(solid, list)
-        if is_bar:                       # bar pieces: union in mesh space, OCC fuse may fail at shared sections
-            mp = None
-            for p in solid:
-                q = to_manifold(p)
-                mp = q if mp is None else mp + q
-            pieces = solid
-            try:
-                solid = pieces[0] if len(pieces) == 1 or not occ_ok else fuse_pieces(pieces)
-                if not (solid.isValid() and len(solid.Solids()) == 1):
-                    occ_ok = False
-            except Exception:
-                occ_ok = False
-            if not occ_ok:
-                solid = cq.Compound.makeCompound(pieces)
+        pieces = solid if isinstance(solid, list) else [solid]
+        ve, ce = exact_props(pieces)
+        box = cq.Compound.makeCompound(pieces).BoundingBox()
+        adds = [s for s, c, bb in done if not c and _overlap(bb, box)]
+        cuts = [s for s, c, bb in done if c and _overlap(bb, box)]
+        vi, ci = 0.0, np.zeros(3)
+        if adds:
+            N = _mesh_union(adds, FINE_TOL)
+            if cuts:
+                N = N - _mesh_union(cuts, FINE_TOL)
+            I = _mesh_union([pieces], FINE_TOL) ^ N
+            if not I.is_empty() and I.volume() > 0:
+                vi, ci = manifold_props(I)
+                ci = np.array(ci)
+        if cut:
+            v, mom = v - vi, mom - vi * ci
         else:
-            mp = to_manifold(solid)
-        if mp.is_empty():
-            raise RuntimeError('%s: mesh not manifold' % name)
-        vb = 0.0 if M is None else M.volume()
+            v, mom = v + ve - vi, mom + ve * np.array(ce) - vi * ci
+        out.append(dict(kind=kind, name=name, volume=v, com=mom / v, own=ve, **kw))
+        done.append((solid, cut, box))
+        mp = _mesh_union([pieces], MESH_TOL)
         M = mp if M is None else (M - mp if cut else M + mp)
-        vm, cm = manifold_props(M)
-        # tessellation error: the exact volume and first moment of the feature minus its mesh's, scaled by the
-        # share of the feature that changed the part (first order; the features' own meshes err by ~5e-4)
-        own_m = float(mp.volume())
-        ve, ce = exact_props(pieces if is_bar else [solid])
-        cmm = np.array(manifold_props(mp)[1])
-        share = abs(vm - vb) / own_m if own_m > 0 else 0.0
-        sign = -1.0 if cut else 1.0
-        corr_v += sign * share * (ve - own_m)
-        corr_m += sign * share * (ve * np.array(ce) - own_m * cmm)
-        v = vm + corr_v
-        c = (vm * np.array(cm) + corr_m) / v
-        out.append(dict(kind=kind, name=name, volume=v, com=np.array(c), own=ve, **kw))
-        solids.append((solid, cut))
-        if occ_ok:
+        if occ_ok:                       # the B-rep union, for the STEP file
             try:
-                if union is None:
-                    u = solid
-                else:
-                    u = (union.cut(solid) if cut else union.fuse(solid)).clean()
-                if u.isValid() and abs(u.Volume() - v) <= 5e-3 * v + 0.1:
-                    union = u
-                else:
-                    occ_ok = False
+                s1 = pieces[0] if len(pieces) == 1 else fuse_pieces(pieces)
+                u = s1 if union is None else (union.cut(s1) if cut else union.fuse(s1)).clean()
+                occ_ok = u.isValid() and abs(u.Volume() - v) <= 1e-4 * v + 0.05
+                union = u if occ_ok else union
             except Exception:
                 occ_ok = False
     if not occ_ok:
-        union = cq.Compound.makeCompound([s for s, cut in solids if not cut])
+        union = cq.Compound.makeCompound([p for s, c, _ in done if not c for p in (s if isinstance(s, list) else [s])])
     R['mesh'] = M
     R['occ_union'] = occ_ok
     return out, union
@@ -1260,12 +1295,14 @@ def steps(R):
         v, c = mass_props(union)
         out.append(dict(kind=kind, name=name, volume=v, com=np.array(c), own=float(solid.Volume()), **kw))
 
+    if R.get('junction') in ('bars', 'overlap'):
+        return steps_mesh(R)
     for n, h in enumerate(R['hubs']):
         add('hub', 'Hub %d' % (n + 1), hub_solid(h, h['ro']), hub=n)
     for n, (j, r) in enumerate(R['nodes']):
         add('node', 'Node %d' % (n + 1), node_solid(R, j, r), joint=j, r=r)
     caps = R.get('junction') == 'caps'
-    if R.get('junction') == 'bars':
+    if R.get('junction') in ('bars', 'overlap'):
         return steps_mesh(R)
     for n, m in enumerate(R['members']):
         if caps:
