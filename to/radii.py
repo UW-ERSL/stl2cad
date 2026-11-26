@@ -115,6 +115,12 @@ def quantize(plates, max_levels=3, verbose=True, accept=None):
         if best[0] <= 0:
             break
     worst, pick, nl, errs = best
+    bad = [key for key, e in errs.items() if not np.isfinite(e)]
+    if bad:                                          # a cut left invalid by the global values keeps its fitted radii
+        pick = [c[5] if (c[0], c[1]) in bad else pick[i] for i, c in enumerate(corners)]
+        errs = profile_errors(pick)
+        if verbose:
+            print('  %d cut(s) invalid with the global radii: fitted radii kept' % len(bad))
     for i, c in enumerate(corners):
         cut = plates[c[0]]['cuts'][c[1]]
         v = cut[1][c[2]]; cut[1][c[2]] = (v[0], v[1], float(pick[i]))

@@ -1,0 +1,19 @@
+loaded standoff.STL: 2264 triangles, extents [104.365, 18.0, 100.88] mm, watertight=True
+symmetry (detected): detected: D3 about frame axis z  (group order 6, max element error 0.0021 mm, threshold 0.2925)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0731 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 11 of 11 loop(s) snapped to clean geometry
+  2.5D along y: 5 levels, 5 extrusion(s) and 6 cut(s), 0 revolved feature(s), 33 profile edges, volume error 0.171 %, max distance mesh->model 0.0109 mm, model->mesh 0.0657 mm, valid=True (1.0s)
+mode: exact
+tolerance: 0.0731 mm
+symmetry imposed: none (detected: D3 about frame axis z)
+solid valid: True, faces: 42
+deviation:
+  ref_to_model  mean 0.0042  median 0.0000  p95 0.0248  max 0.0736 mm
+  model_to_ref  mean 0.0043  median 0.0000  p95 0.0250  max 0.0746 mm
+  volume ref 42165.69  model 42176.88 mm^3  (+0.03 %)
+time: 11.6 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (6.5s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 60 dimension(s), 33 relation(s)) (17.2s)
+saved: out31/standoff/standoff_exact.step, out31/standoff/standoff_exact.stl, out31/standoff/standoff_exact.py, out31/standoff/standoff_solidworks.py, out31/standoff/standoff_exact_report.txt

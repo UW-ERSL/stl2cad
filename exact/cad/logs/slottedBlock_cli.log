@@ -1,0 +1,19 @@
+loaded slottedBlock.STL: 344 triangles, extents [28.0, 61.536, 78.0] mm, watertight=True
+symmetry (detected): detected: none  (group order 1, max element error 0.0000 mm, threshold 0.2064)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: tolerance 0.0516 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along x (98.4 % of the area) with 2 off-axis cylinder(s): boss d=6.000, boss d=6.000
+  snapping: 2 of 2 loop(s) snapped to clean geometry
+  2.5D along x: 3 levels, 2 extrusion(s) and 0 cut(s), 0 revolved feature(s), 23 profile edges, volume error 0.002 %, max distance mesh->model 0.0000 mm, model->mesh 0.0113 mm, valid=True (0.2s)
+mode: exact
+tolerance: 0.0516 mm
+symmetry imposed: none
+solid valid: True, faces: 25
+deviation:
+  ref_to_model  mean 0.0001  median 0.0000  p95 0.0000  max 0.0106 mm
+  model_to_ref  mean 0.0001  median 0.0000  p95 0.0000  max 0.0109 mm
+  volume ref 70037.48  model 70038.53 mm^3  (+0.00 %)
+time: 6.7 s
+script: feature script, verified: volume 0.0001 %, max distance 0.0001 mm (3.4s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 28 dimension(s), 22 relation(s)) (10.0s)
+saved: out31/slottedBlock/slottedBlock_exact.step, out31/slottedBlock/slottedBlock_exact.stl, out31/slottedBlock/slottedBlock_exact.py, out31/slottedBlock/slottedBlock_solidworks.py, out31/slottedBlock/slottedBlock_exact_report.txt

@@ -1,0 +1,23 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/circularplate  (domain CircularPlateHole.STL, TO CircularPlateHole_finalIsoBinary.stl)
+class 1: route extrude along z
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [5.0, 4.993583, 0.5], fill of its box 0.718; TO volume fraction 0.474; pitch 0.02371; 9.0 s
+clean-up: {'outside_domain': 0.0212, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations ['C5 about [0.0, 0.0, 1.0] (1.00/1.00)']; mirrors ['[0.0, 0.0, 1.0] (1.00/1.00)', '[0.9272, 0.3746, 0.0] (1.00/1.00)', '[0.5299, 0.848, 0.0] (1.00/1.00)', '[-0.0698, 0.9976, 0.0] (1.00/1.00)', '[-0.6428, 0.766, 0.0] (1.00/1.00)', '[-0.9703, 0.2419, 0.0] (1.00/1.00)']
+  candidates (not imposed): []
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.04 / 0.04 / 0.09 / 0.09 / 0.04 / 1.00 / 1.00 / 0.33
+  y: 0.06 / 0.05 / 0.10 / 0.10 / 0.08 / 1.00 / 1.00 / 0.27
+  z: 0.89 / 0.98 / 0.02 / 0.00 / 0.98 / 0.99 / 0.93 / 0.99
+route: {'route': 'extrude', 'axis': 'z', 'cls': '1'}
+retained regions: 9.0 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+   9  45.6 %  mass       t=0.2371                                 face 0.44  nb [2, 3, 4, 5, 6, 7, 8]
+   8  31.5 %  plate      t=0.5217   [-0.001, 0.0, 1.0]     0.018  face 0.71  nb [1, 9]
+   1   9.0 %  retained   t=0.5217                                 face 0.99  nb [8]
+   5   2.9 %  shell      t=0.1341   [0.76, 0.65, 0.008]    0.52   face 0.58  nb [9]
+   4   2.8 %  shell      t=0.1341   [-0.381, 0.924, 0.032] 0.463  face 0.60  nb [9]
+   2   2.7 %  shell      t=0.1341   [0.847, -0.529, -0.057] 0.487  face 0.58  nb [9]
+   7   2.6 %  shell      t=0.1423   [0.998, 0.066, -0.018] 0.364  face 0.58  nb [9]
+   6   2.4 %  shell      t=0.1341   [0.322, 0.947, -0.024] 0.35   face 0.58  nb [3, 9]
+   3   0.6 %  plate      t=0.1423   [-0.12, 0.993, -0.01]  0.112  face 0.59  nb [6, 9]

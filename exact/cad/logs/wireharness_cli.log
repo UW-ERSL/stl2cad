@@ -1,0 +1,51 @@
+loaded wireharness.STL: 8236 triangles, extents [36.0, 18.0, 36.0] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis y  (group order 4, max element error 0.0009 mm, threshold 0.1080)
+auto mode: coplanar-area fraction 0.91 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0270 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y with 4 edge blend(s)
+  snapping: 0 of 3 loop(s) snapped to clean geometry
+  blends: no sharp edge under a blend of 1525 faces
+  2.5D: trying the y axis (55.5 % of the area)
+  2.5D along y with 4 edge blend(s)
+  snapping: 0 of 3 loop(s) snapped to clean geometry
+  blends: no sharp edge under a blend of 1525 faces
+  2.5D: trying the z axis (51.3 % of the area)
+  2.5D along z (51.3 % of the area) with 2 off-axis cylinder(s): boss d=36.000, boss d=36.000
+  2.5D along z with 10 edge blend(s)
+  snapping: 0 of 2 loop(s) snapped to clean geometry
+  blends: no sharp edge under a blend of 544 faces
+  revolve: no axis with equal perpendicular moments
+  absorbed 151 fragments into larger surfaces
+  region competition moved 302 boundary faces
+  merged 2 curved fragments into 0 spline extrusion(s), 0 spline revolution(s) and 1 cylinder(s)
+  segmentation (88.3s): plane x77 (40.8% area), cylinder x94 (33.4% area), cone x46 (16.3% area), sphere x23 (6.2% area), torus x8 (3.4% area), facets x1 (0.0% area)
+  simplified 7 degenerate surface fits
+  replaced 2 sphere fit(s) by cylinders
+  replaced 8 cone/revolution fits by tori
+  symmetric consensus: 2 class(es) of mirror-image surfaces fitted jointly
+  refit 165 odd region(s) as 29 plane(s)/cylinder(s)/tori, 6 triangles absorbed by existing surfaces; 5 triangles left as facets
+  refit 23 odd region(s) as 9 plane(s)/cylinder(s)/tori; 1 triangles left as facets
+  snapped 87 surface directions to the part frame
+  unified 983 coplanar/coaxial surfaces; merged 20 duplicate curved regions
+  enforced tangency on 13 cylinders
+  blends: 24 fillet surface(s) recognised, radii 3.79, 4, 6 mm
+  tangent chains: 4 profile shells replace 8 surfaces
+  arrangement: 46 tool faces -> 1 cells (6.8s)
+  classified cells: 0 inside (0.7s)
+  arrangement with fuzzy 0.00e+00 failed: no cell classified as inside
+exact mode failed: exact reconstruction failed
+Traceback (most recent call last):
+  File "<frozen runpy>", line 203, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/claude/uw-ersl/stl2cad/stl2cad/cli.py", line 56, in <module>
+    main()
+    ~~~~^^
+  File "/home/claude/uw-ersl/stl2cad/stl2cad/cli.py", line 52, in main
+    run(a.stl, o)
+    ~~~^^^^^^^^^^
+  File "/home/claude/uw-ersl/stl2cad/stl2cad/pipeline.py", line 113, in run
+    res = exact.reconstruct(mesh, opts, spec=exact_spec, log=log)
+  File "/home/claude/uw-ersl/stl2cad/stl2cad/exact.py", line 587, in reconstruct
+    raise RuntimeError("exact reconstruction failed")
+RuntimeError: exact reconstruction failed

@@ -1,0 +1,19 @@
+loaded C-bracket.STL: 56 triangles, extents [100.0, 40.0, 10.0] mm, watertight=True
+symmetry (detected): detected: mirror z  (group order 2, max element error 0.1342 mm, threshold 0.2163)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0541 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  2.5D along z: 2 levels, 1 extrusion(s) and 0 cut(s), 0 revolved feature(s), 6 profile edges, volume error 0.011 %, max distance mesh->model 0.0000 mm, model->mesh 0.0373 mm, valid=True (0.1s)
+mode: exact
+tolerance: 0.0541 mm
+symmetry imposed: none (detected: mirror z)
+solid valid: True, faces: 8
+deviation:
+  ref_to_model  mean 0.0003  median 0.0000  p95 0.0000  max 0.0377 mm
+  model_to_ref  mean 0.0002  median 0.0000  p95 0.0000  max 0.0366 mm
+  volume ref 35218.58  model 35216.51 mm^3  (-0.01 %)
+time: 4.0 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (2.8s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 4 dimension(s), 8 relation(s)) (7.5s)
+saved: out31/C-bracket/C-bracket_exact.step, out31/C-bracket/C-bracket_exact.stl, out31/C-bracket/C-bracket_exact.py, out31/C-bracket/C-bracket_solidworks.py, out31/C-bracket/C-bracket_exact_report.txt

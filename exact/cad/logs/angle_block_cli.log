@@ -1,0 +1,45 @@
+loaded angle_block.stl: 704 triangles, extents [34.0, 25.4, 34.34] mm, watertight=True
+symmetry (detected): detected: none  (group order 1, max element error 0.0000 mm, threshold 0.1092)
+auto mode: coplanar-area fraction 0.93 -> exact
+exact mode: tolerance 0.0273 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D: no prism axis (best face fraction 0.825)
+  2.5D: trying the x axis (82.7 % of the area)
+  2.5D along x (82.7 % of the area) with 3 off-axis cylinder(s): hole d=6.756, hole d=12.697, hole d=3.969
+  2.5D along x with 2 slanted planar face(s)
+  2.5D along x with 4 edge blend(s)
+  loop 2: refitted at tol/4 (9 -> 9 edges)
+  snapping: 5 of 5 loop(s) snapped to clean geometry
+  2.5D: cut along z over [-30.5400, 0.0000], 3 edges
+  2.5D: cut along z over [-30.5400, 0.0000], 3 edges
+  blends: no sharp edge under a blend of 18 faces
+  2.5D: trying the z axis (54.2 % of the area)
+  2.5D along z (54.2 % of the area) with 3 off-axis cylinder(s): hole d=6.756, hole d=12.691, hole d=3.969
+  2.5D along z with 5 slanted planar face(s)
+  2.5D along z with 2 edge blend(s)
+  2.5D: trying the y axis (53.8 % of the area)
+  2.5D along y (53.8 % of the area) with 3 off-axis cylinder(s): hole d=6.756, hole d=12.692, hole d=3.969
+  2.5D along y with 7 slanted planar face(s)
+  2.5D along y with 2 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 0.000..2.007; no clean section
+  revolve: no axis with equal perpendicular moments
+  absorbed 0 fragments into larger surfaces
+  region competition moved 0 boundary faces
+  segmentation (1.8s): plane x19 (84.6% area), cylinder x7 (15.4% area)
+  snapped 14 surface directions to the part frame
+  unified 2 coplanar/coaxial surfaces
+  enforced tangency on 4 cylinders
+  tangent chains: 1 profile shells replace 8 surfaces
+  arrangement: 19 tool faces -> 6 cells (2.3s)
+  classified cells: 1 inside (1.4s)
+  fused and unified: 1 solid(s), 43 faces, valid=True (2.1s)
+mode: exact
+tolerance: 0.0273 mm
+symmetry imposed: none
+solid valid: True, faces: 26
+deviation:
+  ref_to_model  mean 0.0010  median 0.0000  p95 0.0085  max 0.0263 mm
+  model_to_ref  mean 0.0010  median 0.0000  p95 0.0085  max 0.0261 mm
+  volume ref 18771.75  model 18767.25 mm^3  (-0.02 %)
+time: 16.3 s
+script: construction script, verified: volume 0.0000 %, max distance 0.0000 mm (3.7s)
+saved: out/angle_block/angle_block_exact.step, out/angle_block/angle_block_exact.stl, out/angle_block/angle_block_exact.py, out/angle_block/angle_block_exact_report.txt

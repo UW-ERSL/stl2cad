@@ -915,6 +915,7 @@ class SW:
         self.model.ClearSelection2(True)
         if r:
             print(f"  circular pattern: {len(ents)} entities x {n}")
+            self.pattern_centre_to_origin(cx, cy)
             return
         print(f"  circular pattern refused; drawing the {n - 1} copies")
         sm = self.model.SketchManager
@@ -927,6 +928,41 @@ class SW:
                 xc, yc = circle_centre(s_, m_, t_)
                 tn = (m_[0] - s_[0]) * (t_[1] - s_[1]) - (m_[1] - s_[1]) * (t_[0] - s_[0])
                 make(sm.CreateArc, xc, yc, 0.0, s_[0], s_[1], 0.0, t_[0], t_[1], 0.0, 1 if tn > 0 else -1)
+
+    def pattern_centre_to_origin(self, cx, cy):
+        """The circular pattern's centre point (sketch m) fixed by its horizontal and vertical
+        distances from the origin, or by a relation where a distance is zero. SolidWorks 2025
+        (sw_probe_gearpattern): with these two dimensions and no pattern dimensions the sketch is
+        fully defined; pattern angle or count dimensions leave it under defined."""
+        tag = f"pattern centre ({cx / MM:g}, {cy / MM:g})"
+        pt = None
+        try:
+            sk = call0(self.model, "GetActiveSketch2")
+            if sk is None:
+                sk = self.model.SketchManager.ActiveSketch
+            tol = 1e-6 * max(1.0, math.hypot(cx, cy) / MM)
+            pt = next((p for p in (call0(sk, "GetSketchPoints2") or [])
+                       if math.hypot(p.X - cx, p.Y - cy) < tol), None)
+        except Exception as ex:
+            print(f"  pattern centre point not readable: {type(ex).__name__}")
+        if pt is None:
+            self.dims_failed.append(tag + ": no sketch point at the centre")
+            return
+        ext = self.model.Extension
+        pick = lambda append=False: pt.Select4(append, NOTHING)
+        self.centre_to_origin(tag, cx, cy, pick)
+        for kind, tx, ty in (("H", cx / 2, cy - 30 * MM), ("V", cx - 30 * MM, cy / 2)):
+            if abs(cx if kind == "H" else cy) < 1e-9:
+                continue                         # on the origin's line: a relation above
+            self.model.ClearSelection2(True)
+            ok1 = pick()
+            ok2 = ext.SelectByID2("Point1@Origin", "EXTSKETCHPOINT", 0.0, 0.0, 0.0, True, 0, NOTHING, 0)
+            d = None
+            if ok1 and ok2:
+                d = (self.model.AddHorizontalDimension2(tx, ty, 0.0) if kind == "H"
+                     else self.model.AddVerticalDimension2(tx, ty, 0.0))
+            self._count(d, tag + (" x" if kind == "H" else " y") + " position")
+        self.model.ClearSelection2(True)
 
     def sketch_pattern(self, seed, count, step):
         """Repeat the period's entities count times by step (model mm) with a sketch linear
@@ -971,8 +1007,42 @@ class SW:
             st = call0(sk, "GetConstrainedStatus")
             self.status.append({1: "unknown", 2: "under defined", 3: "fully defined", 4: "over defined",
                                 5: "no solution", 6: "invalid solution"}.get(st, str(st)))
+            if st == 2:
+                self.report_free(f, sk)
         except Exception as ex:
             self.status.append(f"not available ({type(ex).__name__})")
+
+    def report_free(self, f, sk):
+        """Diagnostic for an under-defined sketch: its segments that are not fully defined
+        (ISketchSegment.ConstrainedStatus), with their type and end points (sketch mm)."""
+        names = {0: "line", 1: "arc", 2: "ellipse", 3: "spline", 4: "text", 5: "parabola"}
+        try:
+            segs = call0(sk, "GetSketchSegments") or []
+            free = []
+            for g in segs:
+                try:
+                    cs = call0(g, "ConstrainedStatus")
+                except Exception:
+                    cs = None
+                if cs == 3:                             # fully defined
+                    continue
+                kind = names.get(call0(g, "GetType"), "?")
+                ends = ""
+                try:
+                    p, q = call0(g, "GetStartPoint2"), call0(g, "GetEndPoint2")
+                    ends = f" ({p.X / MM:.4f}, {p.Y / MM:.4f}) -> ({q.X / MM:.4f}, {q.Y / MM:.4f})"
+                except Exception:
+                    pass
+                free.append(f"{kind}{' construction' if call0(g, 'ConstructionGeometry') else ''}{ends}"
+                            f" status {cs}")
+            if free and all(x.endswith(" status None") for x in free):
+                print(f"  {call0(f, 'Name')}: segment status not readable ({len(segs)} segment(s))")
+                return
+            print(f"  {call0(f, 'Name')}: {len(free)} of {len(segs)} segment(s) not fully defined")
+            for s_ in free[:12]:
+                print("    " + s_)
+        except Exception as ex:
+            print(f"  free segments not available: {type(ex).__name__}: {ex}")
 
     def _count(self, d, what):
         if d is None:
@@ -1053,7 +1123,7 @@ class SW:
         linked = {nm for nm, _ in getattr(self, "linked", [])}
         todo = []
         for nm, v, ang in self.alldims:
-            if nm in linked:
+            if nm in linked or self.model.Parameter(nm) is None:   # none: its sketch was drawn again
                 continue
             x = math.degrees(v) if ang else v / MM
             r = sig(x)
@@ -1408,11 +1478,11 @@ class SW:
             makes = [("InsertFeatureChamfer", lambda: fm.InsertFeatureChamfer(0, 2, r, math.radians(45.0), r, 0, 0, 0)),
                      ("InsertFeatureChamfer (tangent propagation)",
                       lambda: fm.InsertFeatureChamfer(1, 2, r, math.radians(45.0), r, 0, 0, 0))]
+        sides = b.get("sides") or [None] * len(b["points"])
         for mark in (1, 0):
             for how, make in makes:
                 self.model.ClearSelection2(True)
-                ok = all(ext.SelectByID2("", "EDGE", *(v * MM for v in self.in_model_frame(p)), True, mark, NOTHING, 0)
-                         for p in b["points"])
+                ok = all(self.pick_edge(p, d, mark) for p, d in zip(b["points"], sides))
                 if not ok:
                     print(f"  {b['name']}: an edge was not picked (mark {mark})")
                     continue
@@ -1447,6 +1517,22 @@ class SW:
                 f.Select2(False, 0)
                 self.model.Extension.DeleteSelection2(0)
         raise RuntimeError(f"{b['name']}: no fillet or chamfer call gives the expected volume")
+
+    def pick_edge(self, p, d, mark):
+        """Select the edge through p (STL frame, mm). SelectByID2 with a point picks the first edge
+        along the line of sight (seen in SolidWorks 2025: the top edge of a post instead of the edge
+        at its base, straight below it), so the edge is picked with a ray fired at p from 0.3 mm
+        outside it, along d (the empty side of the edge); SelectByID2 is the fall-back."""
+        ext, sm = self.model.Extension, self.model.SelectionManager
+        q = self.in_model_frame(p)
+        if d is not None:
+            u = self.in_model_frame(d)
+            n0 = sm.GetSelectedObjectCount2(-1)
+            if ext.SelectByRay(*((q[i] + 0.3 * u[i]) * MM for i in range(3)), -u[0], -u[1], -u[2],
+                               0.05 * MM, 1, True, mark, 0):           # 1: swSelEDGES
+                if sm.GetSelectedObjectCount2(-1) > n0:
+                    return True
+        return ext.SelectByID2("", "EDGE", *(v * MM for v in q), True, mark, NOTHING, 0)
 
     def report_selection(self, b):
         """Print what the edge picks selected: count, entity type, and for an edge its end points
@@ -1988,6 +2074,30 @@ def solidworks_script(p25, name, nd=6):
     return "\n".join(L) + "\n" + _RUNTIME
 
 
+def _edge_sides(solid, points):
+    """For each edge midpoint: the unit direction from the edge into the empty space beside it (the
+    sum of the outward normals of the edge's two faces there), along which a ray fired back at the
+    point meets that edge first; None where the faces are tangent or the direction leads into the
+    part."""
+    import cadquery as cq
+    from .blends import edges_at
+    out = []
+    for p, e in zip(points, edges_at(solid, points)):
+        v = cq.Vector(*p)
+        try:
+            ns = [f.normalAt(v) for f in e.ancestors(solid, "Face")]
+        except Exception:
+            ns = []
+        d = sum(ns, cq.Vector(0, 0, 0)) if len(ns) == 2 else cq.Vector(0, 0, 0)
+        if d.Length < 1e-6:
+            out.append(None)
+            continue
+        d = d.normalized()
+        q = v + d * 0.3
+        out.append(None if solid.isInside(q, 1e-6) else tuple(float(c) for c in d.toTuple()))
+    return out
+
+
 def _blends_code(p25, steps, nd):
     """Fillets and chamfers, last (STL frame): the edges picked at their midpoints, with the
     volume and centre of mass expected after each."""
@@ -2009,11 +2119,13 @@ def _blends_code(p25, steps, nd):
     solid = solid.clean()
     t3 = lambda v: "(" + ", ".join(f"{float(x):.6f}" for x in v) + ")"
     for n, b in enumerate(bl, 1):
+        sides = _edge_sides(solid, b["points"])            # on the part before this blend
         solid = apply_blends(solid, [b]).clean()
         vol, com = mass_props(solid)
         L.append(f'    dict(name="{b["kind"].capitalize()} {n} {b["size"]:g} mm", kind="{b["kind"]}", '
                  f'size={_f(b["size"], 9)}, volume={vol:.4f}, centroid={t3(com)},')
-        L.append("         points=[" + ", ".join(t3(p) for p in b["points"]) + "]),")
+        L.append("         points=[" + ", ".join(t3(p) for p in b["points"]) + "],")
+        L.append("         sides=[" + ", ".join("None" if d is None else t3(d) for d in sides) + "]),")
     L.append("]")
     return L
 
@@ -2303,7 +2415,8 @@ def verify_with_standin(script, ref_shape, tol, cut_reversed=True, boss_reversed
     env = dict(os.environ, PYTHONPATH=os.pathsep.join([os.path.join(os.path.dirname(__file__), "swmock"),
                                                     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))]),
                SWMOCK_CUT_REVERSED="1" if cut_reversed else "0",
-               SWMOCK_BOSS_REVERSED="1" if boss_reversed else "0")
+               SWMOCK_BOSS_REVERSED="1" if boss_reversed else "0",
+               SWMOCK_EDGE_SIGHT="1")   # SelectByID2 picks the first edge along the line of sight, as SolidWorks
     r = subprocess.run([sys.executable, py, out], capture_output=True, text=True, timeout=timeout, env=env)
     if r.returncode != 0 or not os.path.exists(out):
         tail = (r.stderr or r.stdout).strip().splitlines()[-1:] or ["no output"]

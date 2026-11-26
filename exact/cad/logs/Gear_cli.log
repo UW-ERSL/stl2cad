@@ -1,0 +1,25 @@
+loaded Gear.STL: 7300 triangles, extents [211.602, 211.601, 40.0] mm, watertight=True
+  3 overlapping closed shells merged into 1 body/bodies (overlap 455.2 mm^3)
+symmetry (detected): detected: D12 about frame axis z + mirror z  (group order 48, max element error 0.5293 mm, threshold 0.6038)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.1510 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 5 of 6 loop(s) snapped to clean geometry
+  2.5D along z: 6 levels, 3 extrusion(s) and 3 cut(s), 0 revolved feature(s), 296 profile edges, volume error 0.036 %, max distance mesh->model 0.1347 mm, model->mesh 0.1341 mm, valid=True (2.7s)
+mode: exact
+tolerance: 0.1510 mm
+symmetry imposed: none (detected: D12 about frame axis z + mirror z)
+solid valid: True, faces: 302
+deviation:
+  ref_to_model  mean 0.2029  median 0.0064  p95 0.1918  max 9.9703 mm
+  model_to_ref  mean 0.0266  median 0.0032  p95 0.1088  max 0.2246 mm
+  volume ref 753311.56  model 754212.80 mm^3  (+0.12 %)
+time: 11.5 s
+only got 778/800 samples!
+script: feature script, verified: volume 0.0001 %, max distance 0.0001 mm (13.4s)
+only got 778/800 samples!
+only got 766/800 samples!
+only got 778/800 samples!
+only got 766/800 samples!
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 29 dimension(s), 4 relation(s)) (36.8s)
+saved: out31/Gear/Gear_exact.step, out31/Gear/Gear_exact.stl, out31/Gear/Gear_exact.py, out31/Gear/Gear_solidworks.py, out31/Gear/Gear_exact_report.txt

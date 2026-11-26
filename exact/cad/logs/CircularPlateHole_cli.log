@@ -1,0 +1,19 @@
+loaded CircularPlateHole.STL: 392 triangles, extents [127.0, 126.837, 12.7] mm, watertight=True
+symmetry (detected): detected: D12 about frame axis z + mirror z  (group order 48, max element error 0.0098 mm, threshold 0.3599)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0900 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 2 of 2 loop(s) snapped to clean geometry
+  2.5D along z: 2 levels, 1 extrusion(s) and 1 cut(s), 0 revolved feature(s), 2 profile edges, volume error 0.157 %, max distance mesh->model 0.0049 mm, model->mesh 0.0810 mm, valid=True (0.2s)
+mode: exact
+tolerance: 0.0900 mm
+symmetry imposed: none (detected: D12 about frame axis z + mirror z)
+solid valid: True, faces: 4
+deviation:
+  ref_to_model  mean 0.0077  median 0.0000  p95 0.0549  max 0.1191 mm
+  model_to_ref  mean 0.0077  median 0.0000  p95 0.0547  max 0.1198 mm
+  volume ref 154201.82  model 154054.04 mm^3  (-0.10 %)
+time: 4.6 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (2.9s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 6 dimension(s), 0 relation(s)) (7.3s)
+saved: out31/CircularPlateHole/CircularPlateHole_exact.step, out31/CircularPlateHole/CircularPlateHole_exact.stl, out31/CircularPlateHole/CircularPlateHole_exact.py, out31/CircularPlateHole/CircularPlateHole_solidworks.py, out31/CircularPlateHole/CircularPlateHole_exact_report.txt

@@ -1,0 +1,22 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/cantilever/Case1  (domain Cantilever.STL, TO Cantilever_finalIsoBinary.stl)
+class 1: route extrude along z
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [0.12, 0.04, 0.02], fill of its box 0.996; TO volume fraction 0.495; pitch 0.0004311; 25.8 s
+clean-up: {'outside_domain': 0.004, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations []; mirrors ['[0.0, 0.0, 1.0] (1.00/1.00)']
+  candidates (not imposed): []
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.09 / 0.25 / 0.13 / 0.09 / 0.31 / 0.33 / 1.00 / 0.48
+  y: 0.00 / 0.06 / 0.40 / 0.21 / 0.13 / 0.00 / 0.99 / 0.57
+  z: 0.92 / 0.96 / 0.04 / 0.00 / 0.98 / 0.99 / 0.92 / 0.99
+route: {'route': 'extrude', 'axis': 'z', 'cls': '1'}
+retained regions: 10.2 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+   7  72.8 %  mass       t=0.0074                                 face 0.39  nb [1, 2, 3, 4, 5, 6]
+   1  10.2 %  retained   t=0.0101                                 face 0.99  nb [7]
+   8   5.3 %  junction   t=0.0055                                 face 0.55  nb [2, 6]
+   2   4.8 %  plate      t=0.0043   [-0.007, 1.0, 0.004]   0.037  face 0.53  nb [7, 8]
+   5   2.9 %  plate      t=0.0043   [-0.522, 0.853, 0.0]   0.025  face 0.13  nb [7]
+   6   1.7 %  plate      t=0.0058   [0.781, 0.625, -0.001] 0.023  face 0.12  nb [7, 8]
+   3   1.2 %  plate      t=0.0036   [-0.525, 0.851, 0.0]   0.026  face 0.08  nb [7]
+   4   1.1 %  plate      t=0.0031   [0.795, -0.606, -0.001] 0.05   face 0.08  nb [7]

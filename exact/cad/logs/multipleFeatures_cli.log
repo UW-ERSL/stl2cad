@@ -1,0 +1,24 @@
+loaded multipleFeatures.stl: 14954 triangles, extents [127.0, 63.5, 34.925] mm, watertight=True
+symmetry (detected): detected: mirror y  (group order 2, max element error 0.0143 mm, threshold 0.2924)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0731 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along z (91.1 % of the area) with 1 off-axis cylinder(s): hole d=9.906
+  2.5D along z with 1 slanted planar face(s)
+  loop 4: refitted at tol/4 (16 -> 16 edges)
+  loop 23: refitted at tol/4 (8 -> 8 edges)
+  snapping: 23 of 25 loop(s) snapped to clean geometry
+  2.5D: cut along y over [-31.7500, 31.7500] (through), 3 edges
+  2.5D along z: 9 levels, 6 extrusion(s) and 19 cut(s), 0 revolved feature(s), 107 profile edges, volume error 0.007 %, max distance mesh->model 0.0884 mm, model->mesh 0.0705 mm, valid=True (4.4s)
+mode: exact
+tolerance: 0.0731 mm
+symmetry imposed: none (detected: mirror y)
+solid valid: True, faces: 128
+deviation:
+  ref_to_model  mean 0.0026  median 0.0000  p95 0.0141  max 0.0838 mm
+  model_to_ref  mean 0.0026  median 0.0000  p95 0.0139  max 0.0868 mm
+  volume ref 190454.61  model 190513.37 mm^3  (+0.03 %)
+time: 14.5 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (6.6s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 150 dimension(s), 106 relation(s)) (24.3s)
+saved: out31/multipleFeatures/multipleFeatures_exact.step, out31/multipleFeatures/multipleFeatures_exact.stl, out31/multipleFeatures/multipleFeatures_exact.py, out31/multipleFeatures/multipleFeatures_solidworks.py, out31/multipleFeatures/multipleFeatures_exact_report.txt

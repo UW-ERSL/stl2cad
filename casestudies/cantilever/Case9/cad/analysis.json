@@ -1,0 +1,234 @@
+{
+ "case": "/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/cantilever/Case9",
+ "domain_stl": "cantilever.STL",
+ "to_stl": "cantilever_finalIsoBinary.stl",
+ "frame": {
+  "R": [
+   [
+    0.866025,
+    -0.0,
+    0.5
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    -0.5,
+    -0.0,
+    0.866025
+   ]
+  ],
+  "deviation_deg": [
+   30.0,
+   0.0,
+   30.0
+  ]
+ },
+ "grid": {
+  "lo": [
+   -0.013823919601525583,
+   -0.0008901540586807585,
+   0.027738654831204832
+  ],
+  "pitch": 0.0004305540515192525,
+  "shape": [
+   283,
+   97,
+   51
+  ]
+ },
+ "domain": {
+  "size": [
+   0.12,
+   0.04,
+   0.02
+  ],
+  "fill_of_box": 1.0
+ },
+ "volume_fraction": 0.508,
+ "cleanup": {
+  "outside_domain": 0.0026,
+  "islands_removed": 0,
+  "voids_filled": 0,
+  "voids_kept": 0,
+  "components": 1,
+  "odd_columns_domain": 0,
+  "odd_columns_to": 0
+ },
+ "symmetry": {
+  "centre": [
+   0.047099478688448645,
+   0.019991717440002988,
+   0.03871778314494577
+  ],
+  "mirrors": [
+   {
+    "kind": "mirror",
+    "vector": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "domain": 1.0,
+    "to": 0.943
+   }
+  ],
+  "rotations": [],
+  "candidates": [
+   {
+    "kind": "mirror",
+    "vector": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "domain": 1.0,
+    "to": 0.884
+   }
+  ]
+ },
+ "tests": [
+  {
+   "axis": "x",
+   "full": 0.071,
+   "one": 0.404,
+   "two": 0.468,
+   "two_layers": 0.146,
+   "section_iou": 0.338,
+   "centred": 0.132,
+   "anchored": 0.6,
+   "step_levels": 0.242
+  },
+  {
+   "axis": "y",
+   "full": 0.142,
+   "one": 0.194,
+   "two": 0.751,
+   "two_layers": 0.526,
+   "section_iou": 0.3,
+   "centred": 0.64,
+   "anchored": 0.926,
+   "step_levels": 0.701
+  },
+  {
+   "axis": "z",
+   "full": 0.344,
+   "one": 0.763,
+   "two": 0.237,
+   "two_layers": 0.0,
+   "section_iou": 0.524,
+   "centred": 0.59,
+   "anchored": 0.499,
+   "step_levels": 0.592
+  }
+ ],
+ "route": {
+  "route": "3D",
+  "axis": null,
+  "cls": null
+ },
+ "retained": {
+  "share": 0.137,
+  "window": 37
+ },
+ "segments": [
+  {
+   "id": 1,
+   "type": "retained",
+   "share": 0.137,
+   "face_contact": 1.0,
+   "neighbours": [
+    6
+   ],
+   "kind": "retained"
+  },
+  {
+   "id": 2,
+   "type": "plate",
+   "share": 0.034,
+   "face_contact": 0.0,
+   "neighbours": [
+    6
+   ],
+   "thickness": 0.0034,
+   "normal": [
+    -0.04,
+    0.019,
+    0.999
+   ],
+   "flatness": 0.122,
+   "kind": "plate"
+  },
+  {
+   "id": 3,
+   "type": "plate",
+   "share": 0.029,
+   "face_contact": 0.0,
+   "neighbours": [
+    6
+   ],
+   "thickness": 0.0026,
+   "normal": [
+    0.031,
+    0.015,
+    0.999
+   ],
+   "flatness": 0.161,
+   "kind": "plate"
+  },
+  {
+   "id": 4,
+   "type": "plate",
+   "share": 0.03,
+   "face_contact": 0.0,
+   "neighbours": [
+    6
+   ],
+   "thickness": 0.0039,
+   "normal": [
+    -0.024,
+    0.057,
+    0.998
+   ],
+   "flatness": 0.075,
+   "kind": "plate"
+  },
+  {
+   "id": 5,
+   "type": "plate",
+   "share": 0.013,
+   "face_contact": 0.48,
+   "neighbours": [
+    6
+   ],
+   "thickness": 0.0034,
+   "normal": [
+    -0.027,
+    0.999,
+    0.034
+   ],
+   "flatness": 0.062,
+   "kind": "plate"
+  },
+  {
+   "id": 6,
+   "type": "blob",
+   "share": 0.757,
+   "face_contact": 0.34,
+   "neighbours": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "thickness": 0.0063,
+   "kind": "mass"
+  }
+ ],
+ "part_class": "7",
+ "reason": "mass 88 %",
+ "seconds": 23.2
+}

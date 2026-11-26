@@ -1,0 +1,21 @@
+connected to SolidWorks; new part created; building 3 feature(s)
+units: unit system MMGS; length unit mm, set [True, True, True]
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 51250.000 mm^3, centre of mass (67.541, -33.679, 5.000) mm
+Boss 1 x 0 to 10: volume 51250.000 mm^3 (expected 51250.000)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 326249.990 mm^3, centre of mass (66.804, -33.388, 32.395) mm
+Boss 2 x 10 to 65: volume 326249.990 mm^3 (expected 326249.988)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 377500.016 mm^3, centre of mass (66.904, -33.427, 37.500) mm
+Boss 3 x 65 to 75: volume 377500.016 mm^3 (expected 377500.016)
+rotated back to the STL's orientation (Move/Copy Body, angle argument 2, +90 deg)
+  try reverse=False flip_start=False: volume 379954.385 mm^3, centre of mass (37.500, -33.195, -66.633) mm
+Boss 1 dia 25 along (0, 1, 0): volume 379954.385 mm^3 (expected 379954.385)
+linked dimensions: none (no equal radius or diameter in two sketches)
+dimensions: all at 3 significant digits already
+independent dimensions: 14 (14 dimensions, 0 of them driven by 0 global variable(s))
+dimensions: 14 added
+relations: 20 added
+sketch status: fully defined, fully defined, fully defined, fully defined
+planned: fully defined, fully defined, fully defined

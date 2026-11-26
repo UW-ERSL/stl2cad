@@ -1,0 +1,19 @@
+loaded threeholebracket.STL: 452 triangles, extents [100.0, 100.0, 20.0] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis y  (group order 4, max element error 0.3077 mm, threshold 0.2857)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0714 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 4 of 4 loop(s) snapped to clean geometry
+  2.5D along z: 2 levels, 1 extrusion(s) and 3 cut(s), 0 revolved feature(s), 6 profile edges, volume error 0.025 %, max distance mesh->model 0.0000 mm, model->mesh 0.0186 mm, valid=True (0.4s)
+mode: exact
+tolerance: 0.0714 mm
+symmetry imposed: none (detected: D2 about frame axis y)
+solid valid: True, faces: 8
+deviation:
+  ref_to_model  mean 0.0008  median 0.0000  p95 0.0080  max 0.0188 mm
+  model_to_ref  mean 0.0008  median 0.0000  p95 0.0081  max 0.0189 mm
+  volume ref 95311.50  model 95299.52 mm^3  (-0.01 %)
+time: 7.3 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (3.1s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 8 dimension(s), 6 relation(s)) (8.3s)
+saved: out31/threeholebracket/threeholebracket_exact.step, out31/threeholebracket/threeholebracket_exact.stl, out31/threeholebracket/threeholebracket_exact.py, out31/threeholebracket/threeholebracket_solidworks.py, out31/threeholebracket/threeholebracket_exact_report.txt

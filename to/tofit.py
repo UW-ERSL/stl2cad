@@ -281,7 +281,7 @@ class Section:
             keys = [('v', i) for i in range(len(raw['voids']))] + [('n', j) for j in range(len(raw['notches']))]
             polys = [self.cut_polygon(c) for c in cuts]
             strips = [g for g in self.thin_strips(self.material(cuts)) if not any(g.distance(h) < 0.5 for h in inTO)]
-            new = {keys[int(np.argmin([p.exterior.distance(g) for p in polys]))] for g in strips} if polys else set()
+            new = {keys[int(np.argmin([p.boundary.distance(g) for p in polys]))] for g in strips} if polys else set()
             if not (new - fine): break
             fine |= new
         if verbose:

@@ -1,0 +1,13 @@
+connected to SolidWorks; new part created; building 1 feature(s)
+units: unit system MMGS; length unit mm, set [True, True, True]
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 35214.602 mm^3, centre of mass (46.464, 22.055, 5.000) mm
+Boss 1 z 0 to 10: volume 35214.602 mm^3 (expected 35214.602)
+part is in the STL's orientation
+linked dimensions: none (no equal radius or diameter in two sketches)
+dimensions: all at 3 significant digits already
+independent dimensions: 4 (4 dimensions, 0 of them driven by 0 global variable(s))
+dimensions: 4 added
+relations: 8 added
+sketch status: fully defined
+planned: fully defined

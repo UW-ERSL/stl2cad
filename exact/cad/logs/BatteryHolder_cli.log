@@ -1,0 +1,60 @@
+loaded BatteryHolder.stl: 4144 triangles, extents [123.19, 33.782, 41.148] mm, watertight=True
+symmetry (detected): detected: none  (group order 1, max element error 0.0000 mm, threshold 0.2684)
+auto mode: coplanar-area fraction 0.98 -> exact
+exact mode: tolerance 0.0671 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+/home/claude/uw-ersl/stl2cad/stl2cad/prism25.py:236: RuntimeWarning: invalid value encountered in divide
+  n /= np.linalg.norm(n)
+  2.5D along x (91.9 % of the area) with 6 off-axis cylinder(s): hole d=5.700, boss d=8.280, hole d=7.144, hole d=7.144, boss d=18.542, hole d=16.000
+  2.5D along x with 5 slanted planar face(s)
+  2.5D along x with 19 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 1.905..13.843; no clean section
+/home/claude/uw-ersl/stl2cad/stl2cad/prism25.py:236: RuntimeWarning: invalid value encountered in divide
+  n /= np.linalg.norm(n)
+  2.5D: trying the x axis (91.9 % of the area)
+  2.5D along x (91.9 % of the area) with 6 off-axis cylinder(s): hole d=5.700, boss d=8.280, hole d=7.144, hole d=7.144, boss d=18.542, hole d=16.000
+  2.5D along x with 5 slanted planar face(s)
+  2.5D along x with 19 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 1.905..13.843; no clean section
+  2.5D: trying the z axis (86.5 % of the area)
+  2.5D along z (86.5 % of the area) with 2 off-axis cylinder(s): boss d=18.542, hole d=16.000
+  2.5D along z with 1 revolved group(s) about axes along z
+  2.5D along z with 2 slanted planar face(s)
+  2.5D along z with 4 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 16.256..16.764; no clean section
+  2.5D: trying the y axis (84.3 % of the area)
+  2.5D along y (84.3 % of the area) with 4 off-axis cylinder(s): hole d=5.700, boss d=8.230, hole d=7.144, hole d=7.144
+  2.5D along y with 10 slanted planar face(s)
+  2.5D along y with 17 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 16.339..18.034; no clean section
+  revolve: no axis with equal perpendicular moments
+  absorbed 240 fragments into larger surfaces
+  region competition moved 162 boundary faces
+  validation expelled 2 faces from drifted surfaces
+  segmentation (20.6s): plane x68 (85.5% area), cylinder x20 (13.2% area), cone x3 (0.4% area), sphere x9 (0.4% area), torus x2 (0.1% area), extrusion x17 (0.3% area), facets x18 (0.2% area)
+  decomposed 5 spline surface(s) into 5 analytic surfaces
+  refit 21 odd region(s) as 31 plane(s)/cylinder(s)/tori, 41 triangles absorbed by existing surfaces; 13 triangles left as facets
+  refit 8 odd region(s) as 7 plane(s)/cylinder(s)/tori, 104 triangles absorbed by existing surfaces
+  snapped 115 surface directions to the part frame
+  unified 46 coplanar/coaxial surfaces; merged 6 duplicate curved regions
+  enforced tangency on 10 cylinders
+  blends: 3 fillet surface(s) recognised, radii 0.98, 5.12, 6.99 mm
+  tangent chains: 4 profile shells replace 14 surfaces
+  arrangement: 138 tool faces -> 254 cells (20.3s)
+  classified cells: 81 inside (49.3s)
+  fused and unified: 14 solid(s), 353 faces, valid=True (36.4s)
+  result check: valid=True, solids=14 (mesh bodies 1), volume error 89.92 %
+  fillets: no sharp edge found for 2 blend(s)
+  fillets: 1 blend(s) applied on 2 edge(s)
+  after fillets: valid=True, volume error 89.92 % (1.9s)
+WARNING: exact result failed the volume/validity check; inspect the deviation map
+mode: exact
+tolerance: 0.0671 mm
+symmetry imposed: none
+solid valid: True, faces: 351
+deviation:
+  ref_to_model  mean 4.5012  median 3.4593  p95 13.1053  max 19.6198 mm
+  model_to_ref  mean 0.1596  median 0.0062  p95 0.9601  max 1.5322 mm
+  volume ref 25429.73  model 2554.21 mm^3  (-89.96 %)
+time: 167.9 s
+script: not written (construction script script failed: OCP.OCP.StdFail.StdFail_NotDone: BRep_API: command not done)
+saved: out/BatteryHolder/BatteryHolder_exact.step, out/BatteryHolder/BatteryHolder_exact.stl, out/BatteryHolder/BatteryHolder_exact_report.txt

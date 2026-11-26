@@ -1,0 +1,33 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/stool/Case3  (domain Stool.STL, TO Stool_finalIsoBinary.stl)
+class 3: plate 77 %
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [0.1, 0.1, 0.1], fill of its box 0.994; TO volume fraction 0.184; pitch 0.0005966; 65.8 s
+clean-up: {'outside_domain': 0.0333, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations ['C4 about [0.0, 0.0, 1.0] (1.00/0.98)']; mirrors ['[1.0, 0.0, 0.0] (1.00/0.98)', '[0.0, 1.0, 0.0] (1.00/0.97)', '[0.7071, 0.7071, 0.0] (1.00/0.99)', '[0.7071, -0.7071, 0.0] (1.00/0.96)']
+  candidates (not imposed): []
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.00 / 0.37 / 0.62 / 0.34 / 0.28 / 0.71 / 0.07 / 0.16
+  y: 0.00 / 0.38 / 0.62 / 0.35 / 0.29 / 0.65 / 0.07 / 0.16
+  z: 0.00 / 0.99 / 0.01 / 0.00 / 0.00 / 0.01 / 0.29 / 0.46
+route: {'route': '3D', 'axis': None, 'cls': None}
+retained regions: 5.0 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+  16  29.8 %  junction   t=0.0089                                 face 0.18  nb [3, 5, 7, 8, 9, 10, 11]
+   9  18.9 %  plate      t=0.0181   [-0.047, -0.056, 0.997] 0.099  face 0.23  nb [1, 7, 16]
+   8   6.3 %  plate      t=0.0095   [0.907, 0.013, 0.422]  0.179  face 0.23  nb [16]
+   7   6.2 %  plate      t=0.009    [0.022, 0.908, -0.418] 0.184  face 0.24  nb [9, 16]
+  11   6.2 %  plate      t=0.0119   [0.89, -0.006, -0.455] 0.103  face 0.21  nb [13, 14, 16]
+  10   5.7 %  plate      t=0.012    [0.002, 0.904, 0.427]  0.104  face 0.23  nb [16, 17, 18]
+  12   5.1 %  mass       t=0.0074                                 face 0.45  nb [5, 13]
+   1   5.0 %  retained   t=0.0179                                 face 1.00  nb [9]
+  19   4.8 %  mass       t=0.0073                                 face 0.48  nb [3, 6]
+  15   4.2 %  mass       t=0.0084                                 face 0.55  nb [2, 4]
+   2   1.7 %  curved rod t=0.0107   [0.022, -0.584, 0.811] 0.064  face 0.26  nb [14, 15]
+   4   1.6 %  curved rod t=0.0105   [0.618, 0.014, 0.786]  0.082  face 0.39  nb [15, 17]
+  17   1.0 %  mass       t=0.0107                                 face 0.34  nb [4, 10]
+   3   0.8 %  curved rod t=0.0107   [-0.009, -0.645, 0.764] 0.089  face 0.31  nb [16, 19]
+   6   0.7 %  curved rod t=0.0095   [-0.459, -0.128, 0.879] 0.136  face 0.24  nb [18, 19]
+  18   0.6 %  mass       t=0.0107                                 face 0.27  nb [6, 10]
+   5   0.5 %  curved rod t=0.0095   [0.461, 0.014, 0.887]  0.15   face 0.30  nb [12, 16]
+  13   0.5 %  mass       t=0.0103                                 face 0.26  nb [11, 12]
+  14   0.5 %  mass       t=0.0107                                 face 0.30  nb [2, 11]

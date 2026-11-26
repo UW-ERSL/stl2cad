@@ -1,0 +1,20 @@
+loaded flange.STL: 1608 triangles, extents [222.333, 63.0, 105.0] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis z  (group order 4, max element error 0.0045 mm, threshold 0.5076)
+auto mode: coplanar-area fraction 0.98 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.1269 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  loop 1: refitted at tol/4 (16 -> 14 edges)
+  snapping: 9 of 9 loop(s) snapped to clean geometry
+  2.5D along y: 5 levels, 4 extrusion(s) and 5 cut(s), 0 revolved feature(s), 30 profile edges, volume error 0.079 %, max distance mesh->model 0.0195 mm, model->mesh 0.1164 mm, valid=True (0.8s)
+mode: exact
+tolerance: 0.1269 mm
+symmetry imposed: none (detected: D2 about frame axis z)
+solid valid: True, faces: 35
+deviation:
+  ref_to_model  mean 0.0237  median 0.0145  p95 0.0775  max 0.1412 mm
+  model_to_ref  mean 0.0238  median 0.0147  p95 0.0780  max 0.1420 mm
+  volume ref 325315.11  model 325307.10 mm^3  (-0.00 %)
+time: 6.7 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0363 mm (4.0s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0538 mm, 42 dimension(s), 36 relation(s)) (13.6s)
+saved: out31/flange/flange_exact.step, out31/flange/flange_exact.stl, out31/flange/flange_exact.py, out31/flange/flange_solidworks.py, out31/flange/flange_exact_report.txt

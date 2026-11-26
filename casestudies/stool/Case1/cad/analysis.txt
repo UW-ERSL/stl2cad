@@ -1,0 +1,23 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/stool/Case1  (domain Stool.STL, TO Stool_finalIsoBinary.stl)
+class 4: rod 100 %
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [0.1, 0.1, 0.1], fill of its box 0.994; TO volume fraction 0.106; pitch 0.0005892; 41.6 s
+clean-up: {'outside_domain': 0.023, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations ['C4 about [0.0, 0.0, 1.0] (1.00/1.00)']; mirrors ['[1.0, 0.0, 0.0] (1.00/1.00)', '[0.0, 1.0, 0.0] (1.00/1.00)', '[0.7071, 0.7071, 0.0] (1.00/1.00)', '[0.7071, -0.7071, 0.0] (1.00/1.00)']
+  candidates (not imposed): []
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.03 / 0.16 / 0.84 / 0.08 / 0.07 / 0.94 / 0.10 / 0.31
+  y: 0.03 / 0.16 / 0.83 / 0.08 / 0.07 / 0.94 / 0.12 / 0.32
+  z: 0.00 / 0.91 / 0.09 / 0.00 / 0.00 / 0.01 / 0.63 / 0.48
+route: {'route': '3D', 'axis': None, 'cls': None}
+retained regions: 0.0 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+   9  34.4 %  node       t=0.0059                                 face 0.42  nb [2, 3, 4, 5, 6, 7, 8]
+  10  24.2 %  node       t=0.0184                                 face 0.07  nb [5, 6, 7, 8]
+   7  10.2 %  rod        t=0.0144   [0.369, 0.369, 0.853]  0.009  face 0.00  nb [9, 10]
+   6  10.1 %  rod        t=0.0144   [0.368, -0.368, 0.854] 0.009  face 0.00  nb [9, 10]
+   8  10.0 %  rod        t=0.0146   [-0.369, -0.368, 0.854] 0.008  face 0.00  nb [9, 10]
+   5   9.9 %  rod        t=0.0145   [-0.369, 0.369, 0.853] 0.009  face 0.00  nb [9, 10]
+   2   0.6 %  rod        t=0.0063   [1.0, 0.003, -0.003]   0.019  face 0.13  nb [9]
+   3   0.3 %  rod        t=0.0067   [1.0, -0.014, -0.0]    0.018  face 0.00  nb [9]
+   4   0.3 %  rod        t=0.0068   [-0.006, 1.0, 0.0]     0.017  face 0.01  nb [9]

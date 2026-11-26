@@ -1,0 +1,48 @@
+loaded idler_riser.stl: 1572 triangles, extents [67.462, 75.006, 15.875] mm, watertight=True
+symmetry (detected): detected: mirror y  (group order 2, max element error 0.0019 mm, threshold 0.2042)
+auto mode: coplanar-area fraction 0.83 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0511 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  drill point: 118 deg on the hole d=4.9784
+  drill point: 118 deg on the hole d=4.9784
+  2.5D along z (89.9 % of the area) with 2 off-axis cylinder(s): hole d=4.978, hole d=4.978
+  2.5D along z with 1 revolved group(s) about axes along z
+  2.5D along z with 1 slanted planar face(s)
+  2.5D along z with 2 edge blend(s)
+  loop 1: refitted at tol/4 (6 -> 6 edges)
+  snapping: 4 of 4 loop(s) snapped to clean geometry
+  revolved group 1 (local, axis through (31.750, 41.275, 0.000), r 22.181..25.400, half plane -y): 0 boss(es), 3 cut(s), 9 profile edges
+  2.5D: cut along x over [0.0000, 63.5000], 3 edges
+  blends: chamfer 0.79375 mm on 5 edge(s) (measured 0.7938)
+  blends: chamfer 0.79375 mm on 5 edge(s) (measured 0.7938)
+  2.5D along z: 4 levels, 3 extrusion(s) and 1 cut(s), 3 revolved feature(s), 12 profile edges, volume error 0.294 %, max distance mesh->model 0.0221 mm, model->mesh 0.0496 mm, valid=True (0.7s)
+  2.5D: trying the y axis (60.8 % of the area)
+  2.5D: no prism axis (best face fraction 0.608)
+  2.5D: trying the x axis (58.4 % of the area)
+  drill point: 140.5 deg on the hole d=44.4
+  drill point: 82.5 deg on the hole d=44.4
+  drill point: 82.5 deg on the hole d=44.4
+  drill point: 118 deg on the hole d=4.9784
+  drill point: 118 deg on the hole d=4.9784
+  drill point: 118 deg on the hole d=4.9784
+  drill point: 118 deg on the hole d=4.9784
+  2.5D along x (58.4 % of the area) with 4 off-axis cylinder(s): hole d=44.400, boss d=50.800, hole d=4.978, hole d=4.978
+  2.5D along x with 2 slanted planar face(s)
+  2.5D along x with 9 edge blend(s)
+  loop 1: refitted at tol/4 (15 -> 17 edges)
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  2.5D: no cut region for the slanted face with normal [-0.063  0.998  0.   ]; left to the distance check
+  2.5D: no cut region for the slanted face with normal [-0.063 -0.998  0.   ]; left to the distance check
+  blends: no sharp edge under a blend of 40 faces
+mode: exact
+tolerance: 0.0511 mm
+symmetry imposed: none (detected: mirror y)
+solid valid: True, faces: 31
+deviation:
+  ref_to_model  mean 0.0088  median 0.0000  p95 0.0416  max 0.0655 mm
+  model_to_ref  mean 0.0088  median 0.0000  p95 0.0412  max 0.0660 mm
+  volume ref 24380.72  model 24437.84 mm^3  (+0.23 %)
+time: 8.1 s
+script: feature script, verified: volume 0.0001 %, max distance 0.0001 mm (3.8s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 37 dimension(s), 23 relation(s)) (14.3s)
+saved: out31/idler_riser/idler_riser_exact.step, out31/idler_riser/idler_riser_exact.stl, out31/idler_riser/idler_riser_exact.py, out31/idler_riser/idler_riser_solidworks.py, out31/idler_riser/idler_riser_exact_report.txt

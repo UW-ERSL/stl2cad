@@ -1,0 +1,21 @@
+loaded lego.STL: 3510 triangles, extents [31.8, 11.4, 15.8] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis z  (group order 4, max element error 0.0016 mm, threshold 0.0746)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0186 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 26 of 26 loop(s) snapped to clean geometry
+  linear pattern: 3 copies of 4 edge(s), step (-8.0000, 0.0000) mm
+  2.5D along y: 6 levels, 12 extrusion(s) and 14 cut(s), 0 revolved feature(s), 138 profile edges, volume error 0.156 %, max distance mesh->model 0.0000 mm, model->mesh 0.0124 mm, valid=True (1.6s)
+mode: exact
+tolerance: 0.0186 mm
+symmetry imposed: none (detected: D2 about frame axis z)
+solid valid: True, faces: 112
+deviation:
+  ref_to_model  mean 0.0012  median 0.0000  p95 0.0066  max 0.0122 mm
+  model_to_ref  mean 0.0012  median 0.0000  p95 0.0065  max 0.0123 mm
+  volume ref 2208.59  model 2210.36 mm^3  (+0.08 %)
+time: 7.9 s
+only got 778/800 samples!
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (5.8s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0029 mm, 76 dimension(s), 157 relation(s)) (23.7s)
+saved: out31/lego/lego_exact.step, out31/lego/lego_exact.stl, out31/lego/lego_exact.py, out31/lego/lego_solidworks.py, out31/lego/lego_exact_report.txt

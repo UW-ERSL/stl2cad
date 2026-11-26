@@ -100,6 +100,43 @@ class Segment:
         m.sel_list.append((self.edge[0], self))
         return True
 
+    def _end(self, i):
+        if not hasattr(self, "_ends"):
+            self._ends = [SketchPoint(self.sm.model, self.edge[1]), SketchPoint(self.sm.model, self.edge[-1])]
+        return self._ends[i]
+
+    def GetStartPoint2(self):
+        return self._end(0)
+
+    def GetEndPoint2(self):
+        return self._end(1)
+
+    def _pt(self, i):                                  # ellipse: centre, major, minor point
+        if not hasattr(self, "_pts"):
+            self._pts = [SketchPoint(self.sm.model, q) for q in self.edge[1:4]]
+        return self._pts[i]
+
+    def GetCenterPoint2(self):
+        if self.edge[0] == "circle":
+            if not hasattr(self, "_c"):
+                self._c = SketchPoint(self.sm.model, self.edge[1])
+            return self._c
+        if self.edge[0] == "arc":                      # (start, mid, end): the circle through them
+            if not hasattr(self, "_c"):
+                p, q, r = (np.array(v, float) for v in self.edge[1:4])
+                a = 2 * (p[0] * (q[1] - r[1]) + q[0] * (r[1] - p[1]) + r[0] * (p[1] - q[1]))
+                c = (((p @ p) * (q[1] - r[1]) + (q @ q) * (r[1] - p[1]) + (r @ r) * (p[1] - q[1])) / a,
+                     ((p @ p) * (r[0] - q[0]) + (q @ q) * (p[0] - r[0]) + (r @ r) * (q[0] - p[0])) / a)
+                self._c = SketchPoint(self.sm.model, c)
+            return self._c
+        return self._pt(0)
+
+    def GetMajorPoint2(self):
+        return self._pt(1)
+
+    def GetMinorPoint2(self):
+        return self._pt(2)
+
 
 def natural_spline(P):
     """SolidWorks' CreateSpline2 with natural ends (sw_probe_bars): the natural cubic spline through P with
@@ -154,11 +191,11 @@ def _spline_loft(P, profs):
 
 
 def _seg_end(seg, i):
-    """End point of a 3D sketch line (swframe reads the skeleton again); 2D segments keep having none, as before."""
+    """End point of a sketch segment: a 3D sketch line's (swframe reads the skeleton again) or a 2D segment's."""
     e = seg.edge
     q = e[1] if i == 0 else e[-1]
     if len(q) != 3:
-        raise AttributeError("GetStartPoint2/GetEndPoint2: 3D sketch lines only in the stand-in")
+        return seg._end(i)                      # 2D sketch segment: its own end point
     return SketchPoint3(seg.sm.model, q, getattr(seg, "sk", None))
 
 
@@ -179,42 +216,6 @@ class SkPoint:
         m.ext_sel.append(("point", self.sk.to_model(self.xy), getattr(data, "Mark", 0)))
         return True
 
-    def _end(self, i):
-        if not hasattr(self, "_ends"):
-            self._ends = [SketchPoint(self.sm.model, self.edge[1]), SketchPoint(self.sm.model, self.edge[-1])]
-        return self._ends[i]
-
-    def GetStartPoint2(self):
-        return self._end(0)
-
-    def GetEndPoint2(self):
-        return self._end(1)
-
-    def _pt(self, i):                                  # ellipse: centre, major, minor point
-        if not hasattr(self, "_pts"):
-            self._pts = [SketchPoint(self.sm.model, q) for q in self.edge[1:4]]
-        return self._pts[i]
-
-    def GetCenterPoint2(self):
-        if self.edge[0] == "circle":
-            if not hasattr(self, "_c"):
-                self._c = SketchPoint(self.sm.model, self.edge[1])
-            return self._c
-        if self.edge[0] == "arc":                      # (start, mid, end): the circle through them
-            if not hasattr(self, "_c"):
-                p, q, r = (np.array(v, float) for v in self.edge[1:4])
-                a = 2 * (p[0] * (q[1] - r[1]) + q[0] * (r[1] - p[1]) + r[0] * (p[1] - q[1]))
-                c = (((p @ p) * (q[1] - r[1]) + (q @ q) * (r[1] - p[1]) + (r @ r) * (p[1] - q[1])) / a,
-                     ((p @ p) * (r[0] - q[0]) + (q @ q) * (p[0] - r[0]) + (r @ r) * (q[0] - p[0])) / a)
-                self._c = SketchPoint(self.sm.model, c)
-            return self._c
-        return self._pt(0)
-
-    def GetMajorPoint2(self):
-        return self._pt(1)
-
-    def GetMinorPoint2(self):
-        return self._pt(2)
 
 
 class SketchPoint:
@@ -227,6 +228,8 @@ class SketchPoint:
         self.model.sel_list.append(("point", (self.X, self.Y)))
         return True
 
+
+MIN_DIM = 1e-8     # m: SolidWorks returned no dimension for a 6.5e-7 mm extent (bottleopener)
 
 FACE_TWIST = float(os.environ.get("SWMOCK_FACE_TWIST", "0"))   # extra turn (deg) of face sketch axes
 
@@ -283,6 +286,8 @@ class Sketch:
                 add(e[1]); add(e[2]); add(e[3]); add(e[4]); add(e[5])
             elif e[0] == "circle":
                 add(e[1])
+        for q in getattr(self, "pattern_centres", []):   # a circular pattern's centre point
+            add(q)
         for q in getattr(self, "points", []):         # CreatePoint: its own point even where an end point is
             out.append(SketchPoint(m, q))
         return out
@@ -565,6 +570,7 @@ class SketchManager:
                         ys.append(c[1] + rad * math.sin(t))
         bc = np.array([(max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2])
         cen = bc + R * np.array([math.cos(A), math.sin(A)])
+        self._sk.pattern_centres = getattr(self._sk, "pattern_centres", []) + [(float(cen[0]), float(cen[1]))]
         for m in range(1, n):
             t = m * spacing
             rot = lambda q: tuple(cen + np.array([[math.cos(t), -math.sin(t)], [math.sin(t), math.cos(t)]]) @ (np.array(q) - cen))
@@ -1649,14 +1655,14 @@ class Model:
 
     def AddHorizontalDimension2(self, x, y, z):
         p = self._two_points()
-        if p is None:
+        if p is None or abs(p[0][0] - p[1][0]) < MIN_DIM:      # as SolidWorks: no dimension of (nearly) zero
             return None
         self.dims.append(("horizontal", abs(p[0][0] - p[1][0]) / 1e-3))
         return self._ddim()
 
     def AddVerticalDimension2(self, x, y, z):
         p = self._two_points()
-        if p is None:
+        if p is None or abs(p[0][1] - p[1][1]) < MIN_DIM:      # as SolidWorks: no dimension of (nearly) zero
             return None
         self.dims.append(("vertical", abs(p[0][1] - p[1][1]) / 1e-3))
         return self._ddim()

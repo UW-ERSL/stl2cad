@@ -1,0 +1,66 @@
+loaded bottlecap.STL: 6270 triangles, extents [28.0, 44.279, 40.762] mm, watertight=True
+symmetry (detected): detected: mirror y  (group order 2, max element error 0.0016 mm, threshold 0.1328)
+auto mode: coplanar-area fraction 0.85 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0332 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y (54.1 % of the area) with 1 off-axis cylinder(s): hole d=26.000
+  2.5D along y with 1 revolved group(s) about axes along y
+  2.5D along y with 2 slanted planar face(s)
+  2.5D along y with 10 edge blend(s)
+  loop 2: refitted at tol/4 (7 -> 9 edges)
+  loop 3: refitted at tol/4 (30 -> 34 edges)
+  snapping: 6 of 8 loop(s) snapped to clean geometry
+  revolved group 1 (disk, axis through (0.000, 0.000, 0.000), r 0.750..2.000, half plane +x): 1 boss(es), 0 cut(s), 8 profile edges
+  2.5D: no cut region for the slanted face with normal [ 0.    -0.208  0.978]; left to the distance check
+  2.5D: no cut region for the slanted face with normal [ 0.    -0.208  0.978]; left to the distance check
+  blends: no sharp edge under a blend of 7 faces
+  2.5D: trying the y axis (55.5 % of the area)
+  2.5D along y (55.5 % of the area) with 1 off-axis cylinder(s): hole d=26.000
+  2.5D along y with 1 revolved group(s) about axes along y
+  2.5D along y with 2 slanted planar face(s)
+  2.5D along y with 10 edge blend(s)
+  loop 2: refitted at tol/4 (7 -> 9 edges)
+  loop 3: refitted at tol/4 (30 -> 34 edges)
+  snapping: 6 of 8 loop(s) snapped to clean geometry
+  revolved group 1 (disk, axis through (0.000, 0.000, 0.000), r 0.750..2.000, half plane +x): 1 boss(es), 0 cut(s), 8 profile edges
+  2.5D: no cut region for the slanted face with normal [ 0.    -0.208  0.978]; left to the distance check
+  2.5D: no cut region for the slanted face with normal [ 0.    -0.208  0.978]; left to the distance check
+  blends: no sharp edge under a blend of 7 faces
+  revolve: no axis with equal perpendicular moments
+  absorbed 355 fragments into larger surfaces
+  region competition moved 100 boundary faces
+/usr/local/lib/python3.13/site-packages/scipy/interpolate/_fitpack_py.py:159: RuntimeWarning: A theoretically impossible result when finding a smoothing spline
+with fp = s. Probable cause: s too small. (abs(fp-s)/s>0.001)
+  res = _impl.splprep(x, w, u, ub, ue, k, task, s, t, full_output, nest, per,
+  merged 56 curved fragments into 2 spline extrusion(s), 3 spline revolution(s) and 0 cylinder(s)
+  segmentation (52.0s): plane x57 (39.9% area), cylinder x50 (46.8% area), cone x32 (4.5% area), sphere x8 (3.9% area), extrusion x2 (2.6% area), revolution x3 (0.9% area), facets x2 (0.0% area)
+  simplified 3 degenerate surface fits
+  replaced 46 facet planes by 1 cylinder(s)
+  decomposed 5 spline surface(s) into 8 analytic surfaces
+  replaced 5 cone/revolution fits by tori
+  symmetric consensus: 1 class(es) of mirror-image surfaces fitted jointly
+  refit 65 odd region(s) as 2 plane(s)/cylinder(s)/tori, 2 triangles absorbed by existing surfaces
+  snapped 19 surface directions to the part frame
+  unified 82 coplanar/coaxial surfaces; merged 2 duplicate curved regions
+  enforced tangency on 2 cylinders
+  blends: 3 fillet surface(s) recognised, radii 1.25, 3 mm
+  tangent chains: 2 profile shells replace 6 surfaces
+  arrangement: 32 tool faces -> 41 cells (3.2s)
+  classified cells: 26 inside (10.6s)
+  fused and unified: 1 solid(s), 32 faces, valid=True (2.7s)
+  result check: valid=True, solids=1 (mesh bodies 1), volume error 2.33 %
+  fillets: 3 blend(s) applied on 3 edge(s)
+  fillets: 2 B-spline fillet face(s) rebuilt as exact tori
+  after fillets: valid=True, volume error 1.79 % (0.3s)
+WARNING: exact result failed the volume/validity check; inspect the deviation map
+mode: exact
+tolerance: 0.0332 mm
+symmetry imposed: none (detected: mirror y)
+solid valid: True, faces: 35
+deviation:
+  ref_to_model  mean 0.0199  median 0.0039  p95 0.0221  max 0.9935 mm
+  model_to_ref  mean 0.0198  median 0.0039  p95 0.0225  max 1.0000 mm
+  volume ref 4910.65  model 4990.91 mm^3  (+1.63 %)
+time: 95.0 s
+script: construction script, verified: volume 0.0000 %, max distance 0.0000 mm (8.5s)
+saved: out/bottlecap/bottlecap_exact.step, out/bottlecap/bottlecap_exact.stl, out/bottlecap/bottlecap_exact.py, out/bottlecap/bottlecap_exact_report.txt

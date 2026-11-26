@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "D:\Dropbox\Personal\suresh\Software\Github\ERSL-Private\stl2cad\exact\cad\BicycleCrank_exact.py", line 11, in <module>
+    from cadquery import Edge, Vector, Vertex
+ModuleNotFoundError: No module named 'cadquery'

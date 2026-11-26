@@ -1,0 +1,25 @@
+loaded snapring.STL: 1620 triangles, extents [52.997, 9.0, 52.955] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis x  (group order 4, max element error 0.0011 mm, threshold 0.1509)
+auto mode: coplanar-area fraction 0.95 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0377 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y (76.2 % of the area) with 4 off-axis cylinder(s): hole d=4.000, hole d=4.000, hole d=6.000, hole d=6.000
+  2.5D along y with 1 revolved group(s) about axes along y
+  2.5D along y with 2 slanted planar face(s)
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  revolved group 1 (local, axis through (0.000, 0.000, 0.000), r 17.500..26.500, half plane +x): 0 boss(es), 4 cut(s), 12 profile edges
+  2.5D: no cut region for the slanted face with normal [ 0.    -0.087 -0.996]; left to the distance check
+  2.5D: no cut region for the slanted face with normal [ 0.     0.087 -0.996]; left to the distance check
+  2.5D along y: 2 levels, 1 extrusion(s) and 0 cut(s), 4 revolved feature(s), 8 profile edges, volume error 0.071 %, max distance mesh->model 0.0108 mm, model->mesh 0.0344 mm, valid=True (1.6s)
+mode: exact
+tolerance: 0.0377 mm
+symmetry imposed: none (detected: D2 about frame axis x)
+solid valid: True, faces: 24
+deviation:
+  ref_to_model  mean 0.0052  median 0.0000  p95 0.0267  max 0.1194 mm
+  model_to_ref  mean 0.0052  median 0.0000  p95 0.0266  max 0.1197 mm
+  volume ref 10165.91  model 10149.49 mm^3  (-0.16 %)
+time: 6.9 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (8.5s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 33 dimension(s), 24 relation(s)) (35.3s)
+saved: out31/snapring/snapring_exact.step, out31/snapring/snapring_exact.stl, out31/snapring/snapring_exact.py, out31/snapring/snapring_solidworks.py, out31/snapring/snapring_exact_report.txt

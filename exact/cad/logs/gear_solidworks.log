@@ -1,0 +1,29 @@
+connected to SolidWorks; new part created; building 6 feature(s)
+units: unit system MMGS; length unit mm, set [True, True, True]
+  circular pattern: 6 entities x 48
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 1222328.281 mm^3, centre of mass (105.805, 105.797, 20.000) mm
+Boss 1 z 0.95 to 39.05: volume 1222328.281 mm^3 (expected 1222328.281)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=False: volume 979324.919 mm^3, centre of mass (105.806, 105.796, 23.604) mm
+Holes 1 (dia 184.9) z 0.95 to 10: volume 979324.919 mm^3 (expected 979324.919)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=False: volume 736321.556 mm^3, centre of mass (105.808, 105.795, 20.000) mm
+Holes 2 (dia 184.9) z 30 to 39.05: volume 736321.556 mm^3 (expected 736321.556)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 755956.511 mm^3, centre of mass (105.808, 105.795, 19.610) mm
+Boss 2 z 0 to 10: volume 755956.511 mm^3 (expected 755956.510)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 775591.465 mm^3, centre of mass (105.808, 105.796, 20.000) mm
+Boss 3 z 30 to 40: volume 775591.465 mm^3 (expected 775591.465)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=False: volume 753039.779 mm^3, centre of mass (105.808, 105.734, 20.000) mm
+Cut 1 z 0 to 40: volume 753039.779 mm^3 (expected 753039.779)
+part is in the STL's orientation
+linked dimensions: 4 in 2 global variable(s)
+rounded 16 dimension(s) to 3 significant digits; volume 753039.779 -> 752032.129 mm^3 (-0.13 %)
+independent dimensions: 29 (31 dimensions, 4 of them driven by 2 global variable(s))
+dimensions: 31 added
+relations: 4 added
+sketch status: fully defined, fully defined, fully defined, fully defined, fully defined, fully defined
+planned: fully defined, fully defined, fully defined, fully defined, fully defined, fully defined

@@ -1,0 +1,48 @@
+loaded AlcoaGrabCAD.stl: 6754 triangles, extents [125.339, 84.67, 38.1] mm, watertight=True
+symmetry (detected): detected: mirror z  (group order 2, max element error 0.1148 mm, threshold 0.3120)
+auto mode: coplanar-area fraction 0.95 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0780 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along z: 1 revolved group(s), but the other off-axis faces are not cylinders
+  2.5D: no prism axis (best face fraction 0.792)
+  2.5D: trying the z axis (79.7 % of the area)
+  2.5D along z (79.7 % of the area) with 8 off-axis cylinder(s): hole d=4.826, hole d=9.144, hole d=9.144, hole d=9.144, hole d=4.826, hole d=4.826, hole d=9.144, hole d=4.826
+  2.5D along z with 1 revolved group(s) about axes along z
+  2.5D along z with 4 slanted planar face(s)
+  2.5D along z with 4 edge blend(s)
+  snapping: 5 of 12 loop(s) snapped to clean geometry
+  2.5D: construction failed (ValueError: Null TopoDS_Shape object); using the surface arrangement
+  2.5D: trying the y axis (61.1 % of the area)
+  2.5D along y (61.1 % of the area) with 3 off-axis cylinder(s): boss d=27.940, boss d=20.320, boss d=20.320
+  2.5D along y with 3 slanted planar face(s)
+  2.5D along y with 14 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 5.720..22.225; no clean section
+  2.5D: trying the x axis (51.7 % of the area)
+  2.5D along x (51.7 % of the area) with 11 off-axis cylinder(s): hole d=4.826, hole d=9.144, hole d=9.144, hole d=9.144, boss d=27.940, hole d=4.826, hole d=4.826, hole d=9.144, hole d=4.826, boss d=20.320, boss d=20.320
+  2.5D along x with 2 slanted planar face(s)
+  2.5D along x with 13 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 47.625..94.234; no clean section
+  revolve: no axis with equal perpendicular moments
+  absorbed 2 fragments into larger surfaces
+  region competition moved 97 boundary faces
+  segmentation (12.8s): plane x23 (72.4% area), cylinder x16 (24.3% area), cone x1 (1.7% area), torus x3 (1.5% area), extrusion x2 (0.1% area)
+  simplified 4 degenerate surface fits
+  decomposed 2 spline surface(s) into 2 analytic surfaces
+  snapped 30 surface directions to the part frame
+  unified 11 coplanar/coaxial surfaces; merged 1 duplicate curved regions
+  enforced tangency on 9 cylinders
+  tangent chains: 7 profile shells replace 15 surfaces
+  arrangement: 36 tool faces -> 41 cells (9.4s)
+  classified cells: 5 inside (8.0s)
+  fused and unified: 1 solid(s), 52 faces, valid=True (2.8s)
+mode: exact
+tolerance: 0.0780 mm
+symmetry imposed: none (detected: mirror z)
+solid valid: True, faces: 52
+deviation:
+  ref_to_model  mean 0.0033  median 0.0006  p95 0.0142  max 0.0621 mm
+  model_to_ref  mean 0.0033  median 0.0007  p95 0.0141  max 0.0617 mm
+  volume ref 109680.77  model 109692.80 mm^3  (+0.01 %)
+time: 69.7 s
+script: construction script, verified: volume 0.0000 %, max distance 0.0000 mm (7.3s)
+saved: out/AlcoaGrabCAD/AlcoaGrabCAD_exact.step, out/AlcoaGrabCAD/AlcoaGrabCAD_exact.stl, out/AlcoaGrabCAD/AlcoaGrabCAD_exact.py, out/AlcoaGrabCAD/AlcoaGrabCAD_exact_report.txt

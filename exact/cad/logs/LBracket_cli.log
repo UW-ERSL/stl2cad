@@ -1,0 +1,25 @@
+loaded LBracket.STL: 356 triangles, extents [100.0, 100.0, 2.0] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis y  (group order 4, max element error 0.0147 mm, threshold 0.2829)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0707 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 3 of 3 loop(s) snapped to clean geometry
+  2.5D along z: 2 levels, 1 extrusion(s) and 2 cut(s), 0 revolved feature(s), 9 profile edges, volume error 0.004 %, max distance mesh->model 0.0000 mm, model->mesh 0.0149 mm, valid=True (0.3s)
+mode: exact
+tolerance: 0.0707 mm
+symmetry imposed: none (detected: D2 about frame axis y)
+solid valid: True, faces: 11
+deviation:
+  ref_to_model  mean 0.0000  median 0.0000  p95 0.0000  max 0.0135 mm
+  model_to_ref  mean 0.0000  median 0.0000  p95 0.0000  max 0.0141 mm
+  volume ref 12728.85  model 12728.59 mm^3  (-0.00 %)
+time: 5.0 s
+only got 754/800 samples!
+only got 748/800 samples!
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (3.5s)
+only got 754/800 samples!
+only got 746/800 samples!
+only got 754/800 samples!
+only got 746/800 samples!
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 8 dimension(s), 12 relation(s)) (10.0s)
+saved: out31/LBracket/LBracket_exact.step, out31/LBracket/LBracket_exact.stl, out31/LBracket/LBracket_exact.py, out31/LBracket/LBracket_solidworks.py, out31/LBracket/LBracket_exact_report.txt

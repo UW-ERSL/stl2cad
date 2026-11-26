@@ -1,0 +1,26 @@
+loaded chessrook.STL: 9758 triangles, extents [30.993, 46.0, 30.986] mm, watertight=True
+symmetry (detected): detected: D6 about frame axis x  (group order 12, max element error 0.0041 mm, threshold 0.1271)
+auto mode: coplanar-area fraction 0.86 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0318 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y with 1 revolved group(s) about axes along y
+  2.5D along y with 12 slanted planar face(s)
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  revolve about y: 1 profile loop(s), 14 edges, volume error 2.672 %, max distance mesh->model 4.0000 mm, model->mesh 2.0824 mm, valid=True (4.0s)
+  revolve: checks failed
+  revolve+cuts: cut across (-1.000, 0.000, 0.000), 4 edges, through
+  revolve+cuts: cut across (0.500, 0.000, 0.866), 4 edges, through
+  revolve+cuts: cut across (0.500, 0.000, -0.866), 4 edges, through
+  revolve about y with 3 cut(s): 14 profile edges, volume error 0.220 %, max distance mesh->model 0.0087 mm, model->mesh 0.0266 mm, valid=True (5.3s)
+mode: exact
+tolerance: 0.0318 mm
+symmetry imposed: none (detected: D6 about frame axis x)
+solid valid: True, faces: 36
+deviation:
+  ref_to_model  mean 0.0308  median 0.0066  p95 0.1350  max 0.1959 mm
+  model_to_ref  mean 0.0308  median 0.0065  p95 0.1348  max 0.1972 mm
+  volume ref 17287.95  model 17139.54 mm^3  (-0.86 %)
+time: 17.7 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0002 mm (4.6s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 33 dimension(s), 30 relation(s)) (13.4s)
+saved: out31/chessrook/chessrook_exact.step, out31/chessrook/chessrook_exact.stl, out31/chessrook/chessrook_exact.py, out31/chessrook/chessrook_solidworks.py, out31/chessrook/chessrook_exact_report.txt

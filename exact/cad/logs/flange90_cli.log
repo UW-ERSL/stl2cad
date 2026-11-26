@@ -1,0 +1,42 @@
+loaded flange90.STL: 20856 triangles, extents [139.822, 128.416, 122.0] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis z  (group order 4, max element error 0.0124 mm, threshold 0.4513)
+auto mode: coplanar-area fraction 0.91 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.1128 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along z (33.0 % of the area) with 24 off-axis cylinder(s): hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.366, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333, hole d=7.333
+  2.5D along z with 1 slanted planar face(s)
+  2.5D along z with 8 edge blend(s)
+  loop 4: refitted at tol/4 (8 -> 12 edges)
+  loop 7: refitted at tol/4 (8 -> 12 edges)
+  loop 25: refitted at tol/4 (15 -> 26 edges)
+  snapping: 6 of 26 loop(s) snapped to clean geometry
+  2.5D: construction failed (ValueError: Null TopoDS_Shape object); using the surface arrangement
+  revolve: no axis with equal perpendicular moments
+  absorbed 52 fragments into larger surfaces
+  region competition moved 125 boundary faces
+  segmentation (64.8s): plane x4 (33.7% area), cylinder x54 (22.3% area), cone x28 (16.3% area), sphere x4 (4.5% area), torus x1 (23.1% area)
+  simplified 7 degenerate surface fits
+  replaced 8 cone/revolution fits by tori
+  symmetric consensus: 2 class(es) of mirror-image surfaces fitted jointly
+  refit 45 odd region(s) as 26 plane(s)/cylinder(s)/tori, 1168 triangles absorbed by existing surfaces; 5 triangles left as facets
+  symmetric consensus: 3 class(es) of mirror-image surfaces fitted jointly
+  refit 22 odd region(s) as 21 plane(s)/cylinder(s)/tori, 184 triangles absorbed by existing surfaces; 1 triangles left as facets
+  symmetric consensus: 2 class(es) of mirror-image surfaces fitted jointly
+  snapped 35 surface directions to the part frame
+  unified 89 coplanar/coaxial surfaces; merged 4 duplicate curved regions
+  enforced tangency on 0 cylinders
+  blends: 1 fillet surface(s) recognised, radii 2 mm
+  arrangement: 62 tool faces -> 477 cells (52.1s)
+  classified cells: 118 inside (126.1s)
+  fused and unified: 1 solid(s), 323 faces, valid=True (12.7s)
+  fillets: 1 blend(s) applied on 1 edge(s)
+  after fillets: valid=True, volume error 0.05 % (2.2s)
+mode: exact
+tolerance: 0.1128 mm
+symmetry imposed: none (detected: D2 about frame axis z)
+solid valid: True, faces: 324
+deviation:
+  ref_to_model  mean 0.0366  median 0.0203  p95 0.1268  max 1.5254 mm
+  model_to_ref  mean 0.0429  median 0.0204  p95 0.1325  max 6.1520 mm
+  volume ref 370013.01  model 372434.04 mm^3  (+0.65 %)
+time: 437.3 s

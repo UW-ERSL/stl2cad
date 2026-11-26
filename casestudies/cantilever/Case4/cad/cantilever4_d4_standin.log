@@ -1,0 +1,604 @@
+connected to SolidWorks; new part created; building 5 feature(s)
+units: swconst.tlb not read (AttributeError: 'App' object has no attribute 'GetExecutablePath'); failed: AttributeError: 'Extension' object has no attribute 'SetUserPreferenceInteger'
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=False flip_start=False: volume 96000.000 mm^3, centre of mass (60.000, 20.000, 10.000) mm
+Plate 1 z 0 to 20: volume 96000.000 mm^3 (expected 96000.000)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 75161.306 mm^3, centre of mass (53.710, 20.861, 10.000) mm
+Plate 1 Void 1: volume 75161.306 mm^3 (expected 75161.306)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 70973.218 mm^3, centre of mass (54.780, 20.918, 10.000) mm
+Plate 1 Void 2: volume 70973.218 mm^3 (expected 70973.218)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 63746.772 mm^3, centre of mass (48.944, 19.609, 10.000) mm
+Plate 1 Notch 1: volume 63746.772 mm^3 (expected 63746.772)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 60320.935 mm^3, centre of mass (51.273, 19.589, 10.000) mm
+Plate 1 Notch 2: volume 60320.935 mm^3 (expected 60320.935)
+part is in the STL's orientation
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=False flip_start=False: volume 93324.070 mm^3, centre of mass (59.577, 19.980, 10.000) mm
+Plate 2 z 0.75 to 19.25: volume 93324.070 mm^3 (expected 93324.069)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 77626.899 mm^3, centre of mass (55.059, 20.482, 10.000) mm
+Plate 2 Void 1: volume 77626.899 mm^3 (expected 77626.890)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 74825.021 mm^3, centre of mass (55.754, 20.506, 10.000) mm
+Plate 2 Void 2: volume 74825.021 mm^3 (expected 74825.012)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 69093.175 mm^3, centre of mass (51.199, 19.514, 10.000) mm
+Plate 2 Notch 1: volume 69093.175 mm^3 (expected 69093.164)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 66358.981 mm^3, centre of mass (53.009, 19.494, 10.000) mm
+Plate 2 Notch 2: volume 66358.981 mm^3 (expected 66358.966)
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=False flip_start=False: volume 89680.139 mm^3, centre of mass (58.920, 19.931, 10.000) mm
+Plate 3 z 2 to 18: volume 89680.139 mm^3 (expected 89680.123)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 87685.170 mm^3, centre of mass (57.932, 20.201, 10.000) mm
+Plate 3 Void 1: volume 87685.170 mm^3 (expected 87685.154)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 85291.680 mm^3, centre of mass (57.013, 20.323, 10.000) mm
+Plate 3 Void 2: volume 85291.680 mm^3 (expected 85291.660)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 80517.271 mm^3, centre of mass (56.026, 20.271, 10.000) mm
+Plate 3 Void 3: volume 80517.271 mm^3 (expected 80517.252)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 79576.618 mm^3, centre of mass (56.205, 20.274, 10.000) mm
+Plate 3 Void 4: volume 79576.618 mm^3 (expected 79576.597)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 79470.013 mm^3, centre of mass (56.236, 20.279, 10.000) mm
+Plate 3 Void 5: volume 79470.013 mm^3 (expected 79469.992)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 79351.580 mm^3, centre of mass (56.269, 20.274, 10.000) mm
+Plate 3 Void 6: volume 79351.580 mm^3 (expected 79351.559)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 77145.881 mm^3, centre of mass (57.668, 20.283, 10.000) mm
+Plate 3 Notch 1: volume 77145.881 mm^3 (expected 77145.853)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 72145.218 mm^3, centre of mass (53.987, 19.448, 10.000) mm
+Plate 3 Notch 2: volume 72145.218 mm^3 (expected 72145.178)
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=False flip_start=False: volume 85296.409 mm^3, centre of mass (57.877, 19.829, 10.000) mm
+Plate 4 z 4 to 16: volume 85296.409 mm^3 (expected 85296.369)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 83942.582 mm^3, centre of mass (57.159, 20.016, 10.000) mm
+Plate 4 Void 1: volume 83942.582 mm^3 (expected 83942.538)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 82984.716 mm^3, centre of mass (56.784, 20.070, 10.000) mm
+Plate 4 Void 2: volume 82984.716 mm^3 (expected 82984.672)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 82775.353 mm^3, centre of mass (56.723, 20.054, 10.000) mm
+Plate 4 Void 3: volume 82775.353 mm^3 (expected 82775.302)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 82678.598 mm^3, centre of mass (56.700, 20.056, 10.000) mm
+Plate 4 Void 4: volume 82678.598 mm^3 (expected 82678.546)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 81985.434 mm^3, centre of mass (56.834, 20.059, 10.000) mm
+Plate 4 Void 5: volume 81985.434 mm^3 (expected 81985.374)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 81980.590 mm^3, centre of mass (56.835, 20.059, 10.000) mm
+Plate 4 Void 6: volume 81980.590 mm^3 (expected 81980.530)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 80642.487 mm^3, centre of mass (57.682, 20.060, 10.000) mm
+Plate 4 Notch 1: volume 80642.487 mm^3 (expected 80642.426)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 76851.943 mm^3, centre of mass (55.076, 19.452, 10.000) mm
+Plate 4 Notch 2: volume 76851.943 mm^3 (expected 76851.863)
+linked dimensions: 4 in 1 global variable(s)
+independent dimensions: 347 (350 dimensions, 4 of them driven by 1 global variable(s))
+dimensions: 350 added
+relations: 358 added
+sketch status: unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown, unknown
+planned: fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined
+rounded 310 dimension(s) to 3 significant digits; volume 76851.943 -> 76851.943 mm^3 (+0.00 %)
+
+stand-in: volume 76851.943, reference 76851.863 mm^3, difference volume 0.080 mm^3

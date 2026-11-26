@@ -1,0 +1,210 @@
+{
+ "case": "/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/cantilever/Case2",
+ "domain_stl": "Cantilever.STL",
+ "to_stl": "Cantilever_finalIsoBinary.stl",
+ "frame": {
+  "R": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "deviation_deg": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "grid": {
+  "lo": [
+   -0.0009104266929271363,
+   -0.0009210266863292747,
+   -0.000915626674314841
+  ],
+  "pitch": 0.00043112668127927116,
+  "shape": [
+   283,
+   97,
+   51
+  ]
+ },
+ "domain": {
+  "size": [
+   0.12,
+   0.04,
+   0.02
+  ],
+  "fill_of_box": 0.996
+ },
+ "volume_fraction": 0.498,
+ "cleanup": {
+  "outside_domain": 0.0037,
+  "islands_removed": 0,
+  "voids_filled": 0,
+  "voids_kept": 0,
+  "components": 1,
+  "odd_columns_domain": 0,
+  "odd_columns_to": 0
+ },
+ "symmetry": {
+  "centre": [
+   0.0598784353674501,
+   0.019988617355715377,
+   0.010078103698306574
+  ],
+  "mirrors": [
+   {
+    "kind": "mirror",
+    "vector": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "domain": 1.0,
+    "to": 1.0
+   }
+  ],
+  "rotations": [],
+  "candidates": [
+   {
+    "kind": "rotation",
+    "vector": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "domain": 1.0,
+    "to": 0.874,
+    "n": 2
+   },
+   {
+    "kind": "mirror",
+    "vector": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "domain": 1.0,
+    "to": 0.874
+   }
+  ]
+ },
+ "tests": [
+  {
+   "axis": "x",
+   "full": 0.076,
+   "one": 0.564,
+   "two": 0.348,
+   "two_layers": 0.137,
+   "section_iou": 0.47,
+   "centred": 0.124,
+   "anchored": 0.44,
+   "step_levels": 0.349
+  },
+  {
+   "axis": "y",
+   "full": 0.156,
+   "one": 0.193,
+   "two": 0.76,
+   "two_layers": 0.481,
+   "section_iou": 0.319,
+   "centred": 0.725,
+   "anchored": 0.997,
+   "step_levels": 0.817
+  },
+  {
+   "axis": "z",
+   "full": 0.392,
+   "one": 0.999,
+   "two": 0.001,
+   "two_layers": 0.0,
+   "section_iou": 0.508,
+   "centred": 0.999,
+   "anchored": 0.376,
+   "step_levels": 0.6
+  }
+ ],
+ "route": {
+  "route": "height field",
+  "axis": "z",
+  "kind": "centred",
+  "cls": "2b"
+ },
+ "retained": {
+  "share": 0.12,
+  "window": 37
+ },
+ "segments": [
+  {
+   "id": 1,
+   "type": "retained",
+   "share": 0.12,
+   "face_contact": 0.99,
+   "neighbours": [
+    4
+   ],
+   "kind": "retained"
+  },
+  {
+   "id": 2,
+   "type": "plate",
+   "share": 0.065,
+   "face_contact": 0.0,
+   "neighbours": [
+    4
+   ],
+   "thickness": 0.0052,
+   "normal": [
+    -0.0,
+    -0.002,
+    1.0
+   ],
+   "flatness": 0.036,
+   "kind": "plate"
+  },
+  {
+   "id": 3,
+   "type": "plate",
+   "share": 0.02,
+   "face_contact": 0.51,
+   "neighbours": [
+    4
+   ],
+   "thickness": 0.0034,
+   "normal": [
+    -0.006,
+    1.0,
+    -0.002
+   ],
+   "flatness": 0.063,
+   "kind": "plate"
+  },
+  {
+   "id": 4,
+   "type": "blob",
+   "share": 0.794,
+   "face_contact": 0.37,
+   "neighbours": [
+    1,
+    2,
+    3
+   ],
+   "thickness": 0.007,
+   "kind": "mass"
+  }
+ ],
+ "part_class": "2b",
+ "reason": "route height field along z",
+ "seconds": 30.3
+}

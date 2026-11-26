@@ -1,0 +1,18 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/cantilever/Case2  (domain Cantilever.STL, TO Cantilever_finalIsoBinary.stl)
+class 2b: route height field along z
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [0.12, 0.04, 0.02], fill of its box 0.996; TO volume fraction 0.498; pitch 0.0004311; 30.3 s
+clean-up: {'outside_domain': 0.0037, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations []; mirrors ['[0.0, 0.0, 1.0] (1.00/1.00)']
+  candidates (not imposed): ['C2 [1.0, 0.0, 0.0] (1.00/0.87)', 'mirror [0.0, 1.0, 0.0] (1.00/0.87)']
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.08 / 0.56 / 0.35 / 0.14 / 0.47 / 0.12 / 0.44 / 0.35
+  y: 0.16 / 0.19 / 0.76 / 0.48 / 0.32 / 0.72 / 1.00 / 0.82
+  z: 0.39 / 1.00 / 0.00 / 0.00 / 0.51 / 1.00 / 0.38 / 0.60
+route: {'route': 'height field', 'axis': 'z', 'kind': 'centred', 'cls': '2b'}
+retained regions: 12.0 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+   4  79.4 %  mass       t=0.007                                  face 0.37  nb [1, 2, 3]
+   1  12.0 %  retained   t=                                       face 0.99  nb [4]
+   2   6.5 %  plate      t=0.0052   [-0.0, -0.002, 1.0]    0.036  face 0.00  nb [4]
+   3   2.0 %  plate      t=0.0034   [-0.006, 1.0, -0.002]  0.063  face 0.51  nb [4]

@@ -1,0 +1,78 @@
+loaded steprack.STL: 1238 triangles, extents [24.0, 62.0, 83.984] mm, watertight=True
+symmetry (detected): detected: mirror z  (group order 2, max element error 0.0140 mm, threshold 0.2142)
+auto mode: coplanar-area fraction 0.91 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0536 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y with 4 slanted planar face(s)
+  2.5D along y with 17 edge blend(s)
+  snapping: 9 of 12 loop(s) snapped to clean geometry
+  2.5D: cut along z over [-49.8000, -24.6300], 3 edges
+  2.5D: cut along z over [-25.1200, -0.4200], 3 edges
+  2.5D: cut along z over [-25.1200, -0.4200], 3 edges
+  2.5D: cut along z over [-49.8000, -24.6300], 3 edges
+  blends: no sharp edge under a blend of 10 faces
+  2.5D: trying the y axis (80.4 % of the area)
+  2.5D along y with 4 slanted planar face(s)
+  2.5D along y with 17 edge blend(s)
+  snapping: 9 of 12 loop(s) snapped to clean geometry
+  2.5D: cut along z over [-49.8000, -24.6300], 3 edges
+  2.5D: cut along z over [-25.1200, -0.4200], 3 edges
+  2.5D: cut along z over [-25.1200, -0.4200], 3 edges
+  2.5D: cut along z over [-49.8000, -24.6300], 3 edges
+  blends: no sharp edge under a blend of 10 faces
+  2.5D: trying the z axis (69.8 % of the area)
+  2.5D along z with 1 slanted planar face(s)
+  2.5D along z with 44 edge blend(s)
+  loop 1: refitted at tol/4 (24 -> 28 edges)
+  loop 3: refitted at tol/4 (24 -> 28 edges)
+  loop 6: refitted at tol/4 (26 -> 32 edges)
+  loop 7: refitted at tol/4 (26 -> 32 edges)
+  loop 8: refitted at tol/4 (26 -> 32 edges)
+  loop 9: refitted at tol/4 (26 -> 32 edges)
+  snapping: 1 of 9 loop(s) snapped to clean geometry
+  2.5D: no cut region for the slanted face with normal [0.997 0.    0.078]; left to the distance check
+  blends: fillet 2.6416 mm on 2 edge(s) (measured 2.6317)
+  blends: fillet 9.8806 mm on 9 edge(s) (measured 9.8819)
+  blends: fillet 13.2842 mm on 8 edge(s) (measured 13.2771)
+  blends: fillet 4.6 mm on 3 edge(s) (measured 4.6077)
+  blends: fillet 4.2164 mm on 3 edge(s) (measured 4.2178)
+  blends: a blend of 25 faces reads as both fillet and chamfer
+  2.5D: trying the x axis (56.4 % of the area)
+  2.5D along x with 8 slanted planar face(s)
+  2.5D along x with 66 edge blend(s)
+  loop 4: refitted at tol/4 (21 -> 21 edges)
+  snapping: 4 of 5 loop(s) snapped to clean geometry
+  2.5D: a slanted face at a compound angle
+  revolve: no axis with equal perpendicular moments
+  absorbed 12 fragments into larger surfaces
+  region competition moved 45 boundary faces
+  segmentation (11.4s): plane x109 (79.0% area), cylinder x19 (19.0% area), cone x5 (1.4% area), sphere x2 (0.6% area), facets x1 (0.0% area)
+  simplified 1 degenerate surface fits
+  replaced 77 facet planes by 13 cylinder(s)
+  replaced 2 sphere fit(s) by cylinders
+  symmetric consensus: 2 class(es) of mirror-image surfaces fitted jointly
+  refit 1 odd region(s) as 1 plane(s)/cylinder(s)/tori
+  symmetric consensus: 2 class(es) of mirror-image surfaces fitted jointly
+  refit 1 odd region(s) as 1 plane(s)/cylinder(s)/tori
+  symmetric consensus: 2 class(es) of mirror-image surfaces fitted jointly
+  snapped 57 surface directions to the part frame
+  unified 221 coplanar/coaxial surfaces; merged 4 duplicate curved regions
+  enforced tangency on 10 cylinders
+  dropped 3 seam region(s) between tangent surfaces
+  tangent chains: 4 profile shells replace 21 surfaces
+  arrangement: 48 tool faces -> 16 cells (3.1s)
+  classified cells: 8 inside (3.9s)
+  fused and unified: 1 solid(s), 32 faces, valid=True (2.6s)
+  result check: valid=True, solids=1 (mesh bodies 1), volume error 107.28 %
+WARNING: exact result failed the volume/validity check; inspect the deviation map
+mode: exact
+tolerance: 0.0536 mm
+symmetry imposed: none (detected: mirror z)
+solid valid: True, faces: 32
+deviation:
+  ref_to_model  mean 2.5571  median 1.7138  p95 6.7138  max 13.0259 mm
+  model_to_ref  mean 4.9975  median 2.3505  p95 19.4479  max 31.7421 mm
+  volume ref 71696.49  model 148613.68 mm^3  (+107.28 %)
+time: 38.3 s
+script: construction script, verified: volume 0.0000 %, max distance 0.0000 mm (4.9s)
+saved: out/steprack/steprack_exact.step, out/steprack/steprack_exact.stl, out/steprack/steprack_exact.py, out/steprack/steprack_exact_report.txt

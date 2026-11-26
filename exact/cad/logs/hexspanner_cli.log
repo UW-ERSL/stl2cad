@@ -1,0 +1,19 @@
+loaded hexspanner.STL: 260 triangles, extents [116.621, 20.318, 7.62] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis x  (group order 4, max element error 0.0006 mm, threshold 0.2372)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0593 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 2 of 2 loop(s) snapped to clean geometry
+  2.5D along z: 2 levels, 1 extrusion(s) and 1 cut(s), 0 revolved feature(s), 17 profile edges, volume error 0.187 %, max distance mesh->model 0.0041 mm, model->mesh 0.0408 mm, valid=True (0.2s)
+mode: exact
+tolerance: 0.0593 mm
+symmetry imposed: none (detected: D2 about frame axis x)
+solid valid: True, faces: 19
+deviation:
+  ref_to_model  mean 0.0020  median 0.0000  p95 0.0184  max 0.0404 mm
+  model_to_ref  mean 0.0020  median 0.0000  p95 0.0184  max 0.0403 mm
+  volume ref 8983.26  model 8991.33 mm^3  (+0.09 %)
+time: 7.1 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (3.9s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 14 dimension(s), 22 relation(s)) (9.2s)
+saved: out31/hexspanner/hexspanner_exact.step, out31/hexspanner/hexspanner_exact.stl, out31/hexspanner/hexspanner_exact.py, out31/hexspanner/hexspanner_solidworks.py, out31/hexspanner/hexspanner_exact_report.txt

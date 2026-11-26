@@ -1,0 +1,65 @@
+connected to SolidWorks; new part created; 46 step(s)
+units: swconst.tlb not read (AttributeError: 'App' object has no attribute 'GetExecutablePath'); failed: AttributeError: 'Extension' object has no attribute 'SetUserPreferenceInteger'
+frame skeleton: 38 joints, 40 lines
+  time so far 1 s
+  try reverse=False flip_start=False: volume 6320.185 mm^3, centre of mass (30.000, 25.250, 15.000) mm
+  try reverse=True flip_start=False: volume 6320.185 mm^3, centre of mass (10.000, 25.250, 15.000) mm
+  try reverse=False flip_start=False: volume 12633.314 mm^3, centre of mass (44.980, 25.250, 15.000) mm
+  try reverse=False flip_start=False: volume 24751.900 mm^3, centre of mass (44.990, 67.968, 15.000) mm
+Member 1: loft, volume 24930.992 mm^3 (expected 24930.992; difference +0.000)
+Member 2: loft, volume 25058.243 mm^3 (expected 25058.243; difference -0.000)
+Member 3: loft, volume 25237.789 mm^3 (expected 25237.789; difference +0.000)
+Member 4: loft, volume 25265.330 mm^3 (expected 25265.330; difference +0.001)
+Member 5: loft, volume 25374.134 mm^3 (expected 25374.133; difference +0.001)
+Member 6: loft, volume 25698.912 mm^3 (expected 25698.912; difference -0.000)
+Member 7: loft, volume 25736.122 mm^3 (expected 25736.122; difference +0.000)
+Member 8: loft, volume 26154.167 mm^3 (expected 26154.167; difference -0.000)
+Member 9: loft, volume 26217.149 mm^3 (expected 26217.149; difference +0.000)
+Member 10: loft, volume 26424.438 mm^3 (expected 26424.438; difference -0.000)
+Member 11: loft, volume 27711.626 mm^3 (expected 27711.626; difference -0.000)
+Member 12: loft, volume 27890.718 mm^3 (expected 27890.718; difference +0.000)
+Member 13: loft, volume 28017.969 mm^3 (expected 28017.969; difference +0.000)
+Member 14: loft, volume 28197.516 mm^3 (expected 28197.516; difference -0.000)
+Member 15: loft, volume 28225.142 mm^3 (expected 28225.142; difference -0.000)
+Member 16: loft, volume 28334.076 mm^3 (expected 28334.077; difference -0.001)
+Member 17: loft, volume 28658.855 mm^3 (expected 28658.855; difference -0.000)
+Member 18: loft, volume 28696.064 mm^3 (expected 28696.064; difference -0.000)
+Member 19: loft, volume 29114.110 mm^3 (expected 29114.110; difference +0.000)
+Member 20: loft, volume 29289.262 mm^3 (expected 29289.262; difference +0.000)
+Member 21: loft, volume 30576.450 mm^3 (expected 30576.450; difference +0.000)
+Member 22: loft, volume 30701.839 mm^3 (expected 30701.839; difference +0.000)
+Member 23: loft, volume 30873.489 mm^3 (expected 30873.489; difference -0.000)
+Member 24: loft, volume 30901.029 mm^3 (expected 30901.029; difference +0.001)
+Member 25: loft, volume 31009.833 mm^3 (expected 31009.832; difference +0.001)
+Member 26: loft, volume 31334.612 mm^3 (expected 31334.612; difference -0.000)
+Member 27: loft, volume 31371.821 mm^3 (expected 31371.821; difference +0.000)
+Member 28: loft, volume 31564.967 mm^3 (expected 31564.967; difference +0.000)
+Member 29: loft, volume 31627.949 mm^3 (expected 31627.949; difference -0.000)
+Member 30: loft, volume 31835.238 mm^3 (expected 31835.238; difference -0.000)
+Member 31: loft, volume 32965.594 mm^3 (expected 32965.594; difference +0.000)
+Member 32: loft, volume 33090.983 mm^3 (expected 33090.983; difference +0.000)
+Member 33: loft, volume 33262.633 mm^3 (expected 33262.633; difference +0.000)
+Member 34: loft, volume 33290.259 mm^3 (expected 33290.259; difference -0.000)
+Member 35: loft, volume 33399.193 mm^3 (expected 33399.194; difference -0.001)
+Member 36: loft, volume 33723.972 mm^3 (expected 33723.972; difference -0.000)
+Member 37: loft, volume 33761.181 mm^3 (expected 33761.181; difference -0.000)
+Member 38: loft, volume 33954.327 mm^3 (expected 33954.327; difference +0.000)
+Member 39: loft, volume 34129.479 mm^3 (expected 34129.479; difference +0.000)
+Member 40: loft, volume 35259.836 mm^3 (expected 35259.836; difference +0.000)
+  try reverse=True flip_start=False: volume 35259.836 mm^3, centre of mass (44.993, 68.468, 15.000) mm
+  try reverse=False flip_start=False: volume 31725.603 mm^3, centre of mass (48.892, 73.282, 15.000) mm
+  try reverse=True flip_start=False: volume 28191.370 mm^3, centre of mass (44.992, 79.304, 15.000) mm
+  try reverse=True flip_start=False: volume 26227.907 mm^3, centre of mass (44.991, 76.818, 15.000) mm
+linked dimensions: 164 in 23 global variable(s)
+rounded 3 dimension(s) to 3 significant digits; volume 26227.907 -> 26227.907 mm^3 (+0.00 %)
+hid 167 plane(s) and sketch(es)
+independent dimensions: 27 (168 dimensions, 164 of them driven by 23 global variable(s))
+dimensions: 168 added
+relations: 230 added
+sketch status: unknown x 87
+not fully defined: Frame skeleton (unknown); Hub 1 (unknown); Hub 2 (unknown); Hub 3 (unknown); Member 1 start section (unknown); Member 1 end section (unknown); Member 2 start section (unknown); Member 2 end section (unknown); Member 3 start section (unknown); Member 3 end section (unknown); Member 4 start section (unknown); Member 4 end section (unknown); Member 5 start section (unknown); Member 5 end section (unknown); Member 6 start section (unknown); Member 6 end section (unknown); Member 7 start section (unknown); Member 7 end section (unknown); Member 8 start section (unknown); Member 8 end section (unknown); Member 9 start section (unknown); Member 9 end section (unknown); Member 10 start section (unknown); Member 10 end section (unknown); Member 11 start section (unknown); Member 11 end section (unknown); Member 12 start section (unknown); Member 12 end section (unknown); Member 13 start section (unknown); Member 13 end section (unknown); Member 14 start section (unknown); Member 14 end section (unknown); Member 15 start section (unknown); Member 15 end section (unknown); Member 16 start section (unknown); Member 16 end section (unknown); Member 17 start section (unknown); Member 17 end section (unknown); Member 18 start section (unknown); Member 18 end section (unknown); Member 19 start section (unknown); Member 19 end section (unknown); Member 20 start section (unknown); Member 20 end section (unknown); Member 21 start section (unknown); Member 21 end section (unknown); Member 22 start section (unknown); Member 22 end section (unknown); Member 23 start section (unknown); Member 23 end section (unknown); Member 24 start section (unknown); Member 24 end section (unknown); Member 25 start section (unknown); Member 25 end section (unknown); Member 26 start section (unknown); Member 26 end section (unknown); Member 27 start section (unknown); Member 27 end section (unknown); Member 28 start section (unknown); Member 28 end section (unknown); Member 29 start section (unknown); Member 29 end section (unknown); Member 30 start section (unknown); Member 30 end section (unknown); Member 31 start section (unknown); Member 31 end section (unknown); Member 32 start section (unknown); Member 32 end section (unknown); Member 33 start section (unknown); Member 33 end section (unknown); Member 34 start section (unknown); Member 34 end section (unknown); Member 35 start section (unknown); Member 35 end section (unknown); Member 36 start section (unknown); Member 36 end section (unknown); Member 37 start section (unknown); Member 37 end section (unknown); Member 38 start section (unknown); Member 38 end section (unknown); Member 39 start section (unknown); Member 39 end section (unknown); Member 40 start section (unknown); Member 40 end section (unknown); Hole 1 (unknown); Hole 2 (unknown); Hole 3 (unknown)
+time 153 s
+/usr/local/lib/python3.13/site-packages/trimesh/triangles.py:302: RuntimeWarning: invalid value encountered in divide
+  center_mass = integrated[1:4] / volume
+
+stand-in: volume 26227.907, reference 26227.904 mm^3; centres of mass 0.00011 mm apart; bounding boxes 0.00308 mm

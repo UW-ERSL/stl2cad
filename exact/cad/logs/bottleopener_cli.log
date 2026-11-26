@@ -1,0 +1,20 @@
+loaded bottleopener.STL: 1140 triangles, extents [101.0, 11.0, 18.0] mm, watertight=True
+symmetry (detected): detected: mirror z  (group order 2, max element error 0.0015 mm, threshold 0.2064)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0516 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  loop 1: refitted at tol/4 (10 -> 10 edges)
+  snapping: 2 of 4 loop(s) snapped to clean geometry
+  2.5D along y: 4 levels, 1 extrusion(s) and 3 cut(s), 0 revolved feature(s), 31 profile edges, volume error 0.054 %, max distance mesh->model 0.0625 mm, model->mesh 0.0605 mm, valid=True (0.7s)
+mode: exact
+tolerance: 0.0516 mm
+symmetry imposed: none (detected: mirror z)
+solid valid: True, faces: 35
+deviation:
+  ref_to_model  mean 0.0025  median 0.0000  p95 0.0158  max 0.0624 mm
+  model_to_ref  mean 0.0026  median 0.0000  p95 0.0160  max 0.0625 mm
+  volume ref 13027.09  model 13032.37 mm^3  (+0.04 %)
+time: 9.2 s
+script: feature script, verified: volume 0.0001 %, max distance 0.0001 mm (5.5s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 59 dimension(s), 21 relation(s)) (12.2s)
+saved: out31/bottleopener/bottleopener_exact.step, out31/bottleopener/bottleopener_exact.stl, out31/bottleopener/bottleopener_exact.py, out31/bottleopener/bottleopener_solidworks.py, out31/bottleopener/bottleopener_exact_report.txt

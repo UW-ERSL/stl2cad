@@ -27,7 +27,7 @@ default 4), `--radii N` (global corner radii; 0 = one per corner; default from t
 
 Outputs in the current folder: NAME_solidworks.py, NAME.py and NAME.step (reference), NAME_standin.log,
 NAME_sections.png. `run_all.sh` runs the pairs in ../models/to and copies the SolidWorks scripts to
-../results/sw_scripts/to/.
+../models/to/sw_scripts/.
 
 Limits: plates are flat and axis-aligned; material at plate junctions (thickened nodes) is not modelled;
 a TO section that does not reach the original outline is not handled; TO-only input (case 1) is not handled.
@@ -98,3 +98,15 @@ Knuckle's boss) is modelled solid; the hubs must come from full holes of the ori
 handled. The stand-in check of the bar model runs with a volume check after every feature, since OCC's fuse
 fails on some bars there; the fillet is not checked by the stand-in.
 
+
+## Pattern detection and segmentation (`analyze.py`)
+
+Reads only the two STL files of a case folder (design domain + `*_finalIsoBinary.stl`) and writes
+`CASE/cad/analysis.json`, `analysis.txt` and `labels.npz` (voxel segment labels). Steps: frame from the
+domain's face normals; voxels; clean-up (TO outside the domain, voids, islands); symmetry (mirrors, C_n);
+extrude / height-field / two-layer tests along each frame axis; retained regions (TO = domain); local shape
+(rod / plate / blob) at medial points; segments with thickness, plane or line fit, face contact; part class
+(1, 2a, 2b, 3-7, or a hybrid). Needs numpy, scipy, scikit-image only.
+
+    python analyze.py ../casestudies/cantilever/Case1
+    python analyze.py --all ../casestudies

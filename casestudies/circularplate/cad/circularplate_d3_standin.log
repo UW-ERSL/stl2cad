@@ -1,0 +1,51 @@
+connected to SolidWorks; new part created; building 4 feature(s)
+units: swconst.tlb not read (AttributeError: 'App' object has no attribute 'GetExecutablePath'); failed: AttributeError: 'Extension' object has no attribute 'SetUserPreferenceInteger'
+  sketch region count not available: AttributeError
+  try reverse=False flip_start=False: volume 154444.440 mm^3, centre of mass (63.500, 63.500, 6.350) mm
+Plate z 0 to 12.7: volume 154444.440 mm^3 (expected 154444.440)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 144574.514 mm^3, centre of mass (66.158, 65.708, 6.350) mm
+Void 1: volume 144574.514 mm^3 (expected 144574.514)
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  direct selection failed (AttributeError); selecting by coordinates
+  sketch region count not available: AttributeError
+  try reverse=True flip_start=False: volume 138513.040 mm^3, centre of mass (66.894, 64.234, 6.350) mm
+Void 2: volume 138513.040 mm^3 (expected 138513.040)
+  Pattern of cuts: FeatureCircularPattern5 failed: AttributeError: 'FeatureManager' object has no attribute 'FeatureCircularPattern5'
+Pattern of cuts: 5 instances of 2 feature(s) (FeatureCircularPattern4); volume 74787.439 mm^3 (expected 74787.439)
+part is in the STL's orientation
+linked dimensions: 2 in 1 global variable(s)
+independent dimensions: 25 (26 dimensions, 2 of them driven by 1 global variable(s))
+dimensions: 26 added
+relations: 20 added
+sketch status: unknown, unknown, unknown
+planned: fully defined, fully defined, fully defined, ?
+rounded 17 dimension(s) to 2 significant digits; volume 74787.439 -> 74787.439 mm^3 (+0.00 %)
+
+stand-in: volume 74787.439, reference 74787.439 mm^3; booleans failed, volume, area, centre of mass and inertia agree

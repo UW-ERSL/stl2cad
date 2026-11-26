@@ -1,0 +1,98 @@
+loaded bikepedal.STL: 10860 triangles, extents [91.5, 18.5, 72.0] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis x  (group order 4, max element error 0.0043 mm, threshold 0.2358)
+auto mode: coplanar-area fraction 0.92 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0589 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along x with 3 slanted planar face(s)
+  2.5D along x with 22 edge blend(s)
+  loop 2: refitted at tol/4 (28 -> 28 edges)
+  loop 3: refitted at tol/4 (13 -> 19 edges)
+  loop 4: refitted at tol/4 (13 -> 19 edges)
+  loop 6: refitted at tol/4 (20 -> 26 edges)
+  loop 21: refitted at tol/4 (18 -> 28 edges)
+  loop 30: refitted at tol/4 (22 -> 34 edges)
+  loop 37: refitted at tol/4 (22 -> 31 edges)
+  loop 38: refitted at tol/4 (8 -> 8 edges)
+  loop 39: refitted at tol/4 (12 -> 14 edges)
+  loop 40: refitted at tol/4 (12 -> 14 edges)
+  loop 41: refitted at tol/4 (16 -> 16 edges)
+  loop 42: refitted at tol/4 (20 -> 22 edges)
+  loop 43: refitted at tol/4 (20 -> 22 edges)
+  loop 44: refitted at tol/4 (12 -> 14 edges)
+  loop 45: refitted at tol/4 (12 -> 14 edges)
+  loop 46: refitted at tol/4 (20 -> 22 edges)
+  loop 47: refitted at tol/4 (20 -> 23 edges)
+  loop 48: refitted at tol/4 (12 -> 14 edges)
+  loop 49: refitted at tol/4 (12 -> 14 edges)
+  loop 50: refitted at tol/4 (20 -> 22 edges)
+  loop 51: refitted at tol/4 (20 -> 22 edges)
+  loop 52: refitted at tol/4 (14 -> 23 edges)
+  loop 54: refitted at tol/4 (10 -> 14 edges)
+  loop 55: refitted at tol/4 (22 -> 34 edges)
+  loop 57: refitted at tol/4 (16 -> 24 edges)
+  loop 60: refitted at tol/4 (16 -> 24 edges)
+  loop 62: refitted at tol/4 (22 -> 33 edges)
+  snapping: 58 of 81 loop(s) snapped to clean geometry
+  2.5D: a slanted face at a compound angle
+  2.5D: trying the x axis (71.2 % of the area)
+  2.5D along x with 3 slanted planar face(s)
+  2.5D along x with 22 edge blend(s)
+  loop 2: refitted at tol/4 (28 -> 28 edges)
+  loop 3: refitted at tol/4 (13 -> 19 edges)
+  loop 4: refitted at tol/4 (13 -> 19 edges)
+  loop 6: refitted at tol/4 (20 -> 26 edges)
+  loop 21: refitted at tol/4 (18 -> 28 edges)
+  loop 30: refitted at tol/4 (22 -> 34 edges)
+  loop 37: refitted at tol/4 (22 -> 31 edges)
+  loop 38: refitted at tol/4 (8 -> 8 edges)
+  loop 39: refitted at tol/4 (12 -> 14 edges)
+  loop 40: refitted at tol/4 (12 -> 14 edges)
+  loop 41: refitted at tol/4 (16 -> 16 edges)
+  loop 42: refitted at tol/4 (20 -> 22 edges)
+  loop 43: refitted at tol/4 (20 -> 22 edges)
+  loop 44: refitted at tol/4 (12 -> 14 edges)
+  loop 45: refitted at tol/4 (12 -> 14 edges)
+  loop 46: refitted at tol/4 (20 -> 22 edges)
+  loop 47: refitted at tol/4 (20 -> 23 edges)
+  loop 48: refitted at tol/4 (12 -> 14 edges)
+  loop 49: refitted at tol/4 (12 -> 14 edges)
+  loop 50: refitted at tol/4 (20 -> 22 edges)
+  loop 51: refitted at tol/4 (20 -> 22 edges)
+  loop 52: refitted at tol/4 (14 -> 23 edges)
+  loop 54: refitted at tol/4 (10 -> 14 edges)
+  loop 55: refitted at tol/4 (22 -> 34 edges)
+  loop 57: refitted at tol/4 (16 -> 24 edges)
+  loop 60: refitted at tol/4 (16 -> 24 edges)
+  loop 62: refitted at tol/4 (22 -> 33 edges)
+  snapping: 58 of 81 loop(s) snapped to clean geometry
+  2.5D: a slanted face at a compound angle
+  2.5D: trying the y axis (69.5 % of the area)
+  2.5D along y (69.5 % of the area) with 15 off-axis cylinder(s): hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, boss d=10.000
+  2.5D along y with 25 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 5.750..10.750; no clean section
+  2.5D: trying the z axis (58.3 % of the area)
+  2.5D along z (58.3 % of the area) with 15 off-axis cylinder(s): hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, hole d=5.000, boss d=10.000
+  2.5D along z with 7 slanted planar face(s)
+  2.5D along z with 16 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab -7.000..-5.000; no clean section
+  revolve: no axis with equal perpendicular moments
+  absorbed 368 fragments into larger surfaces
+  region competition moved 675 boundary faces
+  merged 18 curved fragments into 4 spline extrusion(s), 0 spline revolution(s) and 0 cylinder(s)
+  segmentation (95.7s): plane x112 (49.9% area), cylinder x92 (36.4% area), cone x26 (1.8% area), sphere x20 (1.2% area), torus x10 (2.5% area), extrusion x54 (8.2% area), facets x5 (0.1% area)
+  simplified 4 degenerate surface fits
+  replaced 3 sphere fit(s) by cylinders
+  decomposed 54 spline surface(s) into 72 analytic surfaces
+  replaced 10 cone/revolution fits by tori
+  symmetric consensus: 9 class(es) of mirror-image surfaces fitted jointly
+  refit 82 odd region(s) as 51 plane(s)/cylinder(s)/tori, 141 triangles absorbed by existing surfaces; 31 triangles left as facets
+  symmetric consensus: 11 class(es) of mirror-image surfaces fitted jointly
+  refit 25 odd region(s) as 26 plane(s)/cylinder(s)/tori, 3 triangles absorbed by existing surfaces; 6 triangles left as facets
+  symmetric consensus: 10 class(es) of mirror-image surfaces fitted jointly
+  snapped 217 surface directions to the part frame
+  unified 205 coplanar/coaxial surfaces; merged 6 duplicate curved regions
+  enforced tangency on 34 cylinders
+  dropped 1 seam region(s) between tangent surfaces
+  blends: 54 fillet surface(s) recognised, radii 10, 10.2, 12.3, 14, 19, 2.94, 2.95, 2.96, 2.97, 2.98, 2.99, 22.4, 25.7, 27.6, 3, 3.01, 3.11, 3.14, 4.99, 5.04, 5.41, 5.99, 8.3, 9.36 mm
+  tangent chains: 3 profile shells replace 11 surfaces
+  arrangement: 229 tool faces -> 1826 cells (56.3s)

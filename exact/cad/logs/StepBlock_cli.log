@@ -1,0 +1,18 @@
+loaded StepBlock.STL: 188 triangles, extents [60.0, 75.0, 28.0] mm, watertight=True
+symmetry (detected): detected: none  (group order 1, max element error 0.0000 mm, threshold 0.2001)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: tolerance 0.0500 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 3 of 3 loop(s) snapped to clean geometry
+  2.5D along z: 3 levels, 2 extrusion(s) and 1 cut(s), 0 revolved feature(s), 15 profile edges, volume error 0.022 %, max distance mesh->model 0.0000 mm, model->mesh 0.0224 mm, valid=True (0.2s)
+mode: exact
+tolerance: 0.0500 mm
+symmetry imposed: none
+solid valid: True, faces: 14
+deviation:
+  ref_to_model  mean 0.0007  median 0.0000  p95 0.0065  max 0.0227 mm
+  model_to_ref  mean 0.0007  median 0.0000  p95 0.0063  max 0.0226 mm
+  volume ref 72609.33  model 72601.28 mm^3  (-0.01 %)
+time: 6.9 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (3.1s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 11 dimension(s), 18 relation(s)) (9.4s)
+saved: out31/StepBlock/StepBlock_exact.step, out31/StepBlock/StepBlock_exact.stl, out31/StepBlock/StepBlock_exact.py, out31/StepBlock/StepBlock_solidworks.py, out31/StepBlock/StepBlock_exact_report.txt

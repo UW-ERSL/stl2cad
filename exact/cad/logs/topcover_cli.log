@@ -1,0 +1,25 @@
+loaded topcover.STL: 5006 triangles, extents [65.0, 11.425, 50.0] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis z  (group order 4, max element error 0.0019 mm, threshold 0.1656)
+auto mode: coplanar-area fraction 0.76 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0414 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y with 5 revolved group(s) about axes along y
+  snapping: 6 of 6 loop(s) snapped to clean geometry
+  revolved group 1 (disk, axis through (0.000, 0.000, 0.000), r 7.000..22.500, half plane -x): 1 boss(es), 0 cut(s), 10 profile edges
+  revolved group 2 (local, axis through (26.500, 0.000, 19.000), r 2.500..4.000, half plane +x): 0 boss(es), 1 cut(s), 3 profile edges
+  revolved group 3 (local, axis through (26.500, 0.000, -19.000), r 2.500..4.000, half plane +x): 0 boss(es), 1 cut(s), 3 profile edges
+  revolved group 4 (local, axis through (-26.500, 0.000, -19.000), r 2.500..4.000, half plane +x): 0 boss(es), 1 cut(s), 3 profile edges
+  revolved group 5 (local, axis through (-26.500, 0.000, 19.000), r 2.500..4.000, half plane +x): 0 boss(es), 1 cut(s), 3 profile edges
+  2.5D along y: 2 levels, 1 extrusion(s) and 5 cut(s), 5 revolved feature(s), 13 profile edges, volume error 0.034 %, max distance mesh->model 0.0086 mm, model->mesh 0.0224 mm, valid=True (1.7s)
+mode: exact
+tolerance: 0.0414 mm
+symmetry imposed: none (detected: D2 about frame axis z)
+solid valid: True, faces: 25
+deviation:
+  ref_to_model  mean 0.0091  median 0.0007  p95 0.0457  max 0.0896 mm
+  model_to_ref  mean 0.0089  median 0.0007  p95 0.0453  max 0.0880 mm
+  volume ref 9599.13  model 9591.37 mm^3  (-0.08 %)
+time: 13.1 s
+script: feature script, verified: volume 0.0002 %, max distance 0.0001 mm (4.0s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 45 dimension(s), 52 relation(s)) (14.1s)
+saved: out31/topcover/topcover_exact.step, out31/topcover/topcover_exact.stl, out31/topcover/topcover_exact.py, out31/topcover/topcover_solidworks.py, out31/topcover/topcover_exact_report.txt

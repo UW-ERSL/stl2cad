@@ -1,0 +1,19 @@
+loaded hexcap.STL: 732 triangles, extents [40.639, 12.696, 15.24] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis y  (group order 4, max element error 0.0037 mm, threshold 0.0904)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0226 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 5 of 5 loop(s) snapped to clean geometry
+  2.5D along z: 4 levels, 2 extrusion(s) and 3 cut(s), 0 revolved feature(s), 10 profile edges, volume error 0.348 %, max distance mesh->model 0.0027 mm, model->mesh 0.0205 mm, valid=True (0.3s)
+mode: exact
+tolerance: 0.0226 mm
+symmetry imposed: none (detected: D2 about frame axis y)
+solid valid: True, faces: 14
+deviation:
+  ref_to_model  mean 0.0059  median 0.0000  p95 0.0321  max 0.0741 mm
+  model_to_ref  mean 0.0059  median 0.0000  p95 0.0319  max 0.0740 mm
+  volume ref 2382.54  model 2379.02 mm^3  (-0.15 %)
+time: 6.5 s
+script: feature script, verified: volume 0.0001 %, max distance 0.0000 mm (3.2s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 10 dimension(s), 16 relation(s)) (9.7s)
+saved: out31/hexcap/hexcap_exact.step, out31/hexcap/hexcap_exact.stl, out31/hexcap/hexcap_exact.py, out31/hexcap/hexcap_solidworks.py, out31/hexcap/hexcap_exact_report.txt

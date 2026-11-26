@@ -1,0 +1,72 @@
+loaded plate_holes.stl: 1252 triangles, extents [203.2, 304.8, 12.7] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis x + mirror x  (group order 8, max element error 0.1318 mm, threshold 0.7331)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.1833 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+/home/claude/uw-ersl/stl2cad/stl2cad/prism25.py:236: RuntimeWarning: invalid value encountered in divide
+  n /= np.linalg.norm(n)
+  2.5D along y (94.6 % of the area) with 3 off-axis cylinder(s): hole d=6.756, hole d=6.756, hole d=11.112
+  2.5D along y with 3 slanted planar face(s)
+  2.5D along y with 6 edge blend(s)
+  loop 1: refitted at tol/4 (6 -> 6 edges)
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  2.5D: a slanted face at a compound angle
+/home/claude/uw-ersl/stl2cad/stl2cad/prism25.py:236: RuntimeWarning: invalid value encountered in divide
+  n /= np.linalg.norm(n)
+  2.5D: trying the y axis (94.7 % of the area)
+  2.5D along y (94.7 % of the area) with 3 off-axis cylinder(s): hole d=6.756, hole d=6.756, hole d=11.112
+  2.5D along y with 3 slanted planar face(s)
+  2.5D along y with 6 edge blend(s)
+  loop 1: refitted at tol/4 (6 -> 6 edges)
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  2.5D: a slanted face at a compound angle
+  2.5D: trying the x axis (93.2 % of the area)
+  2.5D along x (93.2 % of the area) with 3 off-axis cylinder(s): hole d=6.756, hole d=6.756, hole d=11.112
+  2.5D along x with 3 slanted planar face(s)
+  2.5D along x with 6 edge blend(s)
+  loop 1: refitted at tol/4 (6 -> 6 edges)
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  2.5D: a slanted face at a compound angle
+  2.5D: trying the z axis (92.4 % of the area)
+  2.5D along z with 4 revolved group(s) about axes along z
+  2.5D along z with 1 edge blend(s)
+  snapping: 8 of 8 loop(s) snapped to clean geometry
+  revolved group 1 (local, axis through (39.900, 47.752, 0.000), r 3.356..6.461, half plane -x): 0 boss(es), 1 cut(s), 3 profile edges
+  revolved group 2 (local, axis through (163.300, 47.752, 0.000), r 3.356..6.461, half plane -x): 0 boss(es), 1 cut(s), 3 profile edges
+  revolved group 3 (local, axis through (39.900, 257.000, 0.000), r 3.352..6.465, half plane +x): 0 boss(es), 1 cut(s), 3 profile edges
+  revolved group 4 (local, axis through (163.300, 257.000, 0.000), r 3.352..6.465, half plane -x): 0 boss(es), 1 cut(s), 3 profile edges
+  blends: a blend of 340 faces reads as both fillet and chamfer
+  revolve: no axis with equal perpendicular moments
+  absorbed 35 fragments into larger surfaces
+  region competition moved 8 boundary faces
+  segmentation (6.8s): plane x8 (90.2% area), cylinder x16 (8.0% area), cone x15 (0.9% area), sphere x3 (0.6% area), torus x1 (0.2% area), facets x5 (0.1% area)
+  replaced 1 sphere fit(s) by cylinders
+  replaced 4 cone/revolution fits by tori
+  refit 23 odd region(s) as 10 plane(s)/cylinder(s)/tori
+  symmetric consensus: 2 class(es) of mirror-image surfaces fitted jointly
+  refit 4 odd region(s) as 5 plane(s)/cylinder(s)/tori
+  symmetric consensus: 2 class(es) of mirror-image surfaces fitted jointly
+  snapped 33 surface directions to the part frame
+  unified 16 coplanar/coaxial surfaces; merged 3 duplicate curved regions
+  enforced tangency on 8 cylinders
+  dropped 1 seam region(s) between tangent surfaces
+  blends: 8 fillet surface(s) recognised, radii 6.35 mm
+  tangent chains: 1 profile shells replace 8 surfaces
+  arrangement: 15 tool faces -> 19 cells (2.5s)
+  classified cells: 3 inside (3.4s)
+  fused and unified: 1 solid(s), 21 faces, valid=True (2.6s)
+  result check: valid=True, solids=1 (mesh bodies 1), volume error 1.14 %
+  fillets: no sharp edge found for 2 blend(s)
+  fillets: 6 blend(s) applied on 6 edge(s)
+  after fillets: valid=True, volume error 0.06 % (0.2s)
+mode: exact
+tolerance: 0.1833 mm
+symmetry imposed: none (detected: D2 about frame axis x + mirror x)
+solid valid: True, faces: 29
+deviation:
+  ref_to_model  mean 0.0051  median 0.0000  p95 0.0432  max 0.2269 mm
+  model_to_ref  mean 0.0052  median 0.0000  p95 0.0443  max 0.2371 mm
+  volume ref 767362.11  model 767143.75 mm^3  (-0.03 %)
+time: 27.2 s
+script: construction script, verified: volume 0.0000 %, max distance 0.0000 mm (7.5s)
+saved: out/plate_holes/plate_holes_exact.step, out/plate_holes/plate_holes_exact.stl, out/plate_holes/plate_holes_exact.py, out/plate_holes/plate_holes_exact_report.txt

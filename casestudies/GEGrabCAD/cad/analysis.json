@@ -1,0 +1,282 @@
+{
+ "case": "/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/GEGrabCAD",
+ "domain_stl": "GEGrabCAD.STL",
+ "to_stl": "GEGrabCAD_finalIsoBinary.stl",
+ "frame": {
+  "R": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "deviation_deg": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "grid": {
+  "lo": [
+   -0.041347885806492575,
+   -0.038182885688177355,
+   -0.056027885828546294
+  ],
+  "pitch": 0.028757885400584944,
+  "shape": [
+   152,
+   248,
+   90
+  ]
+ },
+ "domain": {
+  "size": [
+   4.263712,
+   7.029,
+   2.459763
+  ],
+  "fill_of_box": 0.378
+ },
+ "volume_fraction": 0.489,
+ "cleanup": {
+  "outside_domain": 0.0154,
+  "islands_removed": 0,
+  "voids_filled": 3,
+  "voids_kept": 0,
+  "components": 1,
+  "odd_columns_domain": 0,
+  "odd_columns_to": 0
+ },
+ "symmetry": {
+  "centre": [
+   1.9439424231619946,
+   3.404510814710016,
+   0.7273575114638527
+  ],
+  "mirrors": [],
+  "rotations": [],
+  "candidates": []
+ },
+ "tests": [
+  {
+   "axis": "x",
+   "full": 0.053,
+   "one": 0.737,
+   "two": 0.121,
+   "two_layers": 0.012,
+   "section_iou": 0.147,
+   "centred": 0.04,
+   "anchored": 0.981,
+   "step_levels": 0.34
+  },
+  {
+   "axis": "y",
+   "full": 0.471,
+   "one": 0.273,
+   "two": 0.556,
+   "two_layers": 0.082,
+   "section_iou": 0.493,
+   "centred": 0.418,
+   "anchored": 0.709,
+   "step_levels": 0.262
+  },
+  {
+   "axis": "z",
+   "full": 0.452,
+   "one": 0.608,
+   "two": 0.382,
+   "two_layers": 0.346,
+   "section_iou": 0.032,
+   "centred": 0.706,
+   "anchored": 0.975,
+   "step_levels": 0.332
+  }
+ ],
+ "route": {
+  "route": "3D",
+  "axis": null,
+  "cls": null
+ },
+ "retained": {
+  "share": 0.357,
+  "window": 37
+ },
+ "segments": [
+  {
+   "id": 1,
+   "type": "retained",
+   "share": 0.36,
+   "face_contact": 0.99,
+   "neighbours": [
+    4,
+    5,
+    9,
+    10
+   ],
+   "thickness": 0.2876,
+   "kind": "retained"
+  },
+  {
+   "id": 2,
+   "type": "plate",
+   "share": 0.054,
+   "face_contact": 0.51,
+   "neighbours": [
+    8,
+    9
+   ],
+   "thickness": 0.2301,
+   "normal": [
+    -0.073,
+    0.008,
+    0.997
+   ],
+   "flatness": 0.115,
+   "kind": "plate"
+  },
+  {
+   "id": 3,
+   "type": "plate",
+   "share": 0.03,
+   "face_contact": 0.51,
+   "neighbours": [
+    8,
+    9
+   ],
+   "thickness": 0.1627,
+   "normal": [
+    -0.007,
+    -0.504,
+    0.864
+   ],
+   "flatness": 0.177,
+   "kind": "plate"
+  },
+  {
+   "id": 4,
+   "type": "plate",
+   "share": 0.007,
+   "face_contact": 0.89,
+   "neighbours": [
+    1,
+    9
+   ],
+   "thickness": 0.2876,
+   "normal": [
+    0.047,
+    0.999,
+    0.006
+   ],
+   "flatness": 0.065,
+   "kind": "plate"
+  },
+  {
+   "id": 5,
+   "type": "plate",
+   "share": 0.007,
+   "face_contact": 0.89,
+   "neighbours": [
+    1,
+    9
+   ],
+   "thickness": 0.2876,
+   "normal": [
+    -0.042,
+    0.999,
+    -0.013
+   ],
+   "flatness": 0.066,
+   "kind": "plate"
+  },
+  {
+   "id": 6,
+   "type": "plate",
+   "share": 0.017,
+   "face_contact": 0.53,
+   "neighbours": [
+    9
+   ],
+   "thickness": 0.1627,
+   "normal": [
+    0.042,
+    0.528,
+    0.848
+   ],
+   "flatness": 0.14,
+   "kind": "plate"
+  },
+  {
+   "id": 7,
+   "type": "plate",
+   "share": 0.004,
+   "face_contact": 0.53,
+   "neighbours": [
+    9
+   ],
+   "thickness": 0.2371,
+   "normal": [
+    0.475,
+    -0.005,
+    0.88
+   ],
+   "flatness": 0.047,
+   "kind": "plate"
+  },
+  {
+   "id": 8,
+   "type": "blob",
+   "share": 0.031,
+   "face_contact": 0.51,
+   "neighbours": [
+    2,
+    3
+   ],
+   "thickness": 0.1627,
+   "kind": "junction",
+   "joins": "plate"
+  },
+  {
+   "id": 9,
+   "type": "blob",
+   "share": 0.481,
+   "face_contact": 0.56,
+   "neighbours": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    10
+   ],
+   "thickness": 0.2876,
+   "kind": "mass"
+  },
+  {
+   "id": 10,
+   "type": "blob",
+   "share": 0.009,
+   "face_contact": 0.82,
+   "neighbours": [
+    1,
+    9
+   ],
+   "thickness": 0.1725,
+   "kind": "mass"
+  }
+ ],
+ "part_class": "7",
+ "reason": "mass 77 %",
+ "seconds": 17.3
+}

@@ -1,0 +1,77 @@
+loaded GEGrabCAD.STL: 5448 triangles, extents [108.298, 178.537, 62.478] mm, watertight=True
+symmetry (detected): detected: none  (group order 1, max element error 0.0000 mm, threshold 0.4359)
+auto mode: coplanar-area fraction 0.95 -> exact
+exact mode: tolerance 0.1090 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  drill point: 143 deg on the hole d=19.1
+  drill point: 33.5 deg on the hole d=19.1
+  drill point: 53.5 deg on the hole d=19.1
+  2.5D along z (68.8 % of the area) with 2 off-axis cylinder(s): hole d=19.100, hole d=19.100
+  2.5D along z with 4 revolved group(s) about axes along z
+  2.5D along z with 9 edge blend(s)
+  loop 1: refitted at tol/4 (10 -> 10 edges)
+  snapping: 9 of 9 loop(s) snapped to clean geometry
+  revolved group 1 (local, axis through (15.300, 15.240, 0.000), r 7.984..10.558, half plane -y): 1 boss(es), 0 cut(s), 4 profile edges
+  revolved group 2 (local, axis through (71.850, 163.322, 0.000), r 7.976..10.566, half plane +x): 1 boss(es), 0 cut(s), 5 profile edges
+  revolved group 3 (local, axis through (33.750, 163.322, 0.000), r 7.976..10.566, half plane -x): 1 boss(es), 0 cut(s), 5 profile edges
+  revolved group 4 (local, axis through (67.350, 15.240, 0.000), r 7.997..10.545, half plane -x): 1 boss(es), 0 cut(s), 5 profile edges
+  blends: no sharp edge under a blend of 17 faces
+  2.5D: trying the z axis (68.8 % of the area)
+  drill point: 143 deg on the hole d=19.1
+  drill point: 33.5 deg on the hole d=19.1
+  drill point: 53.5 deg on the hole d=19.1
+  2.5D along z (68.8 % of the area) with 2 off-axis cylinder(s): hole d=19.100, hole d=19.100
+  2.5D along z with 4 revolved group(s) about axes along z
+  2.5D along z with 9 edge blend(s)
+  loop 1: refitted at tol/4 (10 -> 10 edges)
+  snapping: 9 of 9 loop(s) snapped to clean geometry
+  revolved group 1 (local, axis through (15.300, 15.240, 0.000), r 7.984..10.558, half plane -y): 1 boss(es), 0 cut(s), 4 profile edges
+  revolved group 2 (local, axis through (71.850, 163.322, 0.000), r 7.976..10.566, half plane +x): 1 boss(es), 0 cut(s), 5 profile edges
+  revolved group 3 (local, axis through (33.750, 163.322, 0.000), r 7.976..10.566, half plane -x): 1 boss(es), 0 cut(s), 5 profile edges
+  revolved group 4 (local, axis through (67.350, 15.240, 0.000), r 7.997..10.545, half plane -x): 1 boss(es), 0 cut(s), 5 profile edges
+  blends: no sharp edge under a blend of 17 faces
+  2.5D: trying the y axis (60.8 % of the area)
+  2.5D along y (60.8 % of the area) with 4 off-axis cylinder(s): hole d=10.319, hole d=10.319, hole d=10.319, hole d=10.668
+  2.5D along y with 1 revolved group(s) about axes along y
+  2.5D along y with 4 slanted planar face(s)
+  2.5D along y with 22 edge blend(s)
+  2.5D: an off-axis feature spans the whole slab 0.000..71.171; no clean section
+  2.5D: trying the x axis (54.4 % of the area)
+  drill point: 143 deg on the hole d=19.1
+  drill point: 33.5 deg on the hole d=19.1
+  drill point: 53.5 deg on the hole d=19.1
+  2.5D along x (54.4 % of the area) with 6 off-axis cylinder(s): hole d=19.100, hole d=19.100, hole d=10.319, hole d=10.319, hole d=10.319, hole d=10.668
+  2.5D along x with 2 slanted planar face(s)
+  2.5D along x with 13 edge blend(s)
+  revolve: no axis with equal perpendicular moments
+  absorbed 50 fragments into larger surfaces
+  region competition moved 56 boundary faces
+  merged 9 curved fragments into 1 spline extrusion(s), 1 spline revolution(s) and 0 cylinder(s)
+  segmentation (22.9s): plane x21 (74.0% area), cylinder x21 (14.7% area), sphere x1 (0.7% area), cone x10 (1.2% area), revolution x1 (2.0% area), extrusion x1 (7.3% area)
+  replaced 1 sphere fit(s) by cylinders
+  decomposed 2 spline surface(s) into 9 analytic surfaces
+  replaced 8 cone/revolution fits by tori
+  snapped 40 surface directions to the part frame
+  unified 48 coplanar/coaxial surfaces
+  enforced tangency on 11 cylinders
+  blends: 4 fillet surface(s) recognised, radii 2.54 mm
+  tangent chains: 7 profile shells replace 25 surfaces
+  arrangement: 31 tool faces -> 24 cells (2.8s)
+/usr/local/lib/python3.13/site-packages/trimesh/triangles.py:550: RuntimeWarning: divide by zero encountered in divide
+  inverse_denominator = 1.0 / (dot00 * dot11 - dot01 * dot01)
+/usr/local/lib/python3.13/site-packages/trimesh/triangles.py:555: RuntimeWarning: invalid value encountered in subtract
+  barycentric[:, 0] = 1 - barycentric[:, 1] - barycentric[:, 2]
+  classified cells: 2 inside (6.4s)
+  fused and unified: 1 solid(s), 54 faces, valid=True (2.9s)
+  fillets: 4 blend(s) applied on 4 edge(s)
+  after fillets: valid=True, volume error 0.00 % (0.5s)
+mode: exact
+tolerance: 0.1090 mm
+symmetry imposed: none
+solid valid: True, faces: 58
+deviation:
+  ref_to_model  mean 0.0043  median 0.0000  p95 0.0266  max 0.0782 mm
+  model_to_ref  mean 0.0044  median 0.0000  p95 0.0272  max 0.0770 mm
+  volume ref 463321.10  model 463330.46 mm^3  (+0.00 %)
+time: 58.6 s
+script: construction script, verified: volume 0.0000 %, max distance 0.0000 mm (8.6s)
+saved: out/GEGrabCAD/GEGrabCAD_exact.step, out/GEGrabCAD/GEGrabCAD_exact.stl, out/GEGrabCAD/GEGrabCAD_exact.py, out/GEGrabCAD/GEGrabCAD_exact_report.txt

@@ -1,0 +1,290 @@
+{
+ "case": "/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/knuckle/Case1",
+ "domain_stl": "Knuckle.STL",
+ "to_stl": "Knuckle_finalIsoBinary.stl",
+ "frame": {
+  "R": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "deviation_deg": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "grid": {
+  "lo": [
+   -0.001093731835612358,
+   -0.000527031827845873,
+   -0.0009158318197701887
+  ],
+  "pitch": 0.000527031827845873,
+  "shape": [
+   175,
+   241,
+   61
+  ]
+ },
+ "domain": {
+  "size": [
+   0.09,
+   0.125,
+   0.03
+  ],
+  "fill_of_box": 0.453
+ },
+ "volume_fraction": 0.599,
+ "cleanup": {
+  "outside_domain": 0.0105,
+  "islands_removed": 0,
+  "voids_filled": 0,
+  "voids_kept": 0,
+  "components": 1,
+  "odd_columns_domain": 0,
+  "odd_columns_to": 0
+ },
+ "symmetry": {
+  "centre": [
+   0.04501683045139051,
+   0.06299824206875392,
+   0.01515964257409615
+  ],
+  "mirrors": [
+   {
+    "kind": "mirror",
+    "vector": [
+     1.0,
+     0.0,
+     0.0
+    ],
+    "domain": 1.0,
+    "to": 1.0
+   },
+   {
+    "kind": "mirror",
+    "vector": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "domain": 1.0,
+    "to": 1.0
+   }
+  ],
+  "rotations": [
+   {
+    "kind": "rotation",
+    "vector": [
+     0.0,
+     1.0,
+     0.0
+    ],
+    "domain": 1.0,
+    "to": 1.0,
+    "n": 2
+   }
+  ],
+  "candidates": []
+ },
+ "tests": [
+  {
+   "axis": "x",
+   "full": 0.42,
+   "one": 0.295,
+   "two": 0.696,
+   "two_layers": 0.001,
+   "section_iou": 0.306,
+   "centred": 0.999,
+   "anchored": 0.435,
+   "step_levels": 0.226
+  },
+  {
+   "axis": "y",
+   "full": 0.375,
+   "one": 0.652,
+   "two": 0.241,
+   "two_layers": 0.004,
+   "section_iou": 0.0,
+   "centred": 0.5,
+   "anchored": 0.84,
+   "step_levels": 0.684
+  },
+  {
+   "axis": "z",
+   "full": 0.694,
+   "one": 0.78,
+   "two": 0.217,
+   "two_layers": 0.001,
+   "section_iou": 0.713,
+   "centred": 0.998,
+   "anchored": 0.743,
+   "step_levels": 0.705
+  }
+ ],
+ "route": {
+  "route": "3D",
+  "axis": null,
+  "cls": null
+ },
+ "retained": {
+  "share": 0.316,
+  "window": 37
+ },
+ "segments": [
+  {
+   "id": 1,
+   "type": "retained",
+   "share": 0.316,
+   "face_contact": 0.98,
+   "neighbours": [
+    8
+   ],
+   "thickness": 0.0075,
+   "kind": "retained"
+  },
+  {
+   "id": 2,
+   "type": "plate",
+   "share": 0.004,
+   "face_contact": 0.44,
+   "neighbours": [
+    4,
+    6,
+    8
+   ],
+   "thickness": 0.0032,
+   "normal": [
+    0.001,
+    0.986,
+    -0.165
+   ],
+   "flatness": 0.112,
+   "kind": "plate"
+  },
+  {
+   "id": 3,
+   "type": "plate",
+   "share": 0.004,
+   "face_contact": 0.44,
+   "neighbours": [
+    5,
+    7,
+    8
+   ],
+   "thickness": 0.0032,
+   "normal": [
+    0.003,
+    0.987,
+    -0.16
+   ],
+   "flatness": 0.109,
+   "kind": "plate"
+  },
+  {
+   "id": 4,
+   "type": "plate",
+   "share": 0.005,
+   "face_contact": 0.44,
+   "neighbours": [
+    2,
+    8
+   ],
+   "thickness": 0.003,
+   "normal": [
+    0.002,
+    0.649,
+    0.76
+   ],
+   "flatness": 0.152,
+   "kind": "plate"
+  },
+  {
+   "id": 5,
+   "type": "plate",
+   "share": 0.005,
+   "face_contact": 0.44,
+   "neighbours": [
+    3,
+    8
+   ],
+   "thickness": 0.003,
+   "normal": [
+    0.0,
+    0.654,
+    0.756
+   ],
+   "flatness": 0.154,
+   "kind": "plate"
+  },
+  {
+   "id": 6,
+   "type": "plate",
+   "share": 0.003,
+   "face_contact": 0.45,
+   "neighbours": [
+    2,
+    8
+   ],
+   "thickness": 0.003,
+   "normal": [
+    0.003,
+    -0.494,
+    0.869
+   ],
+   "flatness": 0.084,
+   "kind": "plate"
+  },
+  {
+   "id": 7,
+   "type": "plate",
+   "share": 0.003,
+   "face_contact": 0.43,
+   "neighbours": [
+    3,
+    8
+   ],
+   "thickness": 0.003,
+   "normal": [
+    -0.008,
+    -0.49,
+    0.871
+   ],
+   "flatness": 0.082,
+   "kind": "plate"
+  },
+  {
+   "id": 8,
+   "type": "blob",
+   "share": 0.66,
+   "face_contact": 0.53,
+   "neighbours": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+   ],
+   "thickness": 0.0127,
+   "kind": "mass"
+  }
+ ],
+ "part_class": "7",
+ "reason": "mass 96 %",
+ "seconds": 56.5
+}

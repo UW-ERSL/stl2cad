@@ -25,14 +25,22 @@ def _centre(p, q, r):
 
 
 def _tangent(line_dir, corner, centre):
+    """Line and arc meet tangentially at the corner: within 0.5 deg, and so closely that a Tangent
+    relation moves the corner by at most TAN_TOL (the arc's centre is TAN_TOL or less off the normal
+    through the corner). The lid's fillets were 0.13-0.28 deg off tangent: SolidWorks moved the
+    edges 0.01 mm to satisfy the relations, the feature then failed the shape check, and the
+    sketch was drawn again without relations (under defined)."""
     rad = corner - centre
     c = abs(line_dir @ rad) / (np.linalg.norm(line_dir) * np.linalg.norm(rad) + 1e-30)
-    return c < math.sin(math.radians(0.5))
+    return c < math.sin(math.radians(0.5)) and c * np.linalg.norm(rad) <= TAN_TOL
 
 
 # singular values below RANK_TOL (relative) count as zero: numerical noise in the constraint
 # Jacobians sits near 1e-7 (finite differences, nearly symmetric data), real constraints at 1e-3 and up
 RANK_TOL = 1e-5
+HV_TOL = 1e-6          # a line within this x its length of horizontal or vertical is taken as such
+TAN_TOL = 1e-3         # mm: largest corner movement a Tangent relation may cause
+ZERO_TOL = 1e-5        # mm: a coordinate this close to 0 is on the axis (SolidWorks refuses a dimension that small)
 
 
 def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies=None, revolve_axis=False):
@@ -106,7 +114,11 @@ def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies
             kinds.append("A")
             continue
         d = np.asarray(e[2]) - np.asarray(e[1])
-        kinds.append("V" if abs(d[0]) < 1e-9 else "H" if abs(d[1]) < 1e-9 else "S")
+        # horizontal / vertical within HV_TOL x the length: a line 88 mm long and 6.5e-7 mm off horizontal
+        # (fit noise) is horizontal; as a slanted edge its vertical extent (6.5e-7 mm) is a dimension
+        # SolidWorks refuses (bottleopener)
+        t = HV_TOL * max(1.0, float(np.linalg.norm(d)))
+        kinds.append("V" if abs(d[0]) < t else "H" if abs(d[1]) < t else "S")
     # arcs: start and end on one circle (part of the sketch entity itself, not an operation)
     for i in arcs:
         f = lambda x, i=i: np.sum((corner(x, i) - centre(x, i)) ** 2) - np.sum((corner(x, i + 1) - centre(x, i)) ** 2)
@@ -239,7 +251,8 @@ def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies
     if pitch:
         a, b = V[0], V[pitch % n]
         d = b - a
-        kind = "H" if abs(d[1]) < 1e-9 else ("V" if abs(d[0]) < 1e-9 else "any")
+        t = HV_TOL * max(1.0, float(np.linalg.norm(d)))
+        kind = "H" if abs(d[1]) < t else ("V" if abs(d[0]) < t else "any")
         text = ((a[0] + b[0]) / 2, min(a[1], b[1]) - 20) if kind != "V" else (min(a[0], b[0]) - 20, (a[1] + b[1]) / 2)
         fs = ([lambda x, ax=(0 if kind == "H" else 1): corner(x, pitch)[ax] - corner(x, 0)[ax]] if kind != "any"
               else [lambda x: np.linalg.norm(corner(x, pitch) - corner(x, 0))])
@@ -266,18 +279,28 @@ def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies
                      f"{tag}parallel, edges at {P(mid(edges[i0]))} and {P(mid(edges[i]))}"))
     if pitch:
         try_add(fs, pitch_op)
+    def on_axis(i, axis):
+        """A corner on a sketch axis (its coordinate along axis within ZERO_TOL of 0): a Vertical (x = 0)
+        or Horizontal (y = 0) relation with the origin; a dimension of that coordinate (1.7e-7 mm on the
+        bottleopener) is one SolidWorks refuses."""
+        try_add([lambda x, i=i, axis=axis: corner(x, i)[axis]],
+                ("rel", "sgVERTICALPOINTS2D" if axis == 0 else "sgHORIZONTALPOINTS2D",
+                 [("SKETCHPOINT", P(V[i])), ("ORIGIN", None)],
+                 f"{tag}corner {P(V[i])} on the {'y' if axis == 0 else 'x'} axis"))
     # position: corner nearest the origin
     j = min((i for i in range(n) if ok_c(i)), key=lambda i: float(np.linalg.norm(V[i])))
-    if np.linalg.norm(V[j]) < 1e-9:
+    if np.linalg.norm(V[j]) < ZERO_TOL:
         try_add([lambda x, j=j: corner(x, j)[0], lambda x, j=j: corner(x, j)[1]],
                 ("rel", "sgCOINCIDENT", [("SKETCHPOINT", P(V[j])), ("ORIGIN", None)], f"{tag}corner on the origin"))
     else:
         for axis, kind in ((0, "H"), (1, "V")):
-            if abs(V[j][axis]) > 1e-9:
+            if abs(V[j][axis]) >= ZERO_TOL:
                 text = (V[j][0] / 2, V[j][1] - 8) if kind == "H" else (V[j][0] - 8, V[j][1] / 2)
                 try_add([lambda x, j=j, axis=axis: corner(x, j)[axis]],
                         ("dim", kind, [("SKETCHPOINT", P(V[j])), ("ORIGIN", None)], text,
                          f"{tag}{'x' if axis == 0 else 'y'} of corner {P(V[j])}"))
+            else:
+                on_axis(j, axis)
     area = sum(V[i][0] * V[(i + 1) % n][1] - V[(i + 1) % n][0] * V[i][1] for i in range(n))
     out = 1.0 if area > 0 else -1.0
     # arc radii
@@ -318,7 +341,8 @@ def plan_outline(edges, tag="", linear=None, rotational=None, pitch=None, copies
         for axis, kind in ((0, "H"), (1, "V")):
             if rank >= nv:
                 break
-            if abs(V[i][axis]) < 1e-9:
+            if abs(V[i][axis]) < ZERO_TOL:
+                on_axis(i, axis)
                 continue
             text = (V[i][0] / 2, V[i][1] - 8) if kind == "H" else (V[i][0] - 8, V[i][1] / 2)
             try_add([lambda x, i=i, axis=axis: corner(x, i)[axis]],

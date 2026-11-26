@@ -1,0 +1,25 @@
+loaded lid.STL: 1604 triangles, extents [112.0, 31.0, 3.125] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis x + mirror x  (group order 8, max element error 0.1062 mm, threshold 0.2325)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0581 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 8 of 8 loop(s) snapped to clean geometry
+  2.5D along z: 5 levels, 5 extrusion(s) and 3 cut(s), 0 revolved feature(s), 38 profile edges, volume error 0.013 %, max distance mesh->model 0.0252 mm, model->mesh 0.0453 mm, valid=True (0.7s)
+mode: exact
+tolerance: 0.0581 mm
+symmetry imposed: none (detected: D2 about frame axis x + mirror x)
+solid valid: True, faces: 45
+deviation:
+  ref_to_model  mean 0.0006  median 0.0000  p95 0.0016  max 0.0374 mm
+  model_to_ref  mean 0.0005  median 0.0000  p95 0.0014  max 0.0373 mm
+  volume ref 4418.84  model 4418.30 mm^3  (-0.01 %)
+time: 9.3 s
+only got 663/800 samples!
+only got 668/800 samples!
+script: feature script, verified: volume 0.0001 %, max distance 0.0001 mm (5.4s)
+only got 663/800 samples!
+only got 679/800 samples!
+only got 663/800 samples!
+only got 679/800 samples!
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 37 dimension(s), 57 relation(s)) (15.3s)
+saved: out31/lid/lid_exact.step, out31/lid/lid_exact.stl, out31/lid/lid_exact.py, out31/lid/lid_solidworks.py, out31/lid/lid_exact_report.txt

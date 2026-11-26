@@ -1,0 +1,20 @@
+loaded chesspawn.STL: 10682 triangles, extents [20.995, 38.0, 20.989] mm, watertight=True
+symmetry (detected): detected: D12 about frame axis x  (group order 24, max element error 0.0031 mm, threshold 0.0964)
+auto mode: coplanar-area fraction 0.98 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0241 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along z with 8 edge blend(s)
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  revolve about y: 1 profile loop(s), 10 edges, volume error 0.308 %, max distance mesh->model 0.0047 mm, model->mesh 0.0201 mm, valid=True (4.0s)
+mode: exact
+tolerance: 0.0241 mm
+symmetry imposed: none (detected: D12 about frame axis x)
+solid valid: True, faces: 9
+deviation:
+  ref_to_model  mean 0.0159  median 0.0080  p95 0.0657  max 0.1065 mm
+  model_to_ref  mean 0.0159  median 0.0080  p95 0.0659  max 0.1046 mm
+  volume ref 5978.58  model 5948.27 mm^3  (-0.51 %)
+time: 13.2 s
+script: feature script, verified: volume 0.0002 %, max distance 0.0000 mm (3.6s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 14 dimension(s), 14 relation(s)) (9.0s)
+saved: out31/chesspawn/chesspawn_exact.step, out31/chesspawn/chesspawn_exact.stl, out31/chesspawn/chesspawn_exact.py, out31/chesspawn/chesspawn_solidworks.py, out31/chesspawn/chesspawn_exact_report.txt

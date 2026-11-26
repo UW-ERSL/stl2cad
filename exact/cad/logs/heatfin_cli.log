@@ -1,0 +1,27 @@
+loaded heatfin.STL: 188 triangles, extents [61.258, 35.0, 80.0] mm, watertight=True
+only got 3714/4000 samples!
+symmetry (detected): detected: D2 about frame axis z  (group order 4, max element error 0.0091 mm, threshold 0.2133)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0533 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  linear pattern: 11 copies of 4 edge(s), step (-5.1445, 0.0000) mm
+  2.5D along z: 2 levels, 1 extrusion(s) and 0 cut(s), 0 revolved feature(s), 48 profile edges, volume error 0.000 %, max distance mesh->model 0.0000 mm, model->mesh 0.0000 mm, valid=True (0.3s)
+mode: exact
+tolerance: 0.0533 mm
+symmetry imposed: none (detected: D2 about frame axis z)
+solid valid: True, faces: 50
+deviation:
+  ref_to_model  mean 0.0000  median 0.0000  p95 0.0000  max 0.0000 mm
+  model_to_ref  mean 0.0000  median 0.0000  p95 0.0000  max 0.0000 mm
+  volume ref 98478.59  model 98478.58 mm^3  (-0.00 %)
+time: 5.3 s
+only got 473/800 samples!
+only got 478/800 samples!
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (5.1s)
+only got 473/800 samples!
+only got 499/800 samples!
+only got 473/800 samples!
+only got 499/800 samples!
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 5 dimension(s), 10 relation(s)) (8.2s)
+saved: out31/heatfin/heatfin_exact.step, out31/heatfin/heatfin_exact.stl, out31/heatfin/heatfin_exact.py, out31/heatfin/heatfin_solidworks.py, out31/heatfin/heatfin_exact_report.txt

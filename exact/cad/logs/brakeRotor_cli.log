@@ -1,0 +1,57 @@
+loaded brakeRotor.STL: 7272 triangles, extents [219.252, 218.067, 25.04] mm, watertight=True
+symmetry (detected): detected: D6 about frame axis z  (group order 12, max element error 0.0104 mm, threshold 0.6205)
+auto mode: coplanar-area fraction 0.98 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.1551 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along z with 1 revolved group(s) about axes along z
+  snapping: 1 of 2 loop(s) snapped to clean geometry
+  revolved group 1 (disk, axis through (0.000, -8.731, 0.000), r 46.971..79.929, half plane +x): 1 boss(es), 0 cut(s), 32 profile edges
+  2.5D along z: 4 levels, 1 extrusion(s) and 1 cut(s), 1 revolved feature(s), 115 profile edges, volume error 0.378 %, max distance mesh->model 0.1594 mm, model->mesh 2.0678 mm, valid=True (1.0s)
+  2.5D: checks failed; using the surface arrangement
+  2.5D: trying the z axis (64.9 % of the area)
+  2.5D along z with 1 revolved group(s) about axes along z
+  snapping: 1 of 2 loop(s) snapped to clean geometry
+  revolved group 1 (disk, axis through (0.000, -8.731, 0.000), r 46.971..79.929, half plane +x): 1 boss(es), 0 cut(s), 32 profile edges
+  2.5D along z: 4 levels, 1 extrusion(s) and 1 cut(s), 1 revolved feature(s), 115 profile edges, volume error 0.378 %, max distance mesh->model 0.1594 mm, model->mesh 2.0678 mm, valid=True (0.9s)
+  2.5D: checks failed; using the surface arrangement
+  2.5D: trying the y axis (60.8 % of the area)
+  2.5D: off-axis patch of 52 faces is not circular (error 5.751 mm)
+  2.5D: no prism axis (best face fraction 0.608)
+  2.5D: trying the x axis (60.5 % of the area)
+  2.5D: off-axis patch of 52 faces is not circular (error 3.531 mm)
+  2.5D: no prism axis (best face fraction 0.605)
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  revolve about z: 1 profile loop(s), 13 edges, volume error 4.410 %, max distance mesh->model 0.1449 mm, model->mesh 11.2415 mm, valid=True (1.0s)
+  revolve: checks failed
+  revolve+cuts: cut across (-0.679, -0.734, 0.000), 8 edges, through
+  revolve about z with 1 cut(s): 16 profile edges, volume error 0.124 %, max distance mesh->model inf mm, model->mesh inf mm, valid=False (0.4s)
+  revolve+cuts: checks failed
+  absorbed 52 fragments into larger surfaces
+  region competition moved 134 boundary faces
+  merged 16 curved fragments into 0 spline extrusion(s), 3 spline revolution(s) and 0 cylinder(s)
+  segmentation (14.6s): plane x4 (56.7% area), cylinder x19 (11.7% area), cone x1 (1.8% area), torus x2 (1.3% area), revolution x3 (28.4% area)
+  simplified 1 degenerate surface fits
+  decomposed 1 spline surface(s) into 3 analytic surfaces
+  replaced 1 cone/revolution fits by tori
+  refit 1 odd region(s) as 2 plane(s)/cylinder(s)/tori
+  snapped 26 surface directions to the part frame
+  unified 45 coplanar/coaxial surfaces; merged 2 duplicate curved regions
+  enforced tangency on 0 cylinders
+  blends: 3 fillet surface(s) recognised, radii 16.6, 23.8, 26.3 mm
+  arrangement: 22 tool faces -> 63 cells (3.7s)
+  classified cells: 10 inside (6.7s)
+  fused and unified: 1 solid(s), 28 faces, valid=True (2.7s)
+  result check: valid=True, solids=1 (mesh bodies 1), volume error 1.00 %
+  fillets: 2 of 3 blend(s) applied one by one
+  after fillets: valid=True, volume error 0.99 % (0.2s)
+mode: exact
+tolerance: 0.1551 mm
+symmetry imposed: none (detected: D6 about frame axis z)
+solid valid: True, faces: 30
+deviation:
+  ref_to_model  mean 0.0592  median 0.0102  p95 0.2311  max 1.4141 mm
+  model_to_ref  mean 0.0626  median 0.0102  p95 0.2516  max 1.5012 mm
+  volume ref 370436.21  model 373401.48 mm^3  (+0.80 %)
+time: 41.7 s
+script: construction script, verified: volume 0.0024 %, max distance 0.0532 mm (25.7s)
+saved: out/brakeRotor/brakeRotor_exact.step, out/brakeRotor/brakeRotor_exact.stl, out/brakeRotor/brakeRotor_exact.py, out/brakeRotor/brakeRotor_exact_report.txt

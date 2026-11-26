@@ -1,0 +1,26 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/cantilever/Case3  (domain Cantilever.STL, TO Cantilever_finalIsoBinary.stl)
+class 1: route extrude along z
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [0.12, 0.04, 0.02], fill of its box 1.000; TO volume fraction 0.302; pitch 0.0004318; 11.0 s
+clean-up: {'outside_domain': 0.0037, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations []; mirrors ['[0.0, 0.0, 1.0] (1.00/1.00)']
+  candidates (not imposed): []
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.03 / 0.13 / 0.26 / 0.08 / 0.14 / 0.00 / 0.74 / 0.33
+  y: 0.00 / 0.03 / 0.44 / 0.14 / 0.00 / 0.00 / 0.96 / 0.88
+  z: 0.84 / 0.93 / 0.07 / 0.00 / 0.95 / 0.99 / 0.84 / 0.97
+route: {'route': 'extrude', 'axis': 'z', 'cls': '1'}
+retained regions: 0.0 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+   2  19.3 %  plate      t=0.0069   [-0.048, 0.999, -0.002] 0.031  face 0.60  nb [11]
+  11  18.3 %  junction   t=0.0043                                 face 0.33  nb [2, 5, 6, 8]
+   4  13.6 %  plate      t=0.0043   [0.051, 0.999, -0.0]   0.053  face 0.11  nb [10, 12]
+  10   8.0 %  junction   t=0.0043                                 face 0.16  nb [3, 4, 6]
+  12   7.6 %  junction   t=0.0043                                 face 0.16  nb [4, 7, 8]
+   6   5.8 %  plate      t=0.0036   [0.47, 0.882, 0.0]     0.048  face 0.09  nb [10, 11]
+   9   5.6 %  mass       t=0.0052                                 face 0.52  nb [3]
+   8   5.2 %  plate      t=0.0037   [-0.65, 0.76, -0.0]    0.04   face 0.12  nb [11, 12]
+   3   5.0 %  plate      t=0.0071   [0.155, 0.988, -0.006] 0.06   face 0.46  nb [9, 10]
+   5   5.0 %  plate      t=0.0017   [-0.0, 1.0, 0.007]     0.14   face 0.50  nb [11, 13]
+   7   4.9 %  plate      t=0.0031   [0.831, 0.556, 0.001]  0.057  face 0.07  nb [12, 13]
+  13   1.7 %  junction   t=0.0031                                 face 0.58  nb [5, 7]

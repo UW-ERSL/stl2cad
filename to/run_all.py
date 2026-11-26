@@ -1,7 +1,7 @@
 """TO regression, same as run_all.sh, for any platform (Windows PowerShell included).
 
 Every pair in ../models/to at every detail level; the SolidWorks scripts are copied to
-../results/sw_scripts/to/ as NAME_dL_solidworks.py (L = detail level, 1: fewest dimensions ...
+../models/to/sw_scripts/ as NAME_dL_solidworks.py (L = detail level, 1: fewest dimensions ...
 5: smallest model error); the summary goes to summary.txt.
 
 Pairs in SWEEP are also built as swept members (NAME_sweep_dL_solidworks.py, swsweep.py).
@@ -15,7 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 M = os.path.join(HERE, '..', 'models', 'to')
-OUT = os.path.join(HERE, '..', 'results', 'sw_scripts', 'to')
+OUT = os.path.join(HERE, '..', 'models', 'to', 'sw_scripts')
 PAIRS = [  # original, TO, name, units
     ('LBracket.STL', 'LBracket_TO_1.stl', 'lbracket_to', 'm'),
     ('EdgeCantilever.STL', 'EdgeCantilever_TO_1.stl', 'cantilever1_to', 'm'),

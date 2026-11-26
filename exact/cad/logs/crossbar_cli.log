@@ -1,0 +1,26 @@
+loaded crossbar.STL: 1620 triangles, extents [12.0, 12.0, 110.0] mm, watertight=True
+symmetry (detected): detected: D4 about frame axis x + mirror x  (group order 16, max element error 0.0042 mm, threshold 0.2226)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0557 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  loop 1: refitted at tol/4 (44 -> 72 edges)
+  snapping: 2 of 2 loop(s) snapped to clean geometry
+  2.5D along z: 2 levels, 1 extrusion(s) and 1 cut(s), 0 revolved feature(s), 73 profile edges, volume error 0.037 %, max distance mesh->model 0.0042 mm, model->mesh 0.0067 mm, valid=True (3.0s)
+mode: exact
+tolerance: 0.0557 mm
+symmetry imposed: none (detected: D4 about frame axis x + mirror x)
+solid valid: True, faces: 75
+deviation:
+  ref_to_model  mean 0.0006  median 0.0000  p95 0.0032  max 0.0078 mm
+  model_to_ref  mean 0.0006  median 0.0000  p95 0.0032  max 0.0084 mm
+  volume ref 9922.45  model 9919.55 mm^3  (-0.03 %)
+time: 43.5 s
+only got 636/800 samples!
+only got 646/800 samples!
+script: feature script, verified: volume 0.0002 %, max distance 0.0000 mm (4.7s)
+only got 636/800 samples!
+only got 640/800 samples!
+only got 636/800 samples!
+only got 640/800 samples!
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 17 dimension(s), 109 relation(s)) (13.2s)
+saved: out31/crossbar/crossbar_exact.step, out31/crossbar/crossbar_exact.stl, out31/crossbar/crossbar_exact.py, out31/crossbar/crossbar_solidworks.py, out31/crossbar/crossbar_exact_report.txt

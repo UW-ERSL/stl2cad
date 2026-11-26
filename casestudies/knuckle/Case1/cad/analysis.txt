@@ -1,0 +1,22 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/knuckle/Case1  (domain Knuckle.STL, TO Knuckle_finalIsoBinary.stl)
+class 7: mass 96 %
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [0.09, 0.125, 0.03], fill of its box 0.453; TO volume fraction 0.599; pitch 0.000527; 56.5 s
+clean-up: {'outside_domain': 0.0105, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations ['C2 about [0.0, 1.0, 0.0] (1.00/1.00)']; mirrors ['[1.0, 0.0, 0.0] (1.00/1.00)', '[0.0, 0.0, 1.0] (1.00/1.00)']
+  candidates (not imposed): []
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.42 / 0.29 / 0.70 / 0.00 / 0.31 / 1.00 / 0.43 / 0.23
+  y: 0.38 / 0.65 / 0.24 / 0.00 / 0.00 / 0.50 / 0.84 / 0.68
+  z: 0.69 / 0.78 / 0.22 / 0.00 / 0.71 / 1.00 / 0.74 / 0.70
+route: {'route': '3D', 'axis': None, 'cls': None}
+retained regions: 31.6 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+   8  66.0 %  mass       t=0.0127                                 face 0.53  nb [1, 2, 3, 4, 5, 6, 7]
+   1  31.6 %  retained   t=0.0075                                 face 0.98  nb [8]
+   4   0.5 %  plate      t=0.003    [0.002, 0.649, 0.76]   0.152  face 0.44  nb [2, 8]
+   5   0.5 %  plate      t=0.003    [0.0, 0.654, 0.756]    0.154  face 0.44  nb [3, 8]
+   2   0.4 %  plate      t=0.0032   [0.001, 0.986, -0.165] 0.112  face 0.44  nb [4, 6, 8]
+   3   0.4 %  plate      t=0.0032   [0.003, 0.987, -0.16]  0.109  face 0.44  nb [5, 7, 8]
+   6   0.3 %  plate      t=0.003    [0.003, -0.494, 0.869] 0.084  face 0.45  nb [2, 8]
+   7   0.3 %  plate      t=0.003    [-0.008, -0.49, 0.871] 0.082  face 0.43  nb [3, 8]

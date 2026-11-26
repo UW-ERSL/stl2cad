@@ -1,0 +1,40 @@
+loaded tooltip.STL: 380 triangles, extents [9.0, 140.0, 9.0] mm, watertight=True
+symmetry (detected): detected: D12 about frame axis x + mirror x  (group order 48, max element error 3.6064 mm, threshold 0.2812)
+auto mode: coplanar-area fraction 0.33 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0703 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y with 1 revolved group(s) about axes along y
+  2.5D along y with 2 edge blend(s)
+  snapping: 2 of 2 loop(s) snapped to clean geometry
+  revolved group 1 (local, axis through (0.000, 0.000, 0.000), r 3.500..4.500, half plane +x): 0 boss(es), 1 cut(s), 3 profile edges
+  blends: no sharp edge under a blend of 47 faces
+  2.5D: trying the y axis (88.0 % of the area)
+  2.5D along y with 1 revolved group(s) about axes along y
+  2.5D along y with 2 edge blend(s)
+  snapping: 2 of 2 loop(s) snapped to clean geometry
+  revolved group 1 (local, axis through (0.000, 0.000, 0.000), r 3.500..4.500, half plane +x): 0 boss(es), 1 cut(s), 3 profile edges
+  blends: no sharp edge under a blend of 47 faces
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  revolve about y: 1 profile loop(s), 24 edges, volume error 13.125 %, max distance mesh->model 0.0141 mm, model->mesh 3.6830 mm, valid=True (0.5s)
+  revolve: checks failed
+  revolve+cuts: cut across (-0.500, 0.000, 0.866), 16 edges, through
+  revolve+cuts: cut across (0.500, 0.000, 0.866), 16 edges, through
+  revolve+cuts: cut across (1.000, 0.000, 0.000), 24 edges, through
+  revolve about y with 3 cut(s): 24 profile edges, volume error 1.945 %, max distance mesh->model 3.6963 mm, model->mesh 3.6503 mm, valid=True (1.5s)
+  revolve+cuts: checks failed
+  absorbed 0 fragments into larger surfaces
+  region competition moved 10 boundary faces
+  segmentation (1.4s): plane x11 (22.0% area), cylinder x3 (77.1% area), cone x1 (0.9% area)
+  refit 4 odd region(s) as 2 plane(s)/cylinder(s)/tori
+  snapped 11 surface directions to the part frame
+  unified 6 coplanar/coaxial surfaces; merged 1 duplicate curved regions
+  enforced tangency on 2 cylinders
+  tangent chains: 2 profile shells replace 4 surfaces
+  arrangement: 10 tool faces -> 11 cells (2.5s)
+  classified cells: 2 inside (1.7s)
+  fused and unified: 1 solid(s), 13 faces, valid=True (2.5s)
+  result check: valid=True, solids=1 (mesh bodies 1), volume error 1.51 %
+WARNING: exact result failed the volume/validity check; inspect the deviation map
+falling back to smooth mode
+smooth mode: detected D12 about frame axis x + mirror x; imposing the rotational part C12 about frame axis x (mirror planes are reported, not imposed)
+smooth mode: 12-element symmetry group, pitch 0.312 mm

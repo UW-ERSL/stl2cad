@@ -1,0 +1,20 @@
+loaded lever.STL: 650 triangles, extents [62.991, 38.0, 32.0] mm, watertight=True
+symmetry (detected): detected: mirror y  (group order 2, max element error 0.0239 mm, threshold 0.1604)
+auto mode: coplanar-area fraction 0.99 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0401 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  loop 2: refitted at tol/4 (8 -> 6 edges)
+  snapping: 5 of 5 loop(s) snapped to clean geometry
+  2.5D along y: 4 levels, 3 extrusion(s) and 2 cut(s), 0 revolved feature(s), 8 profile edges, volume error 0.220 %, max distance mesh->model 0.0012 mm, model->mesh 0.0358 mm, valid=True (0.4s)
+mode: exact
+tolerance: 0.0401 mm
+symmetry imposed: none (detected: mirror y)
+solid valid: True, faces: 10
+deviation:
+  ref_to_model  mean 0.0075  median 0.0036  p95 0.0258  max 0.0546 mm
+  model_to_ref  mean 0.0075  median 0.0035  p95 0.0259  max 0.0541 mm
+  volume ref 16232.24  model 16246.69 mm^3  (+0.09 %)
+time: 10.3 s
+script: feature script, verified: volume 0.0001 %, max distance 0.0069 mm (3.4s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0104 mm, 11 dimension(s), 10 relation(s)) (10.5s)
+saved: out31/lever/lever_exact.step, out31/lever/lever_exact.stl, out31/lever/lever_exact.py, out31/lever/lever_solidworks.py, out31/lever/lever_exact_report.txt

@@ -1,0 +1,24 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/stool/Case2  (domain Stool.STL, TO Stool_finalIsoBinary.stl)
+class 3: plate 92 %
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [0.1, 0.1, 0.1], fill of its box 0.982; TO volume fraction 0.242; pitch 0.0005906; 48.7 s
+clean-up: {'outside_domain': 0.015, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations ['C4 about [0.0, 0.0, 1.0] (1.00/1.00)']; mirrors ['[1.0, 0.0, 0.0] (1.00/1.00)', '[0.0, 1.0, 0.0] (1.00/1.00)', '[0.7071, 0.7071, 0.0] (1.00/1.00)', '[0.7071, -0.7071, 0.0] (1.00/1.00)']
+  candidates (not imposed): []
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.00 / 0.27 / 0.73 / 0.13 / 0.00 / 0.99 / 0.00 / 0.55
+  y: 0.00 / 0.27 / 0.73 / 0.13 / 0.00 / 0.99 / 0.00 / 0.54
+  z: 0.58 / 0.88 / 0.12 / 0.00 / 0.61 / 0.66 / 0.80 / 0.65
+route: {'route': '3D', 'axis': None, 'cls': None}
+retained regions: 2.4 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+   8  32.2 %  junction   t=0.0109                                 face 0.15  nb [1, 2, 3, 4, 5]
+   2  14.9 %  plate      t=0.0084   [0.704, 0.71, 0.0]     0.026  face 0.14  nb [7, 8]
+   3  14.4 %  plate      t=0.0085   [0.702, 0.712, 0.0]    0.025  face 0.13  nb [8, 9]
+   4  14.3 %  plate      t=0.0085   [0.713, -0.701, 0.0]   0.025  face 0.13  nb [6, 8]
+   5  13.8 %  plate      t=0.0084   [0.71, -0.704, 0.0]    0.028  face 0.13  nb [8, 10]
+   1   2.4 %  retained   t=0.0236                                 face 1.00  nb [8]
+   6   2.3 %  mass       t=0.0084                                 face 0.51  nb [4]
+  10   2.1 %  mass       t=0.0085                                 face 0.49  nb [5]
+   9   2.0 %  mass       t=0.0084                                 face 0.52  nb [3]
+   7   1.5 %  mass       t=0.0084                                 face 0.47  nb [2]

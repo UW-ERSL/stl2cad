@@ -1,0 +1,464 @@
+{
+ "case": "/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/cantilever/Case8",
+ "domain_stl": "Cantilever.STL",
+ "to_stl": "Cantilever_finalIsoBinary.stl",
+ "frame": {
+  "R": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "deviation_deg": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "grid": {
+  "lo": [
+   -0.0008472130845708584,
+   -0.0008402130894770658,
+   -0.0007595130861678904
+  ],
+  "pitch": 0.00043051308392899086,
+  "shape": [
+   283,
+   97,
+   50
+  ]
+ },
+ "domain": {
+  "size": [
+   0.12,
+   0.04,
+   0.02
+  ],
+  "fill_of_box": 0.979
+ },
+ "volume_fraction": 0.151,
+ "cleanup": {
+  "outside_domain": 0.0042,
+  "islands_removed": 0,
+  "voids_filled": 0,
+  "voids_kept": 0,
+  "components": 1,
+  "odd_columns_domain": 0,
+  "odd_columns_to": 0
+ },
+ "symmetry": {
+  "centre": [
+   0.06007038829138135,
+   0.02003967148107899,
+   0.01000331401205688
+  ],
+  "mirrors": [
+   {
+    "kind": "mirror",
+    "vector": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "domain": 1.0,
+    "to": 1.0
+   }
+  ],
+  "rotations": [],
+  "candidates": []
+ },
+ "tests": [
+  {
+   "axis": "x",
+   "full": 0.031,
+   "one": 0.473,
+   "two": 0.153,
+   "two_layers": 0.048,
+   "section_iou": 0.125,
+   "centred": 0.05,
+   "anchored": 0.357,
+   "step_levels": 0.366
+  },
+  {
+   "axis": "y",
+   "full": 0.0,
+   "one": 0.119,
+   "two": 0.689,
+   "two_layers": 0.524,
+   "section_iou": 0.092,
+   "centred": 0.011,
+   "anchored": 0.514,
+   "step_levels": 0.675
+  },
+  {
+   "axis": "z",
+   "full": 0.069,
+   "one": 0.999,
+   "two": 0.001,
+   "two_layers": 0.0,
+   "section_iou": 0.233,
+   "centred": 0.999,
+   "anchored": 0.062,
+   "step_levels": 0.557
+  }
+ ],
+ "route": {
+  "route": "height field",
+  "axis": "z",
+  "kind": "centred",
+  "cls": "2b"
+ },
+ "retained": {
+  "share": 0.0,
+  "window": 37
+ },
+ "segments": [
+  {
+   "id": 2,
+   "type": "rod",
+   "share": 0.009,
+   "face_contact": 0.0,
+   "neighbours": [
+    16,
+    18
+   ],
+   "thickness": 0.0039,
+   "axis": [
+    0.774,
+    -0.633,
+    0.008
+   ],
+   "length": 0.0061,
+   "straightness": 0.128,
+   "kind": "curved rod",
+   "taper": 1.07
+  },
+  {
+   "id": 3,
+   "type": "rod",
+   "share": 0.015,
+   "face_contact": 0.0,
+   "neighbours": [
+    12,
+    20
+   ],
+   "thickness": 0.0036,
+   "axis": [
+    -0.656,
+    0.755,
+    0.004
+   ],
+   "length": 0.0165,
+   "straightness": 0.026,
+   "kind": "rod",
+   "taper": 1.14
+  },
+  {
+   "id": 4,
+   "type": "rod",
+   "share": 0.006,
+   "face_contact": 0.0,
+   "neighbours": [
+    16
+   ],
+   "thickness": 0.0046,
+   "axis": [
+    0.177,
+    -0.067,
+    0.982
+   ],
+   "length": 0.0069,
+   "straightness": 0.137,
+   "kind": "curved rod",
+   "taper": 1.51
+  },
+  {
+   "id": 5,
+   "type": "rod",
+   "share": 0.005,
+   "face_contact": 0.0,
+   "neighbours": [
+    11,
+    18
+   ],
+   "thickness": 0.0032,
+   "axis": [
+    0.447,
+    0.888,
+    -0.106
+   ],
+   "length": 0.0075,
+   "straightness": 0.18,
+   "kind": "curved rod",
+   "taper": 2.45
+  },
+  {
+   "id": 6,
+   "type": "rod",
+   "share": 0.016,
+   "face_contact": 0.0,
+   "neighbours": [
+    16,
+    20
+   ],
+   "thickness": 0.0039,
+   "axis": [
+    0.846,
+    0.534,
+    -0.015
+   ],
+   "length": 0.0118,
+   "straightness": 0.062,
+   "kind": "curved rod",
+   "taper": 1.07
+  },
+  {
+   "id": 7,
+   "type": "plate",
+   "share": 0.137,
+   "face_contact": 0.49,
+   "neighbours": [
+    14,
+    15,
+    20,
+    21
+   ],
+   "thickness": 0.0026,
+   "normal": [
+    0.0,
+    1.0,
+    0.0
+   ],
+   "flatness": 0.168,
+   "kind": "plate"
+  },
+  {
+   "id": 8,
+   "type": "plate",
+   "share": 0.077,
+   "face_contact": 0.5,
+   "neighbours": [
+    16,
+    17
+   ],
+   "thickness": 0.0034,
+   "normal": [
+    0.018,
+    1.0,
+    -0.002
+   ],
+   "flatness": 0.09,
+   "kind": "plate"
+  },
+  {
+   "id": 9,
+   "type": "plate",
+   "share": 0.012,
+   "face_contact": 0.45,
+   "neighbours": [
+    16,
+    20
+   ],
+   "thickness": 0.0026,
+   "normal": [
+    -0.014,
+    1.0,
+    -0.008
+   ],
+   "flatness": 0.113,
+   "kind": "plate"
+  },
+  {
+   "id": 10,
+   "type": "plate",
+   "share": 0.053,
+   "face_contact": 0.0,
+   "neighbours": [
+    14,
+    18,
+    19
+   ],
+   "thickness": 0.0026,
+   "normal": [
+    0.0,
+    -0.001,
+    1.0
+   ],
+   "flatness": 0.094,
+   "kind": "plate"
+  },
+  {
+   "id": 11,
+   "type": "plate",
+   "share": 0.009,
+   "face_contact": 0.0,
+   "neighbours": [
+    5,
+    16
+   ],
+   "thickness": 0.0034,
+   "normal": [
+    -0.001,
+    0.003,
+    1.0
+   ],
+   "flatness": 0.063,
+   "kind": "plate"
+  },
+  {
+   "id": 12,
+   "type": "plate",
+   "share": 0.021,
+   "face_contact": 0.0,
+   "neighbours": [
+    3,
+    16,
+    19
+   ],
+   "thickness": 0.0036,
+   "normal": [
+    0.003,
+    0.01,
+    1.0
+   ],
+   "flatness": 0.068,
+   "kind": "plate"
+  },
+  {
+   "id": 13,
+   "type": "plate",
+   "share": 0.01,
+   "face_contact": 0.0,
+   "neighbours": [
+    16
+   ],
+   "thickness": 0.0037,
+   "normal": [
+    0.82,
+    0.572,
+    -0.014
+   ],
+   "flatness": 0.051,
+   "kind": "plate"
+  },
+  {
+   "id": 14,
+   "type": "blob",
+   "share": 0.087,
+   "face_contact": 0.44,
+   "neighbours": [
+    7,
+    10
+   ],
+   "thickness": 0.0034,
+   "kind": "junction",
+   "joins": "plate"
+  },
+  {
+   "id": 15,
+   "type": "blob",
+   "share": 0.014,
+   "face_contact": 0.72,
+   "neighbours": [
+    7
+   ],
+   "thickness": 0.0027,
+   "kind": "mass"
+  },
+  {
+   "id": 16,
+   "type": "blob",
+   "share": 0.387,
+   "face_contact": 0.3,
+   "neighbours": [
+    2,
+    4,
+    6,
+    8,
+    9,
+    11,
+    12,
+    13
+   ],
+   "thickness": 0.0034,
+   "kind": "mass"
+  },
+  {
+   "id": 17,
+   "type": "blob",
+   "share": 0.005,
+   "face_contact": 0.65,
+   "neighbours": [
+    8
+   ],
+   "thickness": 0.0026,
+   "kind": "mass"
+  },
+  {
+   "id": 18,
+   "type": "blob",
+   "share": 0.016,
+   "face_contact": 0.0,
+   "neighbours": [
+    2,
+    5,
+    10
+   ],
+   "thickness": 0.0032,
+   "kind": "mass"
+  },
+  {
+   "id": 19,
+   "type": "blob",
+   "share": 0.023,
+   "face_contact": 0.0,
+   "neighbours": [
+    10,
+    12
+   ],
+   "thickness": 0.0034,
+   "kind": "junction",
+   "joins": "plate"
+  },
+  {
+   "id": 20,
+   "type": "blob",
+   "share": 0.089,
+   "face_contact": 0.36,
+   "neighbours": [
+    3,
+    6,
+    7,
+    9
+   ],
+   "thickness": 0.0031,
+   "kind": "junction",
+   "joins": "plate"
+  },
+  {
+   "id": 21,
+   "type": "blob",
+   "share": 0.007,
+   "face_contact": 0.45,
+   "neighbours": [
+    7
+   ],
+   "thickness": 0.0026,
+   "kind": "mass"
+  }
+ ],
+ "part_class": "2b",
+ "reason": "route height field along z",
+ "seconds": 5.8
+}

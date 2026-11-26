@@ -1,0 +1,34 @@
+loaded BicycleCrank.STL: 280 triangles, extents [50.0, 300.0, 110.0] mm, watertight=True
+symmetry (detected): detected: mirror z  (group order 2, max element error 0.0928 mm, threshold 0.6468)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.1617 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along z with 1 edge blend(s)
+  snapping: 3 of 3 loop(s) snapped to clean geometry
+  blends: fillet 10 mm on 4 edge(s) (measured 10.0000)
+  2.5D along z: 3 levels, 2 extrusion(s) and 1 cut(s), 0 revolved feature(s), 9 profile edges, volume error 0.029 %, max distance mesh->model 0.0010 mm, model->mesh 0.0559 mm, valid=True (0.2s)
+  2.5D: trying the x axis (92.3 % of the area)
+  2.5D along x (92.3 % of the area) with 1 off-axis cylinder(s): hole d=30.000
+  2.5D along x with 2 edge blend(s)
+  loop 2: refitted at tol/4 (10 -> 10 edges)
+  loop 3: refitted at tol/4 (4 -> 4 edges)
+  snapping: 5 of 5 loop(s) snapped to clean geometry
+  blends: no sharp edge under a blend of 24 faces
+  2.5D: trying the y axis (92.3 % of the area)
+  2.5D along y (92.3 % of the area) with 1 off-axis cylinder(s): hole d=30.000
+  2.5D along y with 2 edge blend(s)
+  loop 2: refitted at tol/4 (8 -> 10 edges)
+  snapping: 3 of 3 loop(s) snapped to clean geometry
+  blends: no sharp edge under a blend of 24 faces
+mode: exact
+tolerance: 0.1617 mm
+symmetry imposed: none (detected: mirror z)
+solid valid: True, faces: 16
+deviation:
+  ref_to_model  mean 0.0017  median 0.0000  p95 0.0140  max 0.0565 mm
+  model_to_ref  mean 0.0017  median 0.0000  p95 0.0144  max 0.0568 mm
+  volume ref 754903.10  model 754804.83 mm^3  (-0.01 %)
+time: 8.5 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (3.2s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 8 dimension(s), 10 relation(s)) (8.7s)
+saved: out31/BicycleCrank/BicycleCrank_exact.step, out31/BicycleCrank/BicycleCrank_exact.stl, out31/BicycleCrank/BicycleCrank_exact.py, out31/BicycleCrank/BicycleCrank_solidworks.py, out31/BicycleCrank/BicycleCrank_exact_report.txt

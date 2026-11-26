@@ -1,0 +1,33 @@
+loaded earflange.STL: 1088 triangles, extents [149.953, 59.998, 75.047] mm, watertight=True
+symmetry (detected): detected: none  (group order 1, max element error 0.0000 mm, threshold 0.3562)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: tolerance 0.0890 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y (93.8 % of the area) with 2 off-axis cylinder(s): hole d=8.000, hole d=12.000
+  2.5D along y with 2 edge blend(s)
+  loop 1: refitted at tol/4 (8 -> 8 edges)
+  snapping: 4 of 4 loop(s) snapped to clean geometry
+  blends: no sharp edge under a blend of 36 faces
+  2.5D: trying the y axis (93.8 % of the area)
+  2.5D along y (93.8 % of the area) with 2 off-axis cylinder(s): hole d=8.000, hole d=12.000
+  2.5D along y with 2 edge blend(s)
+  loop 1: refitted at tol/4 (8 -> 8 edges)
+  snapping: 4 of 4 loop(s) snapped to clean geometry
+  blends: no sharp edge under a blend of 36 faces
+  2.5D: trying the x axis (53.6 % of the area)
+/home/claude/uw-ersl/stl2cad/stl2cad/prism25.py:236: RuntimeWarning: invalid value encountered in divide
+  n /= np.linalg.norm(n)
+  2.5D along x (53.6 % of the area) with 4 off-axis cylinder(s): hole d=18.000, hole d=8.000, hole d=8.000, hole d=12.000
+  2.5D along x with 5 slanted planar face(s)
+  2.5D along x with 5 edge blend(s)
+  2.5D: trying the z axis (53.2 % of the area)
+  2.5D along z (53.2 % of the area) with 4 off-axis cylinder(s): hole d=18.000, hole d=8.000, hole d=8.000, hole d=12.000
+  2.5D along z with 5 slanted planar face(s)
+  2.5D along z with 4 edge blend(s)
+  revolve: no axis with equal perpendicular moments
+  absorbed 0 fragments into larger surfaces
+  region competition moved 0 boundary faces
+  segmentation (1.7s): plane x12 (87.8% area), cylinder x11 (12.2% area)
+  snapped 10 surface directions to the part frame
+  unified 5 coplanar/coaxial surfaces
+  enforced tangency on 6 cylinders
+  tangent chains: 3 profile shells replace 12 surfaces

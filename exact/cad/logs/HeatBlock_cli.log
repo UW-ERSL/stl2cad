@@ -1,0 +1,19 @@
+loaded HeatBlock.STL: 186 triangles, extents [75.0, 105.0, 105.0] mm, watertight=True
+symmetry (detected): detected: none  (group order 1, max element error 0.0000 mm, threshold 0.3327)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: tolerance 0.0832 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along x (98.9 % of the area) with 1 off-axis cylinder(s): boss d=25.000
+  snapping: 3 of 3 loop(s) snapped to clean geometry
+  2.5D along x: 4 levels, 3 extrusion(s) and 0 cut(s), 0 revolved feature(s), 17 profile edges, volume error 0.003 %, max distance mesh->model 0.0000 mm, model->mesh 0.0466 mm, valid=True (0.2s)
+mode: exact
+tolerance: 0.0832 mm
+symmetry imposed: none
+solid valid: True, faces: 15
+deviation:
+  ref_to_model  mean 0.0002  median 0.0000  p95 0.0000  max 0.0453 mm
+  model_to_ref  mean 0.0002  median 0.0000  p95 0.0000  max 0.0473 mm
+  volume ref 379941.95  model 379948.17 mm^3  (+0.00 %)
+time: 9.4 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (3.4s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 14 dimension(s), 20 relation(s)) (9.0s)
+saved: out31/HeatBlock/HeatBlock_exact.step, out31/HeatBlock/HeatBlock_exact.stl, out31/HeatBlock/HeatBlock_exact.py, out31/HeatBlock/HeatBlock_solidworks.py, out31/HeatBlock/HeatBlock_exact_report.txt

@@ -1,0 +1,45 @@
+/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/cantilever/Case7  (domain Cantilever.STL, TO Cantilever_finalIsoBinary.stl)
+class 8/9 (4 + 3): rod 56 %, plate 37 %
+frame deviation from global axes (deg): [0.0, 0.0, 0.0]
+domain [0.12, 0.04, 0.02], fill of its box 0.975; TO volume fraction 0.113; pitch 0.0004315; 4.6 s
+clean-up: {'outside_domain': 0.0256, 'islands_removed': 0, 'voids_filled': 0, 'voids_kept': 0, 'components': 1, 'odd_columns_domain': 0, 'odd_columns_to': 0}
+symmetry: rotations []; mirrors ['[0.0, 0.0, 1.0] (1.00/1.00)']
+  candidates (not imposed): []
+tests (full / one / two / two layers / section overlap / centred / anchored / step levels):
+  x: 0.00 / 0.22 / 0.40 / 0.02 / 0.04 / 0.00 / 0.32 / 0.54
+  y: 0.00 / 0.58 / 0.33 / 0.11 / 0.00 / 0.01 / 0.75 / 0.85
+  z: 0.08 / 0.14 / 0.86 / 0.46 / 0.20 / 0.84 / 0.59 / 0.83
+route: {'route': '3D', 'axis': None, 'cls': None}
+retained regions: 0.0 % of the TO
+segments (share, kind, thickness, direction, flatness/straightness, face contact, neighbours):
+  12  22.3 %  plate      t=0.0026   [0.007, 1.0, 0.001]    0.114  face 0.51  nb [4, 5, 19, 22, 24, 25, 26, 27, 28]
+   2  10.1 %  rod        t=0.0043   [1.0, -0.023, 0.018]   0.02   face 0.27  nb [13, 30]
+   3   9.5 %  rod        t=0.0043   [1.0, -0.018, -0.021]  0.014  face 0.31  nb [23, 29]
+  32   4.9 %  node       t=0.0024                                 face 0.39  nb [4, 5, 8, 9]
+   8   4.8 %  rod        t=0.0031   [0.726, -0.687, 0.025] 0.023  face 0.08  nb [29, 32]
+   9   4.7 %  rod        t=0.0031   [0.725, -0.688, -0.004] 0.032  face 0.03  nb [30, 32]
+  10   4.1 %  rod        t=0.0032   [0.673, 0.739, 0.036]  0.024  face 0.12  nb [18, 26]
+  11   3.9 %  rod        t=0.0035   [0.672, 0.74, -0.027]  0.02   face 0.18  nb [25, 31]
+   7   3.3 %  rod        t=0.0026   [0.811, -0.585, 0.0]   0.019  face 0.37  nb [14, 16]
+   6   3.2 %  rod        t=0.0032   [0.81, -0.586, 0.003]  0.019  face 0.29  nb [13, 15]
+  25   2.9 %  junction   t=0.0031                                 face 0.61  nb [11, 12, 16]
+  13   2.7 %  plate      t=0.0035   [-0.001, -0.042, 0.999] 0.093  face 0.48  nb [2, 6, 20]
+  26   2.7 %  junction   t=0.0031                                 face 0.59  nb [10, 12, 15]
+  14   2.4 %  plate      t=0.0035   [-0.001, 0.046, 0.999] 0.076  face 0.51  nb [7, 21, 23]
+   4   2.2 %  rod        t=0.0024   [0.996, 0.019, -0.088] 0.023  face 0.27  nb [12, 32]
+   5   2.2 %  rod        t=0.0024   [0.996, 0.015, 0.089]  0.024  face 0.30  nb [12, 32]
+  20   2.0 %  mass       t=0.0043                                 face 0.55  nb [13]
+  21   1.8 %  mass       t=0.0035                                 face 0.59  nb [14]
+  18   1.6 %  plate      t=0.0042   [0.011, -0.03, 0.999]  0.032  face 0.00  nb [10, 30]
+  29   1.5 %  node       t=0.004                                  face 0.01  nb [3, 8, 17]
+  30   1.5 %  node       t=0.0036                                 face 0.01  nb [2, 9, 18]
+  17   1.2 %  plate      t=0.004    [0.009, 0.091, 0.996]  0.067  face 0.00  nb [29, 31]
+  15   1.0 %  plate      t=0.0026   [0.006, -0.094, 0.996] 0.093  face 0.37  nb [6, 26]
+  19   0.9 %  mass       t=0.0017                                 face 0.65  nb [12]
+  16   0.6 %  plate      t=0.0026   [0.011, 0.118, 0.993]  0.095  face 0.42  nb [7, 25]
+  23   0.5 %  mass       t=0.0024                                 face 0.32  nb [3, 14]
+  24   0.4 %  mass       t=0.0024                                 face 0.72  nb [12]
+  27   0.4 %  mass       t=0.0017                                 face 0.46  nb [12]
+  22   0.3 %  mass       t=0.0024                                 face 0.71  nb [12]
+  28   0.3 %  mass       t=0.0017                                 face 0.52  nb [12]
+  31   0.3 %  mass       t=0.0036                                 face 0.00  nb [11, 17]

@@ -180,7 +180,8 @@ def write(path, base_script, name, plates, box, r_fillet=1.0, nd=6, digits=3, de
     ns = _namespace(base_script)
     t3 = lambda q: '(%.5f, %.5f, %.5f)' % tuple(float(x) for x in q)
     solids = [ns['plate'](p['axis'], p['lo'], p['hi'], p['cuts'], box, p.get('ring')) for p in plates]
-    order = sorted(range(len(plates)), key=lambda i: -mass_props(solids[i])[0])   # largest plate first
+    # largest plate first; plates with an 'order' key (nested height-field plates) in that order
+    order = sorted(range(len(plates)), key=lambda i: (plates[i].get('order', 0), -mass_props(solids[i])[0]))
     k = plates[order[0]]['axis']
     R0, back = swgen.BUILD_FRAME[k]
     i0, j0 = [m for m in range(3) if m != k]

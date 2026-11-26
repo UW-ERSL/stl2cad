@@ -1,0 +1,127 @@
+loaded rack.STL: 1116 triangles, extents [180.0, 20.0, 16.0] mm, watertight=True
+symmetry (detected): detected: D2 about frame axis z  (group order 4, max element error 0.2385 mm, threshold 0.3636)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0909 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  2.5D along y with 48 slanted planar face(s)
+  snapping: 31 of 31 loop(s) snapped to clean geometry
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D along y: 5 levels, 29 extrusion(s) and 2 cut(s), 0 revolved feature(s), 106 profile edges, volume error 0.057 %, max distance mesh->model 0.0010 mm, model->mesh 3.3936 mm, valid=True (6.7s)
+  2.5D: checks failed; using the surface arrangement
+  2.5D: trying the y axis (84.8 % of the area)
+  2.5D along y with 48 slanted planar face(s)
+  snapping: 31 of 31 loop(s) snapped to clean geometry
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D: cut along z over [-8.0000, 8.0000] (through), 3 edges
+  2.5D along y: 5 levels, 29 extrusion(s) and 2 cut(s), 0 revolved feature(s), 106 profile edges, volume error 0.057 %, max distance mesh->model 0.0010 mm, model->mesh 3.3936 mm, valid=True (6.9s)
+  2.5D: checks failed; using the surface arrangement
+  2.5D: trying the z axis (82.5 % of the area)
+  2.5D along z (82.5 % of the area) with 4 off-axis cylinder(s): boss d=16.000, boss d=16.000, hole d=7.500, hole d=7.500
+  snapping: 1 of 1 loop(s) snapped to clean geometry
+  linear pattern: 23 copies of 4 edge(s), step (-6.0000, 0.0000) mm
+  2.5D along z: 2 levels, 1 extrusion(s) and 0 cut(s), 0 revolved feature(s), 100 profile edges, volume error 0.051 %, max distance mesh->model 0.0000 mm, model->mesh 0.0298 mm, valid=True (0.6s)
+mode: exact
+tolerance: 0.0909 mm
+symmetry imposed: none (detected: D2 about frame axis z)
+solid valid: True, faces: 108
+deviation:
+  ref_to_model  mean 0.0017  median 0.0000  p95 0.0135  max 0.0301 mm
+  model_to_ref  mean 0.0018  median 0.0000  p95 0.0135  max 0.0301 mm
+  volume ref 38124.54  model 38135.22 mm^3  (+0.03 %)
+time: 38.3 s
+script: feature script, verified: volume 0.0001 %, max distance 0.0000 mm (6.9s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 16 dimension(s), 18 relation(s)) (20.8s)
+saved: out31/rack/rack_exact.step, out31/rack/rack_exact.stl, out31/rack/rack_exact.py, out31/rack/rack_solidworks.py, out31/rack/rack_exact_report.txt

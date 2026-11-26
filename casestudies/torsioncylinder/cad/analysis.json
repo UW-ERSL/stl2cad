@@ -1,0 +1,1345 @@
+{
+ "case": "/sessions/rcw-01bdlzz7f65jy3wuypxaxhfh/mnt/stl2cad/casestudies/torsioncylinder",
+ "domain_stl": "torsionCylinder.STL",
+ "to_stl": "torsionCylinder_finalIsoBinary.stl",
+ "frame": {
+  "R": [
+   [
+    1.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    1.0,
+    0.0
+   ],
+   [
+    0.0,
+    0.0,
+    1.0
+   ]
+  ],
+  "deviation_deg": [
+   0.0,
+   0.0,
+   0.0
+  ]
+ },
+ "grid": {
+  "lo": [
+   -0.05045314902424786,
+   -0.050803151223659256,
+   -0.006642150934636333
+  ],
+  "pitch": 0.0006031508183476713,
+  "shape": [
+   169,
+   169,
+   188
+  ]
+ },
+ "domain": {
+  "size": [
+   0.1,
+   0.099997,
+   0.11
+  ],
+  "fill_of_box": 0.457
+ },
+ "volume_fraction": 0.142,
+ "cleanup": {
+  "outside_domain": 0.0242,
+  "islands_removed": 0,
+  "voids_filled": 0,
+  "voids_kept": 0,
+  "components": 1,
+  "odd_columns_domain": 0,
+  "odd_columns_to": 0
+ },
+ "symmetry": {
+  "centre": [
+   0.0005940001213339541,
+   -0.00011341960875427964,
+   0.05005517722154071
+  ],
+  "mirrors": [],
+  "rotations": [
+   {
+    "kind": "rotation",
+    "vector": [
+     0.0,
+     0.0,
+     1.0
+    ],
+    "domain": 0.996,
+    "to": 0.954,
+    "n": 4
+   }
+  ],
+  "candidates": []
+ },
+ "tests": [
+  {
+   "axis": "x",
+   "full": 0.046,
+   "one": 0.397,
+   "two": 0.6,
+   "two_layers": 0.122,
+   "section_iou": 0.0,
+   "centred": 0.156,
+   "anchored": 0.365,
+   "step_levels": 0.541
+  },
+  {
+   "axis": "y",
+   "full": 0.047,
+   "one": 0.385,
+   "two": 0.612,
+   "two_layers": 0.117,
+   "section_iou": 0.0,
+   "centred": 0.164,
+   "anchored": 0.361,
+   "step_levels": 0.54
+  },
+  {
+   "axis": "z",
+   "full": 0.0,
+   "one": 0.431,
+   "two": 0.506,
+   "two_layers": 0.0,
+   "section_iou": 0.002,
+   "centred": 0.0,
+   "anchored": 0.514,
+   "step_levels": 0.558
+  }
+ ],
+ "route": {
+  "route": "3D",
+  "axis": null,
+  "cls": null
+ },
+ "retained": {
+  "share": 0.0,
+  "window": 37
+ },
+ "segments": [
+  {
+   "id": 2,
+   "type": "rod",
+   "share": 0.016,
+   "face_contact": 0.13,
+   "neighbours": [
+    33,
+    49
+   ],
+   "thickness": 0.0074,
+   "axis": [
+    0.379,
+    0.762,
+    0.525
+   ],
+   "length": 0.019,
+   "straightness": 0.055,
+   "kind": "curved rod",
+   "taper": 1.05
+  },
+  {
+   "id": 3,
+   "type": "rod",
+   "share": 0.017,
+   "face_contact": 0.18,
+   "neighbours": [
+    51,
+    53
+   ],
+   "thickness": 0.0084,
+   "axis": [
+    -0.032,
+    0.734,
+    0.678
+   ],
+   "length": 0.0137,
+   "straightness": 0.121,
+   "kind": "curved rod",
+   "taper": 1.01
+  },
+  {
+   "id": 4,
+   "type": "rod",
+   "share": 0.019,
+   "face_contact": 0.14,
+   "neighbours": [
+    65,
+    66
+   ],
+   "thickness": 0.0079,
+   "axis": [
+    0.152,
+    0.664,
+    0.732
+   ],
+   "length": 0.0191,
+   "straightness": 0.077,
+   "kind": "curved rod",
+   "taper": 1.0
+  },
+  {
+   "id": 5,
+   "type": "rod",
+   "share": 0.006,
+   "face_contact": 0.38,
+   "neighbours": [
+    39,
+    44
+   ],
+   "thickness": 0.0034,
+   "axis": [
+    0.237,
+    0.567,
+    0.789
+   ],
+   "length": 0.0292,
+   "straightness": 0.035,
+   "kind": "rod",
+   "taper": 1.79
+  },
+  {
+   "id": 6,
+   "type": "rod",
+   "share": 0.013,
+   "face_contact": 0.31,
+   "neighbours": [
+    39,
+    44
+   ],
+   "thickness": 0.0059,
+   "axis": [
+    0.176,
+    0.633,
+    0.754
+   ],
+   "length": 0.0268,
+   "straightness": 0.043,
+   "kind": "curved rod",
+   "taper": 1.05
+  },
+  {
+   "id": 7,
+   "type": "rod",
+   "share": 0.01,
+   "face_contact": 0.38,
+   "neighbours": [
+    43,
+    45
+   ],
+   "thickness": 0.0051,
+   "axis": [
+    0.613,
+    0.34,
+    0.713
+   ],
+   "length": 0.02,
+   "straightness": 0.065,
+   "kind": "curved rod",
+   "taper": 1.07
+  },
+  {
+   "id": 8,
+   "type": "rod",
+   "share": 0.007,
+   "face_contact": 0.26,
+   "neighbours": [
+    43,
+    45
+   ],
+   "thickness": 0.0043,
+   "axis": [
+    0.681,
+    0.228,
+    0.696
+   ],
+   "length": 0.0251,
+   "straightness": 0.045,
+   "kind": "curved rod",
+   "taper": 1.06
+  },
+  {
+   "id": 9,
+   "type": "rod",
+   "share": 0.012,
+   "face_contact": 0.36,
+   "neighbours": [
+    40,
+    41
+   ],
+   "thickness": 0.0057,
+   "axis": [
+    0.589,
+    -0.178,
+    0.788
+   ],
+   "length": 0.0244,
+   "straightness": 0.046,
+   "kind": "curved rod",
+   "taper": 1.07
+  },
+  {
+   "id": 10,
+   "type": "rod",
+   "share": 0.018,
+   "face_contact": 0.11,
+   "neighbours": [
+    59,
+    63
+   ],
+   "thickness": 0.0085,
+   "axis": [
+    0.699,
+    -0.158,
+    0.698
+   ],
+   "length": 0.0153,
+   "straightness": 0.096,
+   "kind": "curved rod",
+   "taper": 1.05
+  },
+  {
+   "id": 11,
+   "type": "rod",
+   "share": 0.016,
+   "face_contact": 0.17,
+   "neighbours": [
+    57,
+    62
+   ],
+   "thickness": 0.0081,
+   "axis": [
+    0.705,
+    0.183,
+    0.685
+   ],
+   "length": 0.0134,
+   "straightness": 0.153,
+   "kind": "curved rod",
+   "taper": 1.28
+  },
+  {
+   "id": 12,
+   "type": "rod",
+   "share": 0.017,
+   "face_contact": 0.09,
+   "neighbours": [
+    54,
+    57
+   ],
+   "thickness": 0.0077,
+   "axis": [
+    -0.701,
+    0.07,
+    0.71
+   ],
+   "length": 0.0147,
+   "straightness": 0.104,
+   "kind": "curved rod",
+   "taper": 1.1
+  },
+  {
+   "id": 13,
+   "type": "rod",
+   "share": 0.011,
+   "face_contact": 0.18,
+   "neighbours": [
+    55,
+    59
+   ],
+   "thickness": 0.0081,
+   "axis": [
+    -0.662,
+    -0.261,
+    0.702
+   ],
+   "length": 0.0095,
+   "straightness": 0.171,
+   "kind": "curved rod",
+   "taper": 1.11
+  },
+  {
+   "id": 14,
+   "type": "rod",
+   "share": 0.01,
+   "face_contact": 0.31,
+   "neighbours": [
+    42,
+    45
+   ],
+   "thickness": 0.005,
+   "axis": [
+    -0.612,
+    0.168,
+    0.773
+   ],
+   "length": 0.0214,
+   "straightness": 0.052,
+   "kind": "curved rod",
+   "taper": 1.06
+  },
+  {
+   "id": 15,
+   "type": "rod",
+   "share": 0.011,
+   "face_contact": 0.29,
+   "neighbours": [
+    40,
+    44
+   ],
+   "thickness": 0.005,
+   "axis": [
+    -0.693,
+    -0.189,
+    0.696
+   ],
+   "length": 0.0282,
+   "straightness": 0.028,
+   "kind": "rod",
+   "taper": 1.07
+  },
+  {
+   "id": 16,
+   "type": "rod",
+   "share": 0.01,
+   "face_contact": 0.34,
+   "neighbours": [
+    40,
+    44
+   ],
+   "thickness": 0.005,
+   "axis": [
+    -0.613,
+    -0.386,
+    0.689
+   ],
+   "length": 0.0248,
+   "straightness": 0.037,
+   "kind": "rod",
+   "taper": 1.03
+  },
+  {
+   "id": 17,
+   "type": "rod",
+   "share": 0.012,
+   "face_contact": 0.34,
+   "neighbours": [
+    37,
+    43
+   ],
+   "thickness": 0.0059,
+   "axis": [
+    -0.169,
+    -0.623,
+    0.764
+   ],
+   "length": 0.0231,
+   "straightness": 0.036,
+   "kind": "rod",
+   "taper": 1.01
+  },
+  {
+   "id": 18,
+   "type": "rod",
+   "share": 0.007,
+   "face_contact": 0.34,
+   "neighbours": [
+    37,
+    43
+   ],
+   "thickness": 0.0038,
+   "axis": [
+    -0.274,
+    -0.553,
+    0.787
+   ],
+   "length": 0.0283,
+   "straightness": 0.038,
+   "kind": "rod",
+   "taper": 1.09
+  },
+  {
+   "id": 19,
+   "type": "rod",
+   "share": 0.016,
+   "face_contact": 0.12,
+   "neighbours": [
+    52,
+    53
+   ],
+   "thickness": 0.0081,
+   "axis": [
+    -0.124,
+    -0.686,
+    0.717
+   ],
+   "length": 0.0134,
+   "straightness": 0.111,
+   "kind": "curved rod",
+   "taper": 1.11
+  },
+  {
+   "id": 20,
+   "type": "rod",
+   "share": 0.015,
+   "face_contact": 0.08,
+   "neighbours": [
+    33,
+    56
+   ],
+   "thickness": 0.0069,
+   "axis": [
+    -0.56,
+    -0.515,
+    0.649
+   ],
+   "length": 0.0167,
+   "straightness": 0.075,
+   "kind": "curved rod",
+   "taper": 1.25
+  },
+  {
+   "id": 21,
+   "type": "rod",
+   "share": 0.017,
+   "face_contact": 0.12,
+   "neighbours": [
+    31,
+    34,
+    68
+   ],
+   "thickness": 0.0074,
+   "axis": [
+    0.423,
+    0.72,
+    -0.55
+   ],
+   "length": 0.0205,
+   "straightness": 0.051,
+   "kind": "curved rod",
+   "taper": 1.27
+  },
+  {
+   "id": 22,
+   "type": "rod",
+   "share": 0.01,
+   "face_contact": 0.35,
+   "neighbours": [
+    37,
+    41
+   ],
+   "thickness": 0.0038,
+   "axis": [
+    -0.255,
+    0.71,
+    0.656
+   ],
+   "length": 0.0281,
+   "straightness": 0.074,
+   "kind": "curved rod",
+   "taper": 1.89
+  },
+  {
+   "id": 23,
+   "type": "rod",
+   "share": 0.008,
+   "face_contact": 0.34,
+   "neighbours": [
+    37,
+    41
+   ],
+   "thickness": 0.005,
+   "axis": [
+    -0.383,
+    0.582,
+    0.717
+   ],
+   "length": 0.0187,
+   "straightness": 0.053,
+   "kind": "curved rod",
+   "taper": 1.01
+  },
+  {
+   "id": 24,
+   "type": "rod",
+   "share": 0.015,
+   "face_contact": 0.1,
+   "neighbours": [
+    35,
+    40,
+    58
+   ],
+   "thickness": 0.0073,
+   "axis": [
+    0.659,
+    -0.442,
+    -0.609
+   ],
+   "length": 0.0184,
+   "straightness": 0.062,
+   "kind": "curved rod",
+   "taper": 1.12
+  },
+  {
+   "id": 25,
+   "type": "rod",
+   "share": 0.005,
+   "face_contact": 0.32,
+   "neighbours": [
+    42,
+    45
+   ],
+   "thickness": 0.0038,
+   "axis": [
+    -0.596,
+    0.258,
+    0.76
+   ],
+   "length": 0.0235,
+   "straightness": 0.048,
+   "kind": "curved rod",
+   "taper": 1.03
+  },
+  {
+   "id": 26,
+   "type": "rod",
+   "share": 0.012,
+   "face_contact": 0.05,
+   "neighbours": [
+    64,
+    67
+   ],
+   "thickness": 0.0071,
+   "axis": [
+    -0.514,
+    0.58,
+    0.632
+   ],
+   "length": 0.0118,
+   "straightness": 0.096,
+   "kind": "curved rod",
+   "taper": 1.34
+  },
+  {
+   "id": 27,
+   "type": "rod",
+   "share": 0.014,
+   "face_contact": 0.14,
+   "neighbours": [
+    35,
+    50
+   ],
+   "thickness": 0.0074,
+   "axis": [
+    -0.545,
+    0.621,
+    -0.563
+   ],
+   "length": 0.0196,
+   "straightness": 0.043,
+   "kind": "curved rod",
+   "taper": 1.29
+  },
+  {
+   "id": 28,
+   "type": "rod",
+   "share": 0.012,
+   "face_contact": 0.2,
+   "neighbours": [
+    36,
+    60,
+    64
+   ],
+   "thickness": 0.0073,
+   "axis": [
+    0.749,
+    -0.399,
+    0.528
+   ],
+   "length": 0.017,
+   "straightness": 0.075,
+   "kind": "curved rod",
+   "taper": 1.44
+  },
+  {
+   "id": 29,
+   "type": "rod",
+   "share": 0.005,
+   "face_contact": 0.36,
+   "neighbours": [
+    42,
+    69
+   ],
+   "thickness": 0.0038,
+   "axis": [
+    0.402,
+    -0.595,
+    0.696
+   ],
+   "length": 0.0206,
+   "straightness": 0.047,
+   "kind": "curved rod",
+   "taper": 1.03
+  },
+  {
+   "id": 30,
+   "type": "rod",
+   "share": 0.011,
+   "face_contact": 0.36,
+   "neighbours": [
+    38,
+    39,
+    69
+   ],
+   "thickness": 0.005,
+   "axis": [
+    -0.255,
+    0.693,
+    -0.675
+   ],
+   "length": 0.0252,
+   "straightness": 0.046,
+   "kind": "curved rod",
+   "taper": 1.36
+  },
+  {
+   "id": 31,
+   "type": "rod",
+   "share": 0.017,
+   "face_contact": 0.14,
+   "neighbours": [
+    21,
+    34,
+    61
+   ],
+   "thickness": 0.0069,
+   "axis": [
+    0.617,
+    0.531,
+    0.58
+   ],
+   "length": 0.0214,
+   "straightness": 0.067,
+   "kind": "curved rod",
+   "taper": 1.41
+  },
+  {
+   "id": 32,
+   "type": "rod",
+   "share": 0.007,
+   "face_contact": 0.18,
+   "neighbours": [
+    65
+   ],
+   "thickness": 0.0081,
+   "axis": [
+    0.154,
+    0.768,
+    -0.621
+   ],
+   "length": 0.0083,
+   "straightness": 0.162,
+   "kind": "curved rod",
+   "taper": 1.15
+  },
+  {
+   "id": 33,
+   "type": "rod",
+   "share": 0.007,
+   "face_contact": 0.65,
+   "neighbours": [
+    2,
+    20
+   ],
+   "thickness": 0.0048,
+   "axis": [
+    0.479,
+    0.751,
+    -0.454
+   ],
+   "length": 0.0075,
+   "straightness": 0.256,
+   "kind": "curved rod",
+   "taper": 2.39
+  },
+  {
+   "id": 34,
+   "type": "rod",
+   "share": 0.005,
+   "face_contact": 0.81,
+   "neighbours": [
+    21,
+    31
+   ],
+   "thickness": 0.0071,
+   "axis": [
+    0.963,
+    -0.099,
+    -0.252
+   ],
+   "length": 0.0078,
+   "straightness": 0.104,
+   "kind": "curved rod",
+   "taper": 1.5
+  },
+  {
+   "id": 35,
+   "type": "rod",
+   "share": 0.006,
+   "face_contact": 0.7,
+   "neighbours": [
+    24,
+    27
+   ],
+   "thickness": 0.0071,
+   "axis": [
+    0.605,
+    -0.583,
+    -0.543
+   ],
+   "length": 0.0066,
+   "straightness": 0.206,
+   "kind": "curved rod",
+   "taper": 1.91
+  },
+  {
+   "id": 36,
+   "type": "rod",
+   "share": 0.005,
+   "face_contact": 0.79,
+   "neighbours": [
+    28,
+    64
+   ],
+   "thickness": 0.0072,
+   "axis": [
+    0.488,
+    -0.596,
+    0.638
+   ],
+   "length": 0.0073,
+   "straightness": 0.158,
+   "kind": "curved rod",
+   "taper": 1.4
+  },
+  {
+   "id": 37,
+   "type": "plate",
+   "share": 0.047,
+   "face_contact": 0.45,
+   "neighbours": [
+    17,
+    18,
+    22,
+    23,
+    48,
+    49
+   ],
+   "thickness": 0.0036,
+   "normal": [
+    0.993,
+    0.093,
+    -0.068
+   ],
+   "flatness": 0.247,
+   "kind": "shell"
+  },
+  {
+   "id": 38,
+   "type": "plate",
+   "share": 0.004,
+   "face_contact": 0.45,
+   "neighbours": [
+    30,
+    42
+   ],
+   "thickness": 0.0034,
+   "normal": [
+    0.85,
+    0.515,
+    -0.11
+   ],
+   "flatness": 0.09,
+   "kind": "plate"
+  },
+  {
+   "id": 39,
+   "type": "plate",
+   "share": 0.039,
+   "face_contact": 0.46,
+   "neighbours": [
+    5,
+    6,
+    30,
+    46,
+    68,
+    69
+   ],
+   "thickness": 0.0036,
+   "normal": [
+    0.994,
+    0.088,
+    0.064
+   ],
+   "flatness": 0.217,
+   "kind": "shell"
+  },
+  {
+   "id": 40,
+   "type": "plate",
+   "share": 0.045,
+   "face_contact": 0.44,
+   "neighbours": [
+    9,
+    15,
+    16,
+    24,
+    41,
+    47,
+    58
+   ],
+   "thickness": 0.0036,
+   "normal": [
+    -0.016,
+    0.999,
+    -0.047
+   ],
+   "flatness": 0.295,
+   "kind": "shell"
+  },
+  {
+   "id": 41,
+   "type": "plate",
+   "share": 0.052,
+   "face_contact": 0.39,
+   "neighbours": [
+    9,
+    22,
+    23,
+    40,
+    52,
+    55
+   ],
+   "thickness": 0.0034,
+   "normal": [
+    0.642,
+    0.747,
+    0.172
+   ],
+   "flatness": 0.467,
+   "kind": "shell"
+  },
+  {
+   "id": 42,
+   "type": "plate",
+   "share": 0.047,
+   "face_contact": 0.39,
+   "neighbours": [
+    14,
+    25,
+    29,
+    38,
+    62,
+    66
+   ],
+   "thickness": 0.0036,
+   "normal": [
+    0.647,
+    0.739,
+    -0.187
+   ],
+   "flatness": 0.395,
+   "kind": "shell"
+  },
+  {
+   "id": 43,
+   "type": "plate",
+   "share": 0.051,
+   "face_contact": 0.39,
+   "neighbours": [
+    7,
+    8,
+    17,
+    18,
+    51,
+    54
+   ],
+   "thickness": 0.0038,
+   "normal": [
+    0.715,
+    -0.677,
+    0.173
+   ],
+   "flatness": 0.327,
+   "kind": "shell"
+  },
+  {
+   "id": 44,
+   "type": "plate",
+   "share": 0.053,
+   "face_contact": 0.37,
+   "neighbours": [
+    5,
+    6,
+    15,
+    16,
+    63,
+    65
+   ],
+   "thickness": 0.0036,
+   "normal": [
+    0.732,
+    -0.643,
+    -0.225
+   ],
+   "flatness": 0.374,
+   "kind": "shell"
+  },
+  {
+   "id": 45,
+   "type": "plate",
+   "share": 0.055,
+   "face_contact": 0.41,
+   "neighbours": [
+    7,
+    8,
+    14,
+    25,
+    56,
+    60
+   ],
+   "thickness": 0.0036,
+   "normal": [
+    -0.119,
+    0.988,
+    0.102
+   ],
+   "flatness": 0.312,
+   "kind": "shell"
+  },
+  {
+   "id": 46,
+   "type": "plate",
+   "share": 0.01,
+   "face_contact": 0.15,
+   "neighbours": [
+    39,
+    67
+   ],
+   "thickness": 0.005,
+   "normal": [
+    0.806,
+    0.414,
+    0.423
+   ],
+   "flatness": 0.071,
+   "kind": "plate"
+  },
+  {
+   "id": 47,
+   "type": "plate",
+   "share": 0.009,
+   "face_contact": 0.12,
+   "neighbours": [
+    40,
+    61
+   ],
+   "thickness": 0.0055,
+   "normal": [
+    -0.381,
+    0.809,
+    -0.448
+   ],
+   "flatness": 0.044,
+   "kind": "plate"
+  },
+  {
+   "id": 48,
+   "type": "plate",
+   "share": 0.006,
+   "face_contact": 0.06,
+   "neighbours": [
+    37,
+    50
+   ],
+   "thickness": 0.0052,
+   "normal": [
+    0.787,
+    0.43,
+    -0.443
+   ],
+   "flatness": 0.051,
+   "kind": "plate"
+  },
+  {
+   "id": 49,
+   "type": "blob",
+   "share": 0.006,
+   "face_contact": 0.12,
+   "neighbours": [
+    2,
+    37
+   ],
+   "thickness": 0.0061,
+   "kind": "mass"
+  },
+  {
+   "id": 50,
+   "type": "blob",
+   "share": 0.008,
+   "face_contact": 0.0,
+   "neighbours": [
+    27,
+    48
+   ],
+   "thickness": 0.0059,
+   "kind": "mass"
+  },
+  {
+   "id": 51,
+   "type": "blob",
+   "share": 0.013,
+   "face_contact": 0.05,
+   "neighbours": [
+    3,
+    43
+   ],
+   "thickness": 0.0069,
+   "kind": "mass"
+  },
+  {
+   "id": 52,
+   "type": "blob",
+   "share": 0.01,
+   "face_contact": 0.0,
+   "neighbours": [
+    19,
+    41
+   ],
+   "thickness": 0.0069,
+   "kind": "mass"
+  },
+  {
+   "id": 53,
+   "type": "blob",
+   "share": 0.009,
+   "face_contact": 0.64,
+   "neighbours": [
+    3,
+    19
+   ],
+   "thickness": 0.0045,
+   "kind": "node",
+   "joins": "curved rod"
+  },
+  {
+   "id": 54,
+   "type": "blob",
+   "share": 0.009,
+   "face_contact": 0.0,
+   "neighbours": [
+    12,
+    43
+   ],
+   "thickness": 0.0065,
+   "kind": "mass"
+  },
+  {
+   "id": 55,
+   "type": "blob",
+   "share": 0.014,
+   "face_contact": 0.0,
+   "neighbours": [
+    13,
+    41
+   ],
+   "thickness": 0.0069,
+   "kind": "mass"
+  },
+  {
+   "id": 56,
+   "type": "blob",
+   "share": 0.005,
+   "face_contact": 0.0,
+   "neighbours": [
+    20,
+    45
+   ],
+   "thickness": 0.0057,
+   "kind": "mass"
+  },
+  {
+   "id": 57,
+   "type": "blob",
+   "share": 0.011,
+   "face_contact": 0.56,
+   "neighbours": [
+    11,
+    12
+   ],
+   "thickness": 0.0038,
+   "kind": "node",
+   "joins": "curved rod"
+  },
+  {
+   "id": 58,
+   "type": "blob",
+   "share": 0.003,
+   "face_contact": 0.0,
+   "neighbours": [
+    24,
+    40
+   ],
+   "thickness": 0.0065,
+   "kind": "mass"
+  },
+  {
+   "id": 59,
+   "type": "blob",
+   "share": 0.012,
+   "face_contact": 0.55,
+   "neighbours": [
+    10,
+    13
+   ],
+   "thickness": 0.0048,
+   "kind": "node",
+   "joins": "curved rod"
+  },
+  {
+   "id": 60,
+   "type": "blob",
+   "share": 0.008,
+   "face_contact": 0.0,
+   "neighbours": [
+    28,
+    45
+   ],
+   "thickness": 0.006,
+   "kind": "mass"
+  },
+  {
+   "id": 61,
+   "type": "blob",
+   "share": 0.005,
+   "face_contact": 0.0,
+   "neighbours": [
+    31,
+    47
+   ],
+   "thickness": 0.0055,
+   "kind": "mass"
+  },
+  {
+   "id": 62,
+   "type": "blob",
+   "share": 0.008,
+   "face_contact": 0.0,
+   "neighbours": [
+    11,
+    42
+   ],
+   "thickness": 0.0069,
+   "kind": "mass"
+  },
+  {
+   "id": 63,
+   "type": "blob",
+   "share": 0.009,
+   "face_contact": 0.0,
+   "neighbours": [
+    10,
+    44
+   ],
+   "thickness": 0.0069,
+   "kind": "mass"
+  },
+  {
+   "id": 64,
+   "type": "blob",
+   "share": 0.004,
+   "face_contact": 0.37,
+   "neighbours": [
+    26,
+    28,
+    36
+   ],
+   "thickness": 0.004,
+   "kind": "node",
+   "joins": "curved rod"
+  },
+  {
+   "id": 65,
+   "type": "blob",
+   "share": 0.025,
+   "face_contact": 0.33,
+   "neighbours": [
+    4,
+    32,
+    44
+   ],
+   "thickness": 0.0063,
+   "kind": "node",
+   "joins": "curved rod"
+  },
+  {
+   "id": 66,
+   "type": "blob",
+   "share": 0.008,
+   "face_contact": 0.0,
+   "neighbours": [
+    4,
+    42
+   ],
+   "thickness": 0.0065,
+   "kind": "mass"
+  },
+  {
+   "id": 67,
+   "type": "blob",
+   "share": 0.006,
+   "face_contact": 0.0,
+   "neighbours": [
+    26,
+    46
+   ],
+   "thickness": 0.0059,
+   "kind": "mass"
+  },
+  {
+   "id": 68,
+   "type": "blob",
+   "share": 0.006,
+   "face_contact": 0.0,
+   "neighbours": [
+    21,
+    39
+   ],
+   "thickness": 0.0065,
+   "kind": "mass"
+  },
+  {
+   "id": 69,
+   "type": "blob",
+   "share": 0.003,
+   "face_contact": 0.48,
+   "neighbours": [
+    29,
+    30,
+    39
+   ],
+   "thickness": 0.0034,
+   "kind": "node",
+   "joins": "curved rod"
+  }
+ ],
+ "part_class": "8/9 (5 + 6)",
+ "reason": "curved rod 42 %, shell 39 %",
+ "seconds": 12.1
+}

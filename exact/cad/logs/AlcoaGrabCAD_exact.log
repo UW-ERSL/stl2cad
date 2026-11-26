@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "D:\Dropbox\Personal\suresh\Software\Github\ERSL-Private\stl2cad\exact\cad\AlcoaGrabCAD_exact.py", line 15, in <module>
+    from cadquery import Compound, Shape, Solid, Vector
+ModuleNotFoundError: No module named 'cadquery'

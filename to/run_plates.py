@@ -20,8 +20,9 @@ ap.add_argument('--detail', type=int, default=4, choices=range(1, 6),
                 help='1: fewest dimensions (larger model error) ... 5: smallest model error')
 ap.add_argument('--radii', type=int, default=None, help='global corner radii (0: radius per corner); default from --detail')
 ap.add_argument('--fit-only', action='store_true')
-ap.add_argument('--mode', default='auto', choices=['auto', 'plates', 'hubweb'],
-                help='plates, or hubs + web (auto: hubs + web when plates cover less than 70 %% of the TO)')
+ap.add_argument('--mode', default='auto', choices=['auto', 'plates', 'hubweb', 'heightfield'],
+                help='plates, or hubs + web (auto: hubs + web when plates cover less than 70 %% of the TO), or '
+                     'nested plates of a height field (heightfield.py)')
 ap.add_argument('--no-pattern', action='store_true', help='no rotational-symmetry pattern of cuts')
 a = ap.parse_args()
 import tofit
@@ -46,8 +47,12 @@ to = trimesh.load(a.to); to.apply_scale(scale)
 bodies = to.split(only_watertight=False)
 to = max(bodies, key=lambda b: len(b.faces))
 print('TO: %d bodies, kept the largest (%d facets, %.0f mm^3)' % (len(bodies), len(to.faces), to.volume))
-P = plates.detect(to, a.pitch, bounds=orig.bounds)
 HW = None
+if a.mode == 'heightfield':
+    import heightfield
+    P = heightfield.plates(to, orig.bounds, a.detail)
+else:
+    P = plates.detect(to, a.pitch, bounds=orig.bounds)
 if a.mode == 'hubweb' or (a.mode == 'auto' and sum(p['frac'] for p in P) < 0.7):
     import hubweb
     import swplates
@@ -74,7 +79,8 @@ for p in P:
     if p.get('kind') == 'Hub':
         p['sec'] = None
         continue
-    M = HW['shadow'] if p.get('kind') == 'Web' else plates.section(to, p['axis'], lvl)
+    M = HW['shadow'] if p.get('kind') == 'Web' else (
+        p['island'] if p.get('island') is not None else plates.section(to, p['axis'], p.get('sec_at', lvl)))
     sec = Section(plates.section(orig, p['axis'], lvl), M)
     p['cuts'] = sec.fit(); p['stats'] = sec.stats; p['sec'] = sec; p['refs'] = sec.refs
     s = sec.stats
@@ -105,7 +111,8 @@ if a.sw:
     t = time.time()
     import swplates
     info = swplates.write(a.name + '_solidworks.py', base, a.name + '_solidworks', P, orig.bounds, a.fillet,
-                          digits=D['digits'], detail=a.detail)
+                          digits=D['digits'], detail=a.detail,
+                          per_cut=not any(p.get('island') is not None for p in P))   # separate regions: additive
     print('SolidWorks script: %s_solidworks.py (%d plate(s), %d re-entrant edge(s) to fillet)' % (a.name, len(P), info['concave']))
     ok, log = swplates.verify(a.name + '_solidworks.py', info['union'])
     open(a.name + '_standin.log', 'w').write(log)

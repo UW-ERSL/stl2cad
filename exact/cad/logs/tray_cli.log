@@ -1,0 +1,28 @@
+loaded tray.stl: 4520 triangles, extents [355.6, 3.175, 355.6] mm, watertight=True
+only got 3355/4000 samples!
+symmetry (detected): detected: D4 about frame axis z + mirror z  (group order 16, max element error 0.0285 mm, threshold 1.0058)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.2515 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  loop 1: refitted at tol/4 (15 -> 17 edges)
+  loop 5: refitted at tol/4 (9 -> 11 edges)
+  snapping: 23 of 24 loop(s) snapped to clean geometry
+  2.5D along y: 2 levels, 1 extrusion(s) and 23 cut(s), 0 revolved feature(s), 48 profile edges, volume error 0.001 %, max distance mesh->model 0.0812 mm, model->mesh 0.0877 mm, valid=True (3.6s)
+mode: exact
+tolerance: 0.2515 mm
+symmetry imposed: none (detected: D4 about frame axis z + mirror z)
+solid valid: True, faces: 50
+deviation:
+  ref_to_model  mean 0.0003  median 0.0000  p95 0.0000  max 0.0853 mm
+  model_to_ref  mean 0.0003  median 0.0000  p95 0.0000  max 0.0879 mm
+  volume ref 347865.90  model 347875.10 mm^3  (+0.00 %)
+time: 11.8 s
+only got 512/800 samples!
+only got 515/800 samples!
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (7.7s)
+only got 512/800 samples!
+only got 513/800 samples!
+only got 512/800 samples!
+only got 513/800 samples!
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 94 dimension(s), 32 relation(s)) (18.9s)
+saved: out31/tray/tray_exact.step, out31/tray/tray_exact.stl, out31/tray/tray_exact.py, out31/tray/tray_solidworks.py, out31/tray/tray_exact_report.txt

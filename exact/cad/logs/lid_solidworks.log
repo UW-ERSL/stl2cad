@@ -1,0 +1,31 @@
+connected to SolidWorks; new part created; building 7 feature(s)
+units: unit system MMGS; length unit mm, set [True, True, True]
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=True: volume 27.612 mm^3, centre of mass (-47.000, 0.000, -0.312) mm
+Boss 1 z -0.625 to 0: volume 27.612 mm^3 (expected 27.612)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=True: volume 55.223 mm^3, centre of mass (0.000, 0.000, -0.312) mm
+Boss 2 z -0.625 to 0: volume 55.223 mm^3 (expected 55.223)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 8061.292 mm^3, centre of mass (0.000, -0.000, 1.239) mm
+Boss 3 z 0 to 2.5: volume 8061.292 mm^3 (expected 8061.292)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=True flip_start=False: volume 4461.237 mm^3, centre of mass (0.000, -0.000, 0.726) mm
+Cut 1 z 1.25 to 2.5: volume 4461.237 mm^3 (expected 4461.237)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 4488.848 mm^3, centre of mass (-0.289, -0.000, 0.731) mm
+Boss 4 z 1.25 to 1.875: volume 4488.848 mm^3 (expected 4488.848)
+  sketch (AddToDB): 1 closed region(s)
+  try reverse=False flip_start=False: volume 4516.460 mm^3, centre of mass (0.000, -0.000, 0.737) mm
+Boss 5 z 1.25 to 1.875: volume 4516.460 mm^3 (expected 4516.460)
+  sketch (AddToDB): 2 closed region(s)
+  try reverse=True flip_start=True: volume 4418.285 mm^3, centre of mass (0.000, -0.000, 0.739) mm
+Holes 1 (dia 5) z -0.625 to 1.875: volume 4418.285 mm^3 (expected 4418.285)
+part is in the STL's orientation
+linked dimensions: 4 in 1 global variable(s)
+rounded 18 dimension(s) to 3 significant digits; volume 4418.285 -> 4433.692 mm^3 (+0.35 %)
+independent dimensions: 34 (37 dimensions, 4 of them driven by 1 global variable(s))
+dimensions: 37 added
+relations: 57 added
+sketch status: fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined
+planned: fully defined, fully defined, fully defined, fully defined, fully defined, fully defined, fully defined

@@ -1,0 +1,19 @@
+loaded CrankArm.STL: 588 triangles, extents [157.48, 30.48, 25.4] mm, watertight=True
+symmetry (detected): detected: mirror y  (group order 2, max element error 0.0024 mm, threshold 0.3248)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0812 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 4 of 4 loop(s) snapped to clean geometry
+  2.5D along z: 3 levels, 2 extrusion(s) and 2 cut(s), 0 revolved feature(s), 7 profile edges, volume error 0.069 %, max distance mesh->model 0.0054 mm, model->mesh 0.0568 mm, valid=True (0.3s)
+mode: exact
+tolerance: 0.0812 mm
+symmetry imposed: none (detected: mirror y)
+solid valid: True, faces: 10
+deviation:
+  ref_to_model  mean 0.0035  median 0.0000  p95 0.0224  max 0.0574 mm
+  model_to_ref  mean 0.0036  median 0.0000  p95 0.0227  max 0.0576 mm
+  volume ref 57888.53  model 57907.22 mm^3  (+0.03 %)
+time: 8.0 s
+script: feature script, verified: volume 0.0000 %, max distance 0.0000 mm (3.4s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 12 dimension(s), 7 relation(s)) (9.8s)
+saved: out31/CrankArm/CrankArm_exact.step, out31/CrankArm/CrankArm_exact.stl, out31/CrankArm/CrankArm_exact.py, out31/CrankArm/CrankArm_solidworks.py, out31/CrankArm/CrankArm_exact_report.txt

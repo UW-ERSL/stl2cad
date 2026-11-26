@@ -1,0 +1,19 @@
+loaded SwingArm.STL: 396 triangles, extents [160.0, 68.094, 20.0] mm, watertight=True
+symmetry (detected): detected: mirror z  (group order 2, max element error 0.0546 mm, threshold 0.3501)
+auto mode: coplanar-area fraction 1.00 -> exact
+exact mode: detected symmetry is reported, not imposed (choose 'Impose' to enforce it)
+exact mode: tolerance 0.0875 mm, surfaces plane, cylinder, cone, sphere, torus, spline extrusions
+  snapping: 3 of 3 loop(s) snapped to clean geometry
+  2.5D along z: 2 levels, 1 extrusion(s) and 2 cut(s), 0 revolved feature(s), 14 profile edges, volume error 0.024 %, max distance mesh->model 0.0179 mm, model->mesh 0.0541 mm, valid=True (0.2s)
+mode: exact
+tolerance: 0.0875 mm
+symmetry imposed: none (detected: mirror z)
+solid valid: True, faces: 16
+deviation:
+  ref_to_model  mean 0.0037  median 0.0000  p95 0.0138  max 0.0528 mm
+  model_to_ref  mean 0.0037  median 0.0000  p95 0.0139  max 0.0531 mm
+  volume ref 69248.67  model 69238.54 mm^3  (-0.01 %)
+time: 11.1 s
+script: feature script, verified: volume 0.0001 %, max distance 0.0000 mm (3.7s)
+SolidWorks script: checked on the CadQuery API stand-in (API stand-in: volume 0.0000 %, max distance 0.0000 mm, 13 dimension(s), 20 relation(s)) (9.7s)
+saved: out31/SwingArm/SwingArm_exact.step, out31/SwingArm/SwingArm_exact.stl, out31/SwingArm/SwingArm_exact.py, out31/SwingArm/SwingArm_solidworks.py, out31/SwingArm/SwingArm_exact_report.txt
