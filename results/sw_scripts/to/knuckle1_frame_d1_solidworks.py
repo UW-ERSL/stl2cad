@@ -2961,18 +2961,34 @@ def bar3_step(sw, st, drift, made, skel):
 SW_FM_FILLET, SW_CONST_RADIUS = 1, 0     # swFeatureNameID_e.swFmFillet, swSimpleFilletType_e (sw_probe_bars, 2025)
 
 
-def junction_edges(sw, pairs=False):
-    """Edges between faces of two different Bar, Member or Hub features; with pairs, grouped by the pair of features."""
+FRAME_FEATURES = ("Bar ", "Hub ", "Member ")
+
+
+def planar(face):
+    try:
+        return bool(call0(call0(face, "GetSurface"), "IsPlane"))
+    except Exception:
+        return False
+
+
+def junction_edges(sw, only=None):
+    """{pair of feature names: [edges]} for edges between faces of two different Bar, Member or Hub features, both
+    faces curved (an edge on a member's end face is where its extension past the joint shows: short, and the
+    fillets there failed in knuckle1_frame_d1). only: the pairs wanted (fewer calls). One pass over the body."""
     groups = {}
     for body in (sw.model.GetBodies2(0, True) or []):
         for e in call0(body, "GetEdges") or []:
             try:
-                names = {call0(call0(f, "GetFeature"), "Name") for f in call0(e, "GetTwoAdjacentFaces2")}
+                fs = list(call0(e, "GetTwoAdjacentFaces2"))
+                names = tuple(sorted({call0(call0(f, "GetFeature"), "Name") for f in fs}))
             except Exception:
                 continue
-            if len(names) == 2 and all(nm.startswith(("Bar ", "Hub ", "Member ")) for nm in names):
-                groups.setdefault(tuple(sorted(names)), []).append(e)
-    return groups if pairs else [e for es in groups.values() for e in es]
+            if len(names) != 2 or not all(nm.startswith(FRAME_FEATURES) for nm in names):
+                continue
+            if (only is not None and names not in only) or any(planar(f) for f in fs):
+                continue
+            groups.setdefault(names, []).append(e)
+    return groups
 
 
 def fillet_edges(sw, edges, r):
@@ -2985,32 +3001,47 @@ def fillet_edges(sw, edges, r):
 
 
 def fillet_step(sw, drift, made):
-    """One fillet of radius R_FILLET on every edge where two bars, or a bar and a hub, meet (CreateDefinition: the
-    only fillet call that worked over late binding, sw_probe_bars). If SolidWorks refuses all edges at once, one
-    fillet per pair of features; a refused pair is reported. The volume it adds is carried to later checks."""
+    """Fillets where members (or bars) and hubs meet (CreateDefinition: the only fillet call that worked over late
+    binding, sw_probe_bars), on the edges between two curved faces. First one fillet of R_FILLET on all of them; if
+    SolidWorks refuses, one fillet per pair of features, R_FILLET and then R_FILLET / 2. The body's edges are read
+    again only after a fillet is made (a refused fillet changes nothing). The volume added is carried to later
+    checks."""
+    t0 = time.time()
     v0, c0 = sw.mass_rebuilt()
-    es = junction_edges(sw)
-    if not es:
+    groups = junction_edges(sw)
+    n_pairs = len(groups)
+    if not groups:
         print("junction fillet: no edges found"); return
-    f = fillet_edges(sw, es, R_FILLET)
-    done, skipped = len(es), []
+    count = {}
+    f = fillet_edges(sw, [e for g in groups.values() for e in g], R_FILLET)
+    todo = []
     if f is not None:
         f.Name = "Junction fillet"
+        count[R_FILLET] = n_pairs
     else:
-        done = 0
-        for k, (pair, _) in enumerate(sorted(junction_edges(sw, pairs=True).items())):
-            g = junction_edges(sw, pairs=True).get(pair)      # read again: edges change after each fillet
-            if not g:
-                continue
-            f = fillet_edges(sw, g, R_FILLET)
-            if f is None:
-                skipped.append(" / ".join(pair))
-            else:
-                f.Name = f"Junction fillet {k + 1}"; done += len(g)
+        todo, k = sorted(groups), 0
+        for r in (R_FILLET, 0.5 * R_FILLET):
+            left = []
+            for n, pair in enumerate(todo):
+                g = groups.get(pair)
+                if not g:
+                    continue
+                f = fillet_edges(sw, g, r)
+                if f is None:
+                    left.append(pair); continue
+                k += 1
+                f.Name = f"Junction fillet {k}"
+                count[r] = count.get(r, 0) + 1
+                groups = junction_edges(sw, only=set(left) | set(todo[n + 1:]))   # edges change after a fillet
+            todo = left
+            if todo:
+                groups = junction_edges(sw, only=set(todo))
     v1, c1 = sw.mass_rebuilt()
     carry(drift, v1, c1, v0, c0)
-    print(f"junction fillet r {R_FILLET:g} mm: {done} of {len(es)} edges, volume {v0:.3f} -> {v1:.3f} mm^3"
-          + (f"; not filleted: {'; '.join(skipped)}" if skipped else ""))
+    print(f"junction fillet: {n_pairs} pairs of features; "
+          + ", ".join(f"{n} filleted with r {r:g} mm" for r, n in count.items())
+          + f"; volume {v0:.3f} -> {v1:.3f} mm^3; {time.time() - t0:.0f} s"
+          + (f"; not filleted ({len(todo)}): {'; '.join(' / '.join(p) for p in todo)}" if todo else ""))
 
 
 PENDING = dict(n=0, tol=0.0)        # features since the last volume check, and their combined tolerance
@@ -3070,9 +3101,11 @@ def build_frame():
     planes = mirror_planes(sw, made) if JOINT_DIMS else {}
     zplane = z_levels(sw, planes, made) if JOINT_DIMS else {}
     skel = skeleton_sketch(sw, planes, made, zplane)
+    print(f"  time so far {time.time() - t_start:.0f} s")
     filleted = False
     for st in STEPS:
         if st["kind"] == "hole" and R_FILLET > 0 and not filleted:
+            print(f"  time so far {time.time() - t_start:.0f} s")
             fillet_step(sw, drift, made)
             filleted = True
         if st["kind"] == "bar":
@@ -3110,4 +3143,3 @@ if __name__ == "__main__":
     sw = build_frame()
     if len(sys.argv) > 1:
         sw.model.SaveAs3(sys.argv[1], 0, 0)
-
