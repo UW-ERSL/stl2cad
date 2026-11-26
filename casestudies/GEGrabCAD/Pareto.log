@@ -1,0 +1,160 @@
+Model name: GEGrabCAD 
+Project directory: D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/casestudies/GEGrabCAD/ 
+Pareto Version 2025.02 
+Pareto Build Date 6.21 
+GUI Build Date 1.23 
+CoreFunction: Attempting to create a voxel mesh; temp file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/casestudies/GEGrabCAD/temp.vxb  
+The minimum number of elements recommended is 10000   
+CoreFunctions: Meshing STL: N = 100000  
+Mesher: Background Grid (65,107,37) 
+Mesher: Grid: (65, 107, 37)  
+Mesher: Meshing part 0 
+Mesher: #Elements: 102452  
+Mesher: #Nodes: 114003  
+Meshing completed; time = 1.014 (secs) 
+--------------------------------------------- 
+Mesher: Mesh size = 6.56e-02, 6.57e-02, 6.65e-02  
+Mesher: STL Volume = 2.83e+01  
+Mesher: Mesh Volume = 2.93e+01  
+Mesher: PercentVolErr = 3.804  
+CoreFunction: Mesh read: 0.069 (secs)  
+nDOF = 342009; time taken = 1.244 (s) 
+--------------------------------------------- 
+CoreFunctions: Creating tessellation file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/casestudies/GEGrabCAD/tessellation.stl  
+Starting Static FEA 
+#part = 0, stress = 3.1003e+04 
+#CG Iterations = 115 
+Time taken = 1.518 (sec)  
+Max Displacement: 6.32e-03 
+Max Von Mises: 3.10e+04 
+Time taken = 1.520 (sec) 
+Pushing elasticity solution to tessellation ...  
+Ready to optimize topology on CPU ...  
+Initial Max Displacement: 6.320131e-03 
+  Allowed Displacement: 1.000000e-01 
+Initial Max Stress: 3.100301e+04 
+  Yield Stress: 1.310000e+05 
+Objective: Maximize Stiffness 
+----------------------------------------------------------- 
+Time for 1 FEA: 1.711 (secs) 
+Estimated # of FEAs: 40 
+Estimated time: 0 hr(s), 1 min(s), 26 sec(s)  
+------------TopOpt Constraints ---------- 
+TopOpt: Mode: 0 
+TopOpt: Symmetry index: 0 
+TopOpt: Through-cut: -1 
+TopOpt: AM Build: 0 
+TopOpt: Draw-direction: -1 
+TopOpt: Cyclic-symmetry: -1 
+TopOpt: XGridPattern: -1 
+TopOpt: YGridPattern: -1 
+TopOpt: ZGridPattern: -1 
+TopOpt: Max disp. allowed: 1.000000e-01 
+TopOpt: Stress safety factor: 1.00 
+TopOpt: Min Eigen-value: -1.00 
+TopOpt: Max Feature Size: -1.000e+00 
+TopOpt: Smoothening iterations: 1 
+----------------------------------------- 
+Current vol fraction: 1.000. No TopOpt error 
+Current vol fraction: 0.950. No TopOpt error 
+Current vol fraction: 0.900. No TopOpt error 
+Current vol fraction: 0.850. User terminated TopOpt  
+--------------------------------------------- 
+Final volume fraction: 0.85 
+Final Max Displacement: 6.358938e-03 
+Final Max Stress: 3.097840e+04 
+----------------------------------------------------------- 
+Actual # of FEAs: 13  
+Estimated time: 0 hr(s), 0 min(s), 30 sec(s) 
+ 
+-----------------------------------------------------------
+Final volume fraction = 0.87
+Number of FEAs: 13 
+Estimated time: 0 hr(s), 0 min(s), 30 sec(s)
+User terminated TopOpt 
+----------------------------------------------------------- 
+Saving STL to D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/casestudies/GEGrabCAD/GEGrabCAD_finalIsoBinary.stl  
+Pushing stress results to iso 
+----------------------------------------------------------- 
+CoreFunction: Attempting to create a voxel mesh; temp file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/casestudies/GEGrabCAD/temp.vxb  
+The minimum number of elements recommended is 10000   
+CoreFunctions: Meshing STL: N = 100000  
+Mesher: Background Grid (65,107,37) 
+Mesher: Grid: (65, 107, 37)  
+Mesher: Meshing part 0 
+Mesher: #Elements: 102452  
+Mesher: #Nodes: 114003  
+Meshing completed; time = 0.994 (secs) 
+--------------------------------------------- 
+Mesher: Mesh size = 6.56e-02, 6.57e-02, 6.65e-02  
+Mesher: STL Volume = 2.83e+01  
+Mesher: Mesh Volume = 2.93e+01  
+Mesher: PercentVolErr = 3.804  
+CoreFunction: Mesh read: 0.067 (secs)  
+nDOF = 342009; time taken = 1.195 (s) 
+--------------------------------------------- 
+CoreFunctions: Creating tessellation file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/casestudies/GEGrabCAD/tessellation.stl  
+Starting Static FEA 
+#part = 0, stress = 3.1003e+04 
+#CG Iterations = 115 
+Time taken = 1.987 (sec)  
+Max Displacement: 6.32e-03 
+Max Von Mises: 3.10e+04 
+Time taken = 1.989 (sec) 
+Pushing elasticity solution to tessellation ...  
+Ready to optimize topology on CPU ...  
+Initial Max Displacement: 6.320131e-03 
+  Allowed Displacement: 1.000000e-01 
+Initial Max Stress: 3.100301e+04 
+  Yield Stress: 1.310000e+05 
+Objective: Maximize Stiffness 
+----------------------------------------------------------- 
+Time for 1 FEA: 2.189 (secs) 
+Estimated # of FEAs: 40 
+Estimated time: 0 hr(s), 1 min(s), 49 sec(s)  
+------------TopOpt Constraints ---------- 
+TopOpt: Mode: 0 
+TopOpt: Symmetry index: 0 
+TopOpt: Through-cut: -1 
+TopOpt: AM Build: 0 
+TopOpt: Draw-direction: -1 
+TopOpt: Cyclic-symmetry: -1 
+TopOpt: XGridPattern: -1 
+TopOpt: YGridPattern: -1 
+TopOpt: ZGridPattern: -1 
+TopOpt: Max disp. allowed: 1.000000e-01 
+TopOpt: Stress safety factor: 1.00 
+TopOpt: Min Eigen-value: -1.00 
+TopOpt: Max Feature Size: -1.000e+00 
+TopOpt: Smoothening iterations: 1 
+----------------------------------------- 
+Current vol fraction: 1.000. No TopOpt error 
+Current vol fraction: 0.950. No TopOpt error 
+Current vol fraction: 0.900. No TopOpt error 
+Current vol fraction: 0.850. No TopOpt error 
+Current vol fraction: 0.800. No TopOpt error 
+Current vol fraction: 0.750. No TopOpt error 
+Current vol fraction: 0.701. No TopOpt error 
+Current vol fraction: 0.652. No TopOpt error 
+Current vol fraction: 0.603. No TopOpt error 
+Current vol fraction: 0.555. No TopOpt error 
+Current vol fraction: 0.508. No TopOpt error 
+Current vol fraction: 0.500. No TopOpt error 
+--------------------------------------------- 
+Final volume fraction: 0.50 
+Final Max Displacement: 7.266049e-03 
+Final Max Stress: 3.292390e+04 
+----------------------------------------------------------- 
+Actual # of FEAs: 43  
+Estimated time: 0 hr(s), 1 min(s), 48 sec(s) 
+ 
+-----------------------------------------------------------
+Final volume fraction = 0.50
+Number of FEAs: 43 
+Estimated time: 0 hr(s), 1 min(s), 48 sec(s)
+No TopOpt error
+----------------------------------------------------------- 
+Saving STL to D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/casestudies/GEGrabCAD/GEGrabCAD_finalIsoBinary.stl  
+Pushing stress results to iso 
+----------------------------------------------------------- 
+Saving project file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/casestudies/GEGrabCAD/GEGrabCADProject.prj  

@@ -1,0 +1,107 @@
+Model name: Knuckle 
+Project directory: D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/knuckleStudy/Case2/ 
+Pareto Version 2025.02 
+Pareto Build Date 6.21 
+GUI Build Date 1.23 
+CoreFunction: Attempting to create a voxel mesh; temp file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/knuckleStudy/Case2/temp.vxb  
+The minimum number of elements recommended is 10000   
+CoreFunctions: Meshing STL: N = 50000  
+Mesher: Background Grid (62,86,21) 
+Mesher: Grid: (62, 86, 21)  
+Mesher: Meshing part 0 
+Mesher: #Elements: 52596  
+Mesher: #Nodes: 60398  
+Meshing completed; time = 0.545 (secs) 
+--------------------------------------------- 
+Mesher: Mesh size = 1.45e-03, 1.45e-03, 1.43e-03  
+Mesher: STL Volume = 1.53e-04  
+Mesher: Mesh Volume = 1.59e-04  
+Mesher: PercentVolErr = 3.465  
+CoreFunction: Mesh read: 0.060 (secs)  
+nDOF = 181194; time taken = 0.681 (s) 
+--------------------------------------------- 
+CoreFunctions: Creating tessellation file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/knuckleStudy/Case2/tessellation.stl  
+Starting Static FEA 
+#part = 0, stress = 6.5047e+07 
+#CG Iterations = 81 
+Time taken = 0.534 (sec)  
+Max Displacement: 1.01e-05 
+Max Von Mises: 6.50e+07 
+Time taken = 0.535 (sec) 
+Pushing elasticity solution to tessellation ...  
+Ready to optimize topology on CPU ...  
+Initial Max Displacement: 1.005173e-05 
+  Allowed Displacement: 2.000000e-02 
+Initial Max Stress: 6.504742e+07 
+  Yield Stress: 5.000000e+08 
+Objective: Maximize Stiffness 
+----------------------------------------------------------- 
+Time for 1 FEA: 0.651 (secs) 
+Estimated # of FEAs: 56 
+Estimated time: 0 hr(s), 0 min(s), 46 sec(s)  
+------------TopOpt Constraints ---------- 
+TopOpt: Mode: 0 
+TopOpt: Symmetry index: 5 
+TopOpt: Through-cut: -1 
+TopOpt: AM Build: 0 
+TopOpt: Draw-direction: 3 
+TopOpt: Cyclic-symmetry: -1 
+TopOpt: XGridPattern: -1 
+TopOpt: YGridPattern: -1 
+TopOpt: ZGridPattern: -1 
+TopOpt: Max disp. allowed: 2.000000e-02 
+TopOpt: Stress safety factor: 1.00 
+TopOpt: Min Eigen-value: -1.00 
+TopOpt: Max Feature Size: -1.000e+00 
+TopOpt: Smoothening iterations: 1 
+----------------------------------------- 
+Current vol fraction: 1.000. No TopOpt error 
+Current vol fraction: 0.950. No TopOpt error 
+Current vol fraction: 0.900. No TopOpt error 
+Current vol fraction: 0.850. No TopOpt error 
+Current vol fraction: 0.800. No TopOpt error 
+Current vol fraction: 0.751. No TopOpt error 
+Current vol fraction: 0.702. No TopOpt error 
+Current vol fraction: 0.653. No TopOpt error 
+Current vol fraction: 0.605. No TopOpt error 
+Current vol fraction: 0.559. No TopOpt error 
+Current vol fraction: 0.513. No TopOpt error 
+Current vol fraction: 0.468. No TopOpt error 
+Current vol fraction: 0.426. No TopOpt error 
+Current vol fraction: 0.385. No TopOpt error 
+Current vol fraction: 0.347. No TopOpt error 
+Current vol fraction: 0.311. No TopOpt error 
+Current vol fraction: 0.300. No TopOpt error 
+--------------------------------------------- 
+Final volume fraction: 0.30 
+Final Max Displacement: 2.314670e-05 
+Final Max Stress: 8.394318e+07 
+----------------------------------------------------------- 
+Actual # of FEAs: 63  
+Estimated time: 0 hr(s), 0 min(s), 33 sec(s) 
+ 
+-----------------------------------------------------------
+Final volume fraction = 0.30
+Number of FEAs: 63 
+Estimated time: 0 hr(s), 0 min(s), 33 sec(s)
+No TopOpt error
+----------------------------------------------------------- 
+Saving STL to D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/knuckleStudy/Case2/Knuckle_finalIsoBinary.stl  
+Pushing stress results to iso 
+----------------------------------------------------------- 
+Saving project file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/knuckleStudy/Case2/KnuckleProject.prj  
+Loading project file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/knuckleStudy/Case3/KnuckleProject.prj  
+Model name: KnuckleProject 
+Project directory: D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/knuckleStudy/Case3/ 
+--------------------------------------------- 
+STLGeom: #triangles = 756 
+Eliminating duplicate nodes  
+STLGeom: Number of Tentative Parts = 1  
+STLGeom: In precomputePartProperties; stl_nParts 1 
+STLGeom: part 0, area = 2.96e-02, vol = 1.53e-04 
+STLGeom: #Sharp edges = 380  
+STLGeom: stl_modelScale = 2.000000e-01, aspect = 4.167 
+STLGeom: Geometry exhibits symmetry in X direction 
+STLGeom: Geometry exhibits symmetry in Z direction 
+STLGeom: #Groups = 12 
+STLGeom: Smallest radius = 2.000000e+00  

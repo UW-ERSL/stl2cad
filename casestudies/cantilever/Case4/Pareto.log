@@ -1,0 +1,97 @@
+Model name: Cantilever 
+Project directory: D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case4/ 
+Pareto Version 2025.02 
+Pareto Build Date 6.21 
+GUI Build Date 1.23 
+CoreFunction: Attempting to create a voxel mesh; temp file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case4/temp.vxb  
+The minimum number of elements recommended is 10000   
+CoreFunctions: Meshing STL: N = 50000  
+Mesher: Background Grid (97,32,16) 
+Mesher: Grid: (97, 32, 16)  
+Mesher: Meshing part 0 
+Mesher: #Elements: 49664  
+Mesher: #Nodes: 54978  
+Meshing completed; time = 0.432 (secs) 
+--------------------------------------------- 
+Mesher: Mesh size = 1.24e-03, 1.25e-03, 1.25e-03  
+Mesher: STL Volume = 9.60e-05  
+Mesher: Mesh Volume = 9.60e-05  
+Mesher: PercentVolErr = 0.000  
+CoreFunction: Mesh read: 0.058 (secs)  
+nDOF = 164934; time taken = 0.562 (s) 
+--------------------------------------------- 
+CoreFunctions: Creating tessellation file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case4/tessellation.stl  
+Starting Static FEA 
+#part = 0, stress = 3.7945e+06 
+#CG Iterations = 58 
+Time taken = 0.426 (sec)  
+Max Displacement: 3.01e-06 
+Max Von Mises: 3.79e+06 
+Time taken = 0.427 (sec) 
+Pushing elasticity solution to tessellation ...  
+Ready to optimize topology on CPU ...  
+Initial Max Displacement: 3.008695e-06 
+  Allowed Displacement: 1.920000e-02 
+Initial Max Stress: 3.794543e+06 
+  Yield Stress: 5.000000e+08 
+Objective: Maximize Stiffness 
+----------------------------------------------------------- 
+Time for 1 FEA: 0.458 (secs) 
+Estimated # of FEAs: 16 
+Estimated time: 0 hr(s), 0 min(s), 9 sec(s)  
+------------TopOpt Constraints ---------- 
+TopOpt: Mode: 0 
+TopOpt: Symmetry index: 4 
+TopOpt: Through-cut: -1 
+TopOpt: AM Build: 0 
+TopOpt: Draw-direction: 3 
+TopOpt: Cyclic-symmetry: -1 
+TopOpt: XGridPattern: -1 
+TopOpt: YGridPattern: -1 
+TopOpt: ZGridPattern: -1 
+TopOpt: Max disp. allowed: 1.920000e-02 
+TopOpt: Stress safety factor: 1.00 
+TopOpt: Min Eigen-value: -1.00 
+TopOpt: Max Feature Size: -1.000e+00 
+TopOpt: Smoothening iterations: 1 
+----------------------------------------- 
+Current vol fraction: 1.000. No TopOpt error 
+Current vol fraction: 0.950. No TopOpt error 
+Current vol fraction: 0.900. No TopOpt error 
+Current vol fraction: 0.851. No TopOpt error 
+Current vol fraction: 0.802. No TopOpt error 
+Current vol fraction: 0.800. No TopOpt error 
+--------------------------------------------- 
+Final volume fraction: 0.80 
+Final Max Displacement: 3.185901e-06 
+Final Max Stress: 3.800456e+06 
+----------------------------------------------------------- 
+Actual # of FEAs: 19  
+Estimated time: 0 hr(s), 0 min(s), 11 sec(s) 
+ 
+-----------------------------------------------------------
+Final volume fraction = 0.80
+Number of FEAs: 19 
+Estimated time: 0 hr(s), 0 min(s), 11 sec(s)
+No TopOpt error
+----------------------------------------------------------- 
+Saving STL to D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case4/Cantilever_finalIsoBinary.stl  
+Pushing stress results to iso 
+----------------------------------------------------------- 
+Saving project file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case4/CantileverProject.prj  
+Loading project file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case5/CantileverProject.prj  
+Model name: CantileverProject 
+Project directory: D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case5/ 
+--------------------------------------------- 
+STLGeom: #triangles = 16 
+Eliminating duplicate nodes  
+STLGeom: Number of Tentative Parts = 1  
+STLGeom: In precomputePartProperties; stl_nParts 1 
+STLGeom: part 0, area = 1.60e-02, vol = 9.60e-05 
+STLGeom: #Sharp edges = 14  
+STLGeom: stl_modelScale = 1.920000e-01, aspect = 6.000 
+STLGeom: Geometry exhibits symmetry in X direction 
+STLGeom: Geometry exhibits symmetry in Y direction 
+STLGeom: Geometry exhibits symmetry in Z direction 
+STLGeom: #Groups = 6 
+STLGeom: Smallest radius = 1.920000e+00  

@@ -1,0 +1,362 @@
+Model name: Cantilever 
+Project directory: D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/ 
+Pareto Version 2025.02 
+Pareto Build Date 6.21 
+GUI Build Date 1.23 
+CoreFunction: Attempting to create a voxel mesh; temp file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/temp.vxb  
+The minimum number of elements recommended is 10000   
+CoreFunctions: Meshing STL: N = 50000  
+Mesher: Background Grid (97,32,16) 
+Mesher: Grid: (97, 32, 16)  
+Mesher: Meshing part 0 
+Mesher: #Elements: 49664  
+Mesher: #Nodes: 54978  
+Meshing completed; time = 0.438 (secs) 
+--------------------------------------------- 
+Mesher: Mesh size = 1.24e-03, 1.25e-03, 1.25e-03  
+Mesher: STL Volume = 9.60e-05  
+Mesher: Mesh Volume = 9.60e-05  
+Mesher: PercentVolErr = 0.000  
+CoreFunction: Mesh read: 0.041 (secs)  
+nDOF = 164934; time taken = 0.556 (s) 
+--------------------------------------------- 
+CoreFunctions: Creating tessellation file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/tessellation.stl  
+Starting Static FEA 
+#part = 0, stress = 3.7945e+06 
+#CG Iterations = 58 
+Time taken = 0.395 (sec)  
+Max Displacement: 3.01e-06 
+Max Von Mises: 3.79e+06 
+Time taken = 0.396 (sec) 
+Pushing elasticity solution to tessellation ...  
+Ready to optimize topology on CPU ...  
+Initial Max Displacement: 3.008695e-06 
+  Allowed Displacement: 1.920000e-02 
+Initial Max Stress: 3.794543e+06 
+  Yield Stress: 5.000000e+08 
+Objective: Maximize Stiffness 
+----------------------------------------------------------- 
+Time for 1 FEA: 0.429 (secs) 
+Estimated # of FEAs: 16 
+Estimated time: 0 hr(s), 0 min(s), 9 sec(s)  
+------------TopOpt Constraints ---------- 
+TopOpt: Mode: 0 
+TopOpt: Symmetry index: 4 
+TopOpt: Through-cut: -1 
+TopOpt: AM Build: 0 
+TopOpt: Draw-direction: 3 
+TopOpt: Cyclic-symmetry: -1 
+TopOpt: XGridPattern: -1 
+TopOpt: YGridPattern: -1 
+TopOpt: ZGridPattern: -1 
+TopOpt: Max disp. allowed: 1.920000e-02 
+TopOpt: Stress safety factor: 6.00 
+TopOpt: Min Eigen-value: 1000.00 
+TopOpt: Max Feature Size: -1.000e+00 
+TopOpt: Smoothening iterations: 1 
+----------------------------------------- 
+Current vol fraction: 1.000. No TopOpt error 
+Current vol fraction: 0.950. No TopOpt error 
+Current vol fraction: 0.900. No TopOpt error 
+Current vol fraction: 0.851. No TopOpt error 
+Current vol fraction: 0.802. No TopOpt error 
+Current vol fraction: 0.800. No TopOpt error 
+--------------------------------------------- 
+Final volume fraction: 0.80 
+Final Max Displacement: 3.185901e-06 
+Final Max Stress: 3.800456e+06 
+----------------------------------------------------------- 
+Actual # of FEAs: 49  
+Estimated time: 0 hr(s), 0 min(s), 19 sec(s) 
+ 
+-----------------------------------------------------------
+Final volume fraction = 0.80
+Number of FEAs: 49 
+Estimated time: 0 hr(s), 0 min(s), 19 sec(s)
+No TopOpt error
+----------------------------------------------------------- 
+Saving STL to D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/Cantilever_finalIsoBinary.stl  
+Pushing stress results to iso 
+----------------------------------------------------------- 
+CoreFunction: Attempting to create a voxel mesh; temp file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/temp.vxb  
+The minimum number of elements recommended is 10000   
+CoreFunctions: Meshing STL: N = 50000  
+Mesher: Background Grid (97,32,16) 
+Mesher: Grid: (97, 32, 16)  
+Mesher: Meshing part 0 
+Mesher: #Elements: 49664  
+Mesher: #Nodes: 54978  
+Meshing completed; time = 0.439 (secs) 
+--------------------------------------------- 
+Mesher: Mesh size = 1.24e-03, 1.25e-03, 1.25e-03  
+Mesher: STL Volume = 9.60e-05  
+Mesher: Mesh Volume = 9.60e-05  
+Mesher: PercentVolErr = 0.000  
+CoreFunction: Mesh read: 0.048 (secs)  
+nDOF = 164934; time taken = 0.565 (s) 
+--------------------------------------------- 
+CoreFunctions: Creating tessellation file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/tessellation.stl  
+Starting Static FEA 
+#part = 0, stress = 3.7945e+06 
+#CG Iterations = 58 
+Time taken = 0.421 (sec)  
+Max Displacement: 3.01e-06 
+Max Von Mises: 3.79e+06 
+Time taken = 0.422 (sec) 
+Pushing elasticity solution to tessellation ...  
+Ready to optimize topology on CPU ...  
+Initial Max Displacement: 3.008695e-06 
+  Allowed Displacement: 1.920000e-02 
+Initial Max Stress: 3.794543e+06 
+  Yield Stress: 5.000000e+08 
+Objective: Maximize Stiffness 
+----------------------------------------------------------- 
+Time for 1 FEA: 0.453 (secs) 
+Estimated # of FEAs: 64 
+Estimated time: 0 hr(s), 0 min(s), 36 sec(s)  
+------------TopOpt Constraints ---------- 
+TopOpt: Mode: 0 
+TopOpt: Symmetry index: 4 
+TopOpt: Through-cut: 3 
+TopOpt: AM Build: 0 
+TopOpt: Draw-direction: -1 
+TopOpt: Cyclic-symmetry: -1 
+TopOpt: XGridPattern: -1 
+TopOpt: YGridPattern: -1 
+TopOpt: ZGridPattern: -1 
+TopOpt: Max disp. allowed: 1.920000e-02 
+TopOpt: Stress safety factor: 6.00 
+TopOpt: Min Eigen-value: 1000.00 
+TopOpt: Max Feature Size: -1.000e+00 
+TopOpt: Smoothening iterations: 1 
+----------------------------------------- 
+Current vol fraction: 1.000. No TopOpt error 
+Current vol fraction: 0.950. No TopOpt error 
+Current vol fraction: 0.901. No TopOpt error 
+Current vol fraction: 0.852. No TopOpt error 
+Current vol fraction: 0.803. No TopOpt error 
+Current vol fraction: 0.755. No TopOpt error 
+Current vol fraction: 0.708. No TopOpt error 
+Current vol fraction: 0.662. No TopOpt error 
+Current vol fraction: 0.616. No TopOpt error 
+Current vol fraction: 0.572. No TopOpt error 
+Current vol fraction: 0.529. No TopOpt error 
+Current vol fraction: 0.488. No TopOpt error 
+Current vol fraction: 0.448. No TopOpt error 
+Current vol fraction: 0.410. No TopOpt error 
+Current vol fraction: 0.373. No TopOpt error 
+Current vol fraction: 0.338. No TopOpt error 
+Current vol fraction: 0.306. No TopOpt error 
+Current vol fraction: 0.277. No TopOpt error 
+Current vol fraction: 0.259. Eigen value is approaching lower limit  (hz) 1000.0 
+Current vol fraction: 0.255. Eigen value is approaching lower limit  (hz) 1000.0 
+--------------------------------------------- 
+Final volume fraction: 0.26 
+Final Max Displacement: 9.216603e-06 
+Final Max Stress: 8.403111e+06 
+----------------------------------------------------------- 
+Actual # of FEAs: 221  
+Estimated time: 0 hr(s), 2 min(s), 7 sec(s) 
+ 
+-----------------------------------------------------------
+Final volume fraction = 0.26
+Number of FEAs: 221 
+Estimated time: 0 hr(s), 2 min(s), 7 sec(s)
+Eigen value is approaching lower limit  (hz) 1000.0
+----------------------------------------------------------- 
+Saving STL to D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/Cantilever_finalIsoBinary.stl  
+Pushing stress results to iso 
+----------------------------------------------------------- 
+CoreFunction: Attempting to create a voxel mesh; temp file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/temp.vxb  
+The minimum number of elements recommended is 10000   
+CoreFunctions: Meshing STL: N = 50000  
+Mesher: Background Grid (97,32,16) 
+Mesher: Grid: (97, 32, 16)  
+Mesher: Meshing part 0 
+Mesher: #Elements: 49664  
+Mesher: #Nodes: 54978  
+Meshing completed; time = 0.423 (secs) 
+--------------------------------------------- 
+Mesher: Mesh size = 1.24e-03, 1.25e-03, 1.25e-03  
+Mesher: STL Volume = 9.60e-05  
+Mesher: Mesh Volume = 9.60e-05  
+Mesher: PercentVolErr = 0.000  
+CoreFunction: Mesh read: 0.045 (secs)  
+nDOF = 164934; time taken = 0.548 (s) 
+--------------------------------------------- 
+CoreFunctions: Creating tessellation file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/tessellation.stl  
+Starting Static FEA 
+#part = 0, stress = 3.7945e+06 
+#CG Iterations = 58 
+Time taken = 0.487 (sec)  
+Max Displacement: 3.01e-06 
+Max Von Mises: 3.79e+06 
+Time taken = 0.489 (sec) 
+Pushing elasticity solution to tessellation ...  
+Ready to optimize topology on CPU ...  
+Initial Max Displacement: 3.008695e-06 
+  Allowed Displacement: 1.920000e-02 
+Initial Max Stress: 3.794543e+06 
+  Yield Stress: 5.000000e+08 
+Objective: Maximize Stiffness 
+----------------------------------------------------------- 
+Time for 1 FEA: 0.520 (secs) 
+Estimated # of FEAs: 64 
+Estimated time: 0 hr(s), 0 min(s), 42 sec(s)  
+------------TopOpt Constraints ---------- 
+TopOpt: Mode: 0 
+TopOpt: Symmetry index: 4 
+TopOpt: Through-cut: 3 
+TopOpt: AM Build: 0 
+TopOpt: Draw-direction: -1 
+TopOpt: Cyclic-symmetry: -1 
+TopOpt: XGridPattern: -1 
+TopOpt: YGridPattern: -1 
+TopOpt: ZGridPattern: -1 
+TopOpt: Max disp. allowed: 1.920000e-02 
+TopOpt: Stress safety factor: 1.00 
+TopOpt: Min Eigen-value: -1.00 
+TopOpt: Max Feature Size: -1.000e+00 
+TopOpt: Smoothening iterations: 1 
+----------------------------------------- 
+Current vol fraction: 1.000. No TopOpt error 
+Current vol fraction: 0.950. No TopOpt error 
+Current vol fraction: 0.901. No TopOpt error 
+Current vol fraction: 0.852. No TopOpt error 
+Current vol fraction: 0.803. No TopOpt error 
+Current vol fraction: 0.755. No TopOpt error 
+Current vol fraction: 0.708. No TopOpt error 
+Current vol fraction: 0.662. No TopOpt error 
+Current vol fraction: 0.616. No TopOpt error 
+Current vol fraction: 0.572. No TopOpt error 
+Current vol fraction: 0.529. No TopOpt error 
+Current vol fraction: 0.488. No TopOpt error 
+Current vol fraction: 0.448. No TopOpt error 
+Current vol fraction: 0.410. No TopOpt error 
+Current vol fraction: 0.373. No TopOpt error 
+Current vol fraction: 0.338. No TopOpt error 
+Current vol fraction: 0.306. No TopOpt error 
+Current vol fraction: 0.277. No TopOpt error 
+Current vol fraction: 0.248. No TopOpt error 
+Current vol fraction: 0.248. Could not solve FEA ... possible topology separation; try increasing mesh quality 
+--------------------------------------------- 
+Final volume fraction: 0.25 
+Final Max Displacement: 7.587566e-05 
+Final Max Stress: 2.859282e+07 
+----------------------------------------------------------- 
+Actual # of FEAs: 77  
+Estimated time: 0 hr(s), 0 min(s), 56 sec(s) 
+ 
+-----------------------------------------------------------
+Final volume fraction = 0.25
+Number of FEAs: 77 
+Estimated time: 0 hr(s), 0 min(s), 56 sec(s)
+Could not solve FEA ... possible topology separation; try increasing mesh quality
+----------------------------------------------------------- 
+Saving STL to D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/Cantilever_finalIsoBinary.stl  
+Pushing stress results to iso 
+----------------------------------------------------------- 
+CoreFunction: Attempting to create a voxel mesh; temp file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/temp.vxb  
+The minimum number of elements recommended is 10000   
+CoreFunctions: Meshing STL: N = 50000  
+Mesher: Background Grid (97,32,16) 
+Mesher: Grid: (97, 32, 16)  
+Mesher: Meshing part 0 
+Mesher: #Elements: 49664  
+Mesher: #Nodes: 54978  
+Meshing completed; time = 0.435 (secs) 
+--------------------------------------------- 
+Mesher: Mesh size = 1.24e-03, 1.25e-03, 1.25e-03  
+Mesher: STL Volume = 9.60e-05  
+Mesher: Mesh Volume = 9.60e-05  
+Mesher: PercentVolErr = 0.000  
+CoreFunction: Mesh read: 0.048 (secs)  
+nDOF = 164934; time taken = 0.560 (s) 
+--------------------------------------------- 
+CoreFunctions: Creating tessellation file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/tessellation.stl  
+Starting Static FEA 
+#part = 0, stress = 3.7945e+06 
+#CG Iterations = 58 
+Time taken = 0.402 (sec)  
+Max Displacement: 3.01e-06 
+Max Von Mises: 3.79e+06 
+Time taken = 0.403 (sec) 
+Pushing elasticity solution to tessellation ...  
+Ready to optimize topology on CPU ...  
+Initial Max Displacement: 3.008695e-06 
+  Allowed Displacement: 1.920000e-02 
+Initial Max Stress: 3.794543e+06 
+  Yield Stress: 5.000000e+08 
+Objective: Maximize Stiffness 
+----------------------------------------------------------- 
+Time for 1 FEA: 0.434 (secs) 
+Estimated # of FEAs: 56 
+Estimated time: 0 hr(s), 0 min(s), 30 sec(s)  
+------------TopOpt Constraints ---------- 
+TopOpt: Mode: 0 
+TopOpt: Symmetry index: 4 
+TopOpt: Through-cut: 3 
+TopOpt: AM Build: 0 
+TopOpt: Draw-direction: -1 
+TopOpt: Cyclic-symmetry: -1 
+TopOpt: XGridPattern: -1 
+TopOpt: YGridPattern: -1 
+TopOpt: ZGridPattern: -1 
+TopOpt: Max disp. allowed: 1.920000e-02 
+TopOpt: Stress safety factor: 1.00 
+TopOpt: Min Eigen-value: -1.00 
+TopOpt: Max Feature Size: -1.000e+00 
+TopOpt: Smoothening iterations: 1 
+----------------------------------------- 
+Current vol fraction: 1.000. No TopOpt error 
+Current vol fraction: 0.950. No TopOpt error 
+Current vol fraction: 0.901. No TopOpt error 
+Current vol fraction: 0.852. No TopOpt error 
+Current vol fraction: 0.803. No TopOpt error 
+Current vol fraction: 0.755. No TopOpt error 
+Current vol fraction: 0.708. No TopOpt error 
+Current vol fraction: 0.662. No TopOpt error 
+Current vol fraction: 0.616. No TopOpt error 
+Current vol fraction: 0.572. No TopOpt error 
+Current vol fraction: 0.529. No TopOpt error 
+Current vol fraction: 0.488. No TopOpt error 
+Current vol fraction: 0.448. No TopOpt error 
+Current vol fraction: 0.410. No TopOpt error 
+Current vol fraction: 0.373. No TopOpt error 
+Current vol fraction: 0.338. No TopOpt error 
+Current vol fraction: 0.306. No TopOpt error 
+Current vol fraction: 0.300. No TopOpt error 
+--------------------------------------------- 
+Final volume fraction: 0.30 
+Final Max Displacement: 7.700884e-06 
+Final Max Stress: 6.548763e+06 
+----------------------------------------------------------- 
+Actual # of FEAs: 67  
+Estimated time: 0 hr(s), 0 min(s), 49 sec(s) 
+ 
+-----------------------------------------------------------
+Final volume fraction = 0.30
+Number of FEAs: 67 
+Estimated time: 0 hr(s), 0 min(s), 49 sec(s)
+No TopOpt error
+----------------------------------------------------------- 
+Saving STL to D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/Cantilever_finalIsoBinary.stl  
+Pushing stress results to iso 
+----------------------------------------------------------- 
+Saving project file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case3/CantileverProject.prj  
+Loading project file D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case1/CantileverProject.prj  
+Model name: CantileverProject 
+Project directory: D:/Dropbox/Personal/suresh/Software/Github/ERSL-Private/stl2cad/cantileverStudy/Case1/ 
+--------------------------------------------- 
+STLGeom: #triangles = 16 
+Eliminating duplicate nodes  
+STLGeom: Number of Tentative Parts = 1  
+STLGeom: In precomputePartProperties; stl_nParts 1 
+STLGeom: part 0, area = 1.60e-02, vol = 9.60e-05 
+STLGeom: #Sharp edges = 14  
+STLGeom: stl_modelScale = 1.920000e-01, aspect = 6.000 
+STLGeom: Geometry exhibits symmetry in X direction 
+STLGeom: Geometry exhibits symmetry in Y direction 
+STLGeom: Geometry exhibits symmetry in Z direction 
+STLGeom: #Groups = 6 
+STLGeom: Smallest radius = 1.920000e+00  
