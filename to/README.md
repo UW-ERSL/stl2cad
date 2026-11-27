@@ -99,6 +99,44 @@ handled. The stand-in check of the bar model runs with a volume check after ever
 fails on some bars there; the fillet is not checked by the stand-in.
 
 
+## Planar trusses on both faces (`truss2d.py`, `swtruss.py`)
+
+For a mirror-symmetric TO that is a planar truss on each face of the domain joined by full-depth webs (cantilever
+Case 7, class 8/9: rods + plate). `truss2d.fit` finds the truss; `swtruss.py` builds member-driven models from it.
+
+Truss (`truss2d.fit`): mirror axis and web/truss break b (two-piece fit of A(h)); projection of one face's truss,
+2D skeleton graph (spurs ending on the outline kept: supports), straight members, joints merged in clusters;
+member lines fitted to their skeleton pixels, joints at the least-squares intersection of their lines; widths in
+classes by detail level; chords (members along which the TO reaches the outline) flush with the outline, free
+chord ends run on as far as the TO, ends near the outline run on to it; webs from the web core as flush strips.
+
+Models (`swtruss.py`): parameters = joints, width classes, one corner radius R, bar depth t (the face's truss volume
+over the section area). Members are bars between their joints, chords strips flush with the outline; joints are
+mitred (a chord end ends where its outer edge meets the outer edge of the member carrying on past it); concave
+corners rounded with R. The CadQuery script holds the parameters and the geometry code: edit a joint or a width and
+run it again. SolidWorks: one sketch "Truss" (construction centerlines between the joints, each joint dimensioned
+from the origin, member edges parallel to their centerline at "w"/2, chord edges at "w" from the outline, equal
+tangent arcs with radius "R"), extruded "t" on both faces (the second face from the same, shared sketch: one set
+of parameters), webs on a plane at z = "t"; global variables t, R, w1 ... in the Equation Manager.
+
+    python swtruss.py ../casestudies/cantilever/Case7/Cantilever.STL ../casestudies/cantilever/Case7/Cantilever_finalIsoBinary.stl cantilever7_d4 --units m --detail 4
+
+Cantilever 7 (stand-in: every feature agrees at every level; 54 relations, 27 dimensions):
+
+| detail | joints / members | widths (mm) | t (mm) | volume vs TO | independent parameters |
+|---|---|---|---|---|---|
+| 1 | 7 / 7 | 4.14 | 3.30 | +0.6 % | 17 |
+| 2 | 7 / 7 | 3.30, 4.76 | 3.32 | +0.5 % | 18 |
+| 3 | 9 / 9 | 3.57, 5.22 | 3.22 | +0.8 % | 18 |
+| 4 | 9 / 9 | 3.23, 4.25, 5.42 | 3.23 | +0.8 % | 19 |
+| 5 | 10 / 10 | 6 widths | 3.26 | +0.7 % | 22 |
+
+Voxel overlap at detail 4: 74 % of the TO in the model, 77 % of the model in the TO (a round TO member about 5 mm
+across becomes a flat bar of equal area). Not yet run in SolidWorks: the shared sketch for the second face, the
+line-to-line distance dimensions and the equations are the calls to watch (the script falls back to a copy of the
+sketch for the second face). Limits: the truss must be planar, on the faces, and normal to z (Front Plane); no
+fillet where the webs meet the truss faces.
+
 ## Pattern detection and segmentation (`analyze.py`)
 
 Reads only the two STL files of a case folder (design domain + `*_finalIsoBinary.stl`) and writes

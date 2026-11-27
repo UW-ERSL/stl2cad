@@ -1577,6 +1577,14 @@ class Model:
         if len(s) == 1 and s[0][0] == "circle":
             self.dims.append(("diameter", 2 * s[0][1].edge[2] / 1e-3))
             return self._ddim()
+        if len(s) == 2 and all(k == "line" for k, _ in s):    # two parallel lines: their distance
+            (a, b), (c, d) = ((np.array(g.edge[1], float), np.array(g.edge[2], float)) for _, g in s)
+            u = (b - a) / np.linalg.norm(b - a)
+            w = (d - c) / np.linalg.norm(d - c)
+            if abs(float(u[0] * w[1] - u[1] * w[0])) > 1e-6:
+                return None                                   # (an angle in SolidWorks; not modelled)
+            self.dims.append(("distance", abs(float(u[0] * (c - a)[1] - u[1] * (c - a)[0])) / 1e-3))
+            return self._ddim()
         if len(s) == 1 and s[0][0] == "line":
             e = s[0][1].edge
             self.dims.append(("length", float(np.linalg.norm(np.array(e[2]) - np.array(e[1]))) / 1e-3))
@@ -1622,8 +1630,15 @@ class Model:
             assert sorted(k for k, _ in s) == need, (rel, s)
             self.rels.append(rel)
             return
-        if rel == "sgPARALLEL":
+        if rel in ("sgPARALLEL", "sgCOLINEAR", "sgPERPENDICULAR"):
             assert sorted(k for k, _ in s) == ["line", "line"], (rel, s)
+            if rel == "sgCOLINEAR":                  # as SolidWorks: the two lines must lie on one line
+                seg = s[0][1]
+                (a, b), (c, d) = (np.array(seg.edge[1], float), np.array(seg.edge[2], float)), \
+                    (np.array(s[1][1].edge[1], float), np.array(s[1][1].edge[2], float))
+                u = (b - a) / np.linalg.norm(b - a)
+                off = lambda p: abs(float(u[0] * (p - a)[1] - u[1] * (p - a)[0]))
+                assert off(c) < 1e-9 and off(d) < 1e-9, ("lines not collinear", off(c), off(d))
             self.rels.append(rel)
             return
         if rel == "sgCONCENTRIC":                    # a circle and an arc sharing their centre

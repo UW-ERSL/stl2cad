@@ -20,6 +20,7 @@ such parts are built additively in SolidWorks (one Extruded Boss of each plate's
 since the cuts of one region's plate would remove the other regions of the same layer.
 """
 import numpy as np
+import trimesh
 import plates as _plates
 
 N_LEVELS = {1: 2, 2: 3, 3: 3, 4: 4, 5: 5}   # plates per detail level
@@ -99,3 +100,19 @@ def plates(to, bounds, detail, axis=None, log=print):
             P.append(dict(axis=a, lo=mid - b, hi=mid + b, kind='Plate', frac=0.0, sec_at=mid + r, order=n,
                           island=g if len(parts) > 1 else None))
     return P
+
+
+def mirror_axis(to, bounds, pitch=1.0):
+    """The axis whose mid-plane (of the original's box) mirrors the TO best (voxel overlap with its image)."""
+    g = to.voxelized(pitch).fill()
+    pts = trimesh.transformations.transform_points(np.argwhere(g.matrix), g.transform)
+    best = None
+    for a in range(3):
+        mid = 0.5 * (bounds[0][a] + bounds[1][a])
+        q = pts.copy(); q[:, a] = 2 * mid - q[:, a]
+        k0 = np.round((pts - pts.min(0)) / pitch).astype(int)
+        k1 = np.round((q - pts.min(0)) / pitch).astype(int)
+        S = set(map(tuple, k0)); s = sum(tuple(k) in S for k in k1) / len(k1)
+        if best is None or s > best[1]:
+            best = (a, s)
+    return best[0]
