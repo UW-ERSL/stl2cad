@@ -1,0 +1,146 @@
+constants: {'swFmSweep': 17, 'swFmFillet': 1, 'swConstRadiusFillet': 0, 'swEndCondMidPlane': 6}
+== C. rib bottom fillet, edges picked by points; expected r 1.5 (36027.007, (3.692711, -0.0, -73.288976)) r 1.0 (36051.643, (3.688986, -0.0, -73.298548))
+  path, 5 segments: 5 of 5 entities; points 0.00e+00 mm off the sketch plane; feature Sketch2
+  plane at z = -46.0 (flag 256): Plane2
+  profile, 16 segments: 16 of 16 entities; points 0.00e+00 mm off the sketch plane; feature Sketch5
+  rib, 7 segments: 7 of 7 entities; points 0.00e+00 mm off the sketch plane; feature Sketch6
+  cradle + rib: volume 36071.788 (expected 36071.784, +0.000 %), centre (3.6858, -0.0, -73.3064), 0.0000 mm from expected -> OK
+  both sides: 6 of 6 edges picked; fillet r 1.5: feature
+  both sides, r 1.5: volume 36026.936 (expected 36027.007, -0.000 %), centre (3.6927, -0.0, -73.289), 0.0000 mm from expected -> OK
+  path, 5 segments: 5 of 5 entities; points 0.00e+00 mm off the sketch plane; feature Sketch2
+  plane at z = -46.0 (flag 256): Plane2
+  profile, 16 segments: 16 of 16 entities; points 0.00e+00 mm off the sketch plane; feature Sketch5
+  rib, 7 segments: 7 of 7 entities; points 0.00e+00 mm off the sketch plane; feature Sketch6
+  cradle + rib: volume 36071.788 (expected 36071.784, +0.000 %), centre (3.6858, -0.0, -73.3064), 0.0000 mm from expected -> OK
+  one side at a time: 3 of 3 edges picked; fillet r 1.5: feature
+  one side at a time: 3 of 3 edges picked; fillet r 1.5: feature
+  one side at a time, r 1.5: volume 36026.936 (expected 36027.007, -0.000 %), centre (3.6927, -0.0, -73.289), 0.0000 mm from expected -> OK
+  path, 5 segments: 5 of 5 entities; points 0.00e+00 mm off the sketch plane; feature Sketch2
+  plane at z = -46.0 (flag 256): Plane2
+  profile, 16 segments: 16 of 16 entities; points 0.00e+00 mm off the sketch plane; feature Sketch5
+  rib, 7 segments: 7 of 7 entities; points 0.00e+00 mm off the sketch plane; feature Sketch6
+  cradle + rib: volume 36071.788 (expected 36071.784, +0.000 %), centre (3.6858, -0.0, -73.3064), 0.0000 mm from expected -> OK
+  both sides: 6 of 6 edges picked; fillet r 1.0: feature
+  both sides, r 1.0: volume 36051.606 (expected 36051.643, -0.000 %), centre (3.689, -0.0, -73.2985), 0.0000 mm from expected -> OK
+  path, 5 segments: 5 of 5 entities; points 0.00e+00 mm off the sketch plane; feature Sketch2
+  plane at z = -46.0 (flag 256): Plane2
+  profile, 16 segments: 16 of 16 entities; points 0.00e+00 mm off the sketch plane; feature Sketch5
+  rib, 7 segments: 7 of 7 entities; points 0.00e+00 mm off the sketch plane; feature Sketch6
+  cradle + rib: volume 36071.788 (expected 36071.784, +0.000 %), centre (3.6858, -0.0, -73.3064), 0.0000 mm from expected -> OK
+  one side at a time: 3 of 3 edges picked; fillet r 1.0: feature
+  one side at a time: 3 of 3 edges picked; fillet r 1.0: feature
+  one side at a time, r 1.0: volume 36051.606 (expected 36051.643, -0.000 %), centre (3.689, -0.0, -73.2985), 0.0000 mm from expected -> OK
+== E. each trunk loft alone, guides at all corners (else one, else none)
+  plane at z = -22.0 (flag 256): Plane2
+  section z = -22.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -28.0 (flag 256): Plane4
+  section z = -28.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 1 (all guides; selected True): None
+  plane at z = -22.0 (flag 256): Plane2
+  section z = -22.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -28.0 (flag 256): Plane4
+  section z = -28.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 1 (one guide; selected True): None
+  plane at z = -22.0 (flag 256): Plane2
+  section z = -22.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -28.0 (flag 256): Plane4
+  section z = -28.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 1 (no tangency; selected True): feature Loft1
+    volume 1944.690 (expected 2024.578, -3.946 %), centre (23.2279, 9.0698, -25.2808) (0.2845 mm off) -> DIFFERS
+  plane at z = -28.0 (flag 256): Plane2
+  section z = -28.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -34.0 (flag 256): Plane4
+  section z = -34.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 2 (all guides; selected True): feature Loft1
+    volume 2218.732 (expected 2216.215, +0.114 %), centre (24.5279, 3.6667, -30.9936) (0.0161 mm off) -> DIFFERS
+  plane at z = -28.0 (flag 256): Plane2
+  section z = -28.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -34.0 (flag 256): Plane4
+  section z = -34.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 2 (one guide; selected True): feature Loft1
+    volume 2216.848 (expected 2216.215, +0.029 %), centre (24.5293, 3.6769, -30.9935) (0.0058 mm off) -> OK
+  plane at z = -34.0 (flag 256): Plane2
+  section z = -34.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -40.0 (flag 256): Plane4
+  section z = -40.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 3 (all guides; selected True): feature Loft1
+    volume 2091.006 (expected 2083.879, +0.342 %), centre (25.8156, 2.0224, -36.9408) (0.0050 mm off) -> DIFFERS
+  plane at z = -34.0 (flag 256): Plane2
+  section z = -34.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -40.0 (flag 256): Plane4
+  section z = -40.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 3 (one guide; selected True): feature Loft1
+    volume 2085.928 (expected 2083.879, +0.098 %), centre (25.8136, 2.0262, -36.9414) (0.0011 mm off) -> OK
+  plane at z = -40.0 (flag 256): Plane2
+  section z = -40.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -46.0 (flag 256): Plane4
+  section z = -46.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 4 (all guides; selected True): feature Loft1
+    volume 1965.192 (expected 1964.609, +0.030 %), centre (26.5007, 1.9328, -42.9986) (0.0058 mm off) -> OK
+  plane at z = -46.0 (flag 256): Plane2
+  section z = -46.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -52.0 (flag 256): Plane4
+  section z = -52.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 5 (all guides; selected True): feature Loft1
+    volume 2473.956 (expected 2452.753, +0.864 %), centre (28.9418, 1.1219, -49.1814) (0.0905 mm off) -> DIFFERS
+  plane at z = -46.0 (flag 256): Plane2
+  section z = -46.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -52.0 (flag 256): Plane4
+  section z = -52.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 5 (one guide; selected True): feature Loft1
+    volume 2451.666 (expected 2452.753, -0.044 %), centre (28.8873, 1.2012, -49.1799) (0.0058 mm off) -> OK
+  plane at z = -52.0 (flag 256): Plane2
+  section z = -52.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -58.0 (flag 256): Plane4
+  section z = -58.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 6 (all guides; selected True): feature Loft1
+    volume 2794.988 (expected 2796.457, -0.053 %), centre (30.9714, 0.5184, -55.0456) (0.0203 mm off) -> OK
+  plane at z = -58.0 (flag 256): Plane2
+  section z = -58.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -64.0 (flag 256): Plane4
+  section z = -64.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 7 (all guides; selected True): feature Loft1
+    volume 3665.757 (expected 3663.369, +0.065 %), centre (31.2096, -1.4111, -61.1458) (0.0210 mm off) -> OK
+  plane at z = -64.0 (flag 256): Plane2
+  section z = -64.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -70.0 (flag 256): Plane4
+  section z = -70.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 8 (all guides; selected True): feature Loft1
+    volume 4825.056 (expected 4808.818, +0.338 %), centre (31.2432, -2.2632, -67.0969) (0.0594 mm off) -> DIFFERS
+  plane at z = -64.0 (flag 256): Plane2
+  section z = -64.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -70.0 (flag 256): Plane4
+  section z = -70.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 8 (one guide; selected True): feature Loft1
+    volume 4808.783 (expected 4808.818, -0.001 %), centre (31.262, -2.3217, -67.0987) (0.0036 mm off) -> OK
+  plane at z = -70.0 (flag 256): Plane2
+  section z = -70.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -76.0 (flag 256): Plane4
+  section z = -76.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 9 (all guides; selected True): feature Loft1
+    volume 5271.617 (expected 5236.979, +0.661 %), centre (28.51, -2.1543, -73.0246) (0.0923 mm off) -> DIFFERS
+  plane at z = -70.0 (flag 256): Plane2
+  section z = -70.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -76.0 (flag 256): Plane4
+  section z = -76.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 9 (one guide; selected True): feature Loft1
+    volume 5235.860 (expected 5236.979, -0.021 %), centre (28.5948, -2.1934, -73.0251) (0.0012 mm off) -> OK
+  plane at z = -76.0 (flag 256): Plane2
+  section z = -76.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -81.0 (flag 256): Plane4
+  section z = -81.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 10 (all guides; selected True): feature Loft1
+    volume 3565.234 (expected 3574.855, -0.269 %), centre (26.3638, -1.5313, -78.3064) (0.0277 mm off) -> DIFFERS
+  plane at z = -76.0 (flag 256): Plane2
+  section z = -76.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -81.0 (flag 256): Plane4
+  section z = -81.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 10 (one guide; selected True): feature Loft1
+    volume 3575.634 (expected 3574.855, +0.022 %), centre (26.3389, -1.5172, -78.3079) (0.0028 mm off) -> OK
+  plane at z = -81.0 (flag 256): Plane2
+  section z = -81.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -85.0 (flag 256): Plane4
+  section z = -85.0, 24 segments: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft 11 (all guides; selected True): feature Loft1
+    volume 1369.414 (expected 1368.961, +0.033 %), centre (22.877, -0.6717, -82.5722) (0.0078 mm off) -> OK
+done

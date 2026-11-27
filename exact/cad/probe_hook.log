@@ -1,0 +1,66 @@
+constants: {'swFmSweep': 17, 'swFmFillet': 1, 'swConstRadiusFillet': 0, 'swEndCondMidPlane': 6}
+== A. cradle sweep; expected (32298.668, (4.05907, -0.0, -71.738156))
+  path (Top Plane): 5 of 5 entities; points 0.00e+00 mm off the sketch plane; feature Sketch2
+  plane at z = -46.0 (flag 256): Plane2
+  profile: 16 of 16 entities; points 0.00e+00 mm off the sketch plane; feature Sketch5
+  CreateDefinition(swFmSweep), profile Mark 1, path Mark 4 (selected True): feature Sweep1
+  sweep: volume 32298.673 (expected 32298.668, +0.000 %), centre (4.0591, -0.0, -71.7382), 0.0001 mm from expected -> OK
+== B. rib, Extruded Boss mid-plane; expected (36071.784, (3.685768, -0.0, -73.306397))
+  rib outline (Top Plane): 7 of 7 entities; points 0.00e+00 mm off the sketch plane; feature Sketch6
+  FeatureExtrusion3 mid-plane 26.0 mm (reverse False): feature Boss-Extrude1
+  cradle + rib: volume 36071.788 (expected 36071.784, +0.000 %), centre (3.6858, -0.0, -73.3064), 0.0000 mm from expected -> OK
+== C. rib bottom fillet; expected (36027.007, (3.692711, -0.0, -73.288976))
+  edges on the rib's side faces: 14; bottom edges chosen: 6 (expected 6)
+  fillet r 1.5: None
+== D. end fillets; expected (35864.113, (3.709483, -0.0, -73.376904))
+  edges of the two end faces: 32
+  fillet r 1.9: feature Fillet2
+  end fillets: volume 35909.033 (expected 35864.113, +0.125 %), centre (3.7025, 0.0, -73.3942), 0.0187 mm from expected -> DIFFERS
+== E. trunk lofts; one pair expected (2024.578, (23.437659, 9.261753, -25.269696)) ; all 11 expected (32191.473, (28.113479, 0.160886, -58.336453))
+  plane at z = -22.0 (flag 256): Plane2
+  section z = -22.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -28.0 (flag 256): Plane4
+  section z = -28.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft, sketches selected plain (True): None
+  plane at z = -22.0 (flag 256): Plane2
+  section z = -22.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -28.0 (flag 256): Plane4
+  section z = -28.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  loft, sketches selected point at corner 0 (True): None
+  plane at z = -22.0 (flag 256): Plane2
+  section z = -22.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch4
+  plane at z = -28.0 (flag 256): Plane4
+  section z = -28.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch7
+  plane at z = -34.0 (flag 256): Plane6
+  section z = -34.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch10
+  plane at z = -40.0 (flag 256): Plane8
+  section z = -40.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch13
+  plane at z = -46.0 (flag 256): Plane10
+  section z = -46.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch16
+  plane at z = -52.0 (flag 256): Plane12
+  section z = -52.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch19
+  plane at z = -58.0 (flag 256): Plane14
+  section z = -58.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch22
+  plane at z = -64.0 (flag 256): Plane16
+  section z = -64.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch25
+  plane at z = -70.0 (flag 256): Plane18
+  section z = -70.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch28
+  plane at z = -76.0 (flag 256): Plane20
+  section z = -76.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch31
+  plane at z = -81.0 (flag 256): Plane22
+  section z = -81.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch34
+  plane at z = -85.0 (flag 256): Plane24
+  section z = -85.0: 24 of 24 entities; points 0.00e+00 mm off the sketch plane; feature Sketch37
+  loft 1: None
+  loft 2: None
+  loft 3: None
+  loft 5: None
+  loft 6: None
+  loft 7: None
+  loft 8: None
+  loft 9: None
+  loft 10: None
+  loft 11: None
+  1 of 11 lofts made; sketches stay visible to the next loft? (each used by two lofts)
+  11 lofts: volume 1859.564 (expected 32191.473, -94.223 %), centre (26.9683, 2.2904, -42.9983), 15.5276 mm from expected -> DIFFERS
+done

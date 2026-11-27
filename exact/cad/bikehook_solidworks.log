@@ -1,0 +1,49 @@
+Bosses: volume 5301.438 mm^3 (expected 5301.438; own change off by -0.000, carried +0.000); centre 0.0000 mm off -> OK
+Cradle: volume 37600.107 mm^3 (expected 37600.106; own change off by +0.002, carried -0.000); centre 0.0000 mm off -> OK
+Rib: volume 41373.223 mm^3 (expected 41373.221; own change off by +0.000, carried +0.001); centre 0.0000 mm off -> OK
+Rib fillet: volume 41328.393 mm^3 (expected 41328.444; own change off by -0.053, carried +0.002); centre 0.0000 mm off -> OK
+End fillet: volume 41165.741 mm^3 (expected 41165.551; own change off by +0.242, carried -0.051); centre 0.0001 mm off -> OK
+  time so far 23 s
+Trunk 1: volume 43382.588 mm^3 (expected 43381.766; own change off by +0.632, carried +0.190); centre 0.0006 mm off -> OK
+  (one guide)
+Trunk 2: volume 45468.439 mm^3 (expected 45465.645; own change off by +1.971, carried +0.822); centre 0.0017 mm off -> OK
+  (one guide)
+Trunk 3: volume 47434.441 mm^3 (expected 47430.254; own change off by +1.394, carried +2.794); centre 0.0025 mm off -> OK
+  (one guide)
+Trunk 4: volume 48267.251 mm^3 (expected 48265.479; own change off by -2.415, carried +4.187); centre 0.0015 mm off -> OK
+  (one guide)
+Trunk 5: volume 49311.082 mm^3 (expected 49308.471; own change off by +0.839, carried +1.772); centre 0.0019 mm off -> OK
+  (one guide)
+Trunk 6: volume 51060.423 mm^3 (expected 51054.858; own change off by +2.953, carried +2.611); centre 0.0036 mm off -> OK
+  (one guide)
+Trunk 7: volume 53814.487 mm^3 (expected 53810.607; own change off by -1.685, carried +5.565); centre 0.0030 mm off -> OK
+  (one guide)
+Trunk 8: volume 56792.301 mm^3 (expected 56790.958; own change off by -2.537, carried +3.880); centre 0.0029 mm off -> OK
+  (one guide)
+Trunk 9: volume 59096.436 mm^3 (expected 59092.183; own change off by +2.911, carried +1.343); centre 0.0021 mm off -> OK
+  (one guide)
+Trunk 10: volume 60113.719 mm^3 (expected 60107.233; own change off by +2.233, carried +4.253); centre 0.0026 mm off -> OK
+  (one guide)
+  time so far 147 s
+Arm 1: volume 64364.159 mm^3 (expected 64355.657; own change off by +2.017, carried +6.486); centre 0.0089 mm off -> OK
+  (spline as centerline)
+Arm 2: volume 66043.107 mm^3 (expected 66019.643; own change off by +14.962, carried +8.502); centre 0.0159 mm off -> OK
+  (spline as centerline)
+Arm 3: volume 70263.953 mm^3 (expected 70238.361; own change off by +2.128, carried +23.464); centre 0.0156 mm off -> OK
+  (spline as centerline)
+Arm 4: volume 73118.420 mm^3 (expected 73094.477; own change off by -1.649, carried +25.592); centre 0.0147 mm off -> OK
+  (spline as centerline)
+Arm 5: volume 74806.995 mm^3 (expected 74779.646; own change off by +3.406, carried +23.943); centre 0.0172 mm off -> OK
+  (spline as centerline)
+Arm 6: volume 76642.646 mm^3 (expected 76608.230; own change off by +7.067, carried +27.349); centre 0.0197 mm off -> OK
+  (spline as centerline)
+  time so far 289 s
+Top cut: volume 76634.850 mm^3 (expected 76600.842; own change off by -0.408, carried +34.416); centre 0.0195 mm off -> OK
+Tyre cut: volume 75271.392 mm^3 (expected 75240.144; own change off by -2.760, carried +34.008); centre 0.0191 mm off -> OK
+Holes: volume 74531.723 mm^3 (expected 74500.680; own change off by -0.206, carried +31.248); centre 0.0194 mm off -> OK
+before the fillets: volume 74531.930 mm^3 (CadQuery 74500.680), centre 0.0195 mm off; 24 of 24 features agree; 323 s
+junction fillet: skipped, 75 edges in 19 pairs of features (more than 40)
+final: volume 74531.725 mm^3 (-0.205 from the fillets), bodies 1; 390 s
+dimensions: 586 added
+relations: 517 added
+sketch status: fully defined x 93
