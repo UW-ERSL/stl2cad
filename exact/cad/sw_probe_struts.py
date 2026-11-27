@@ -1,4 +1,4 @@
-"""Probe: a truss joint in SolidWorks (organic-truss, the 6-strut node at (49.42, 187.24, 9.82) mm).
+"""Probe: a truss joint in SolidWorks (truss-connector, the 6-strut node at (49.42, 187.24, 9.82) mm).
 Run on the Windows machine with SolidWorks:  python sw_probe_struts.py > probe_struts.log  and send the log.
   A. one strut: a 3D sketch line and a circular-profile sweep along it (path: the sketch, then the line);
   B. the node's 6 struts (3D sketch + sweep each, merged); expected union (CadQuery) 701.722 mm^3;

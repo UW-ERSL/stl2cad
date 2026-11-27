@@ -1,0 +1,14 @@
+connected to SolidWorks; 85 struts, 2 knobs, 3 tubes
+  strut 6: the sweep runs 1.34 mm past its line; made as a loft
+  strut 14: the sweep runs 1.16 mm past its line; made as a loft
+  strut 16: the sweep runs 4.17 mm past its line; made as a loft
+  strut 17: the sweep runs 2.50 mm past its line; made as a loft
+  strut 41: the sweep runs 0.29 mm past its line; made as a loft
+  strut 57: the sweep runs 0.20 mm past its line; made as a loft
+struts: volume 12335.583 mm^3 (expected 12360.769, -0.204 %)  <-- differs
+joints: volume 12467.544 mm^3 (expected 12482.850, -0.123 %)  <-- differs
+knobs: volume 13244.898 mm^3 (expected 13259.984, -0.114 %)  <-- differs
+Bore 2: no strut reaches into the bore; no cut
+Bore 3: no strut reaches into the bore; no cut
+part: volume 18193.663 mm^3 (expected 18206.758, -0.072 %)
+hidden: 67 plane(s), 0 axis(es), 304 sketch(es)

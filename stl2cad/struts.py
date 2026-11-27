@@ -26,18 +26,30 @@ MIN_LEN = 5.0          # x radius: shortest strut
 MAX_SPREAD = 0.08      # radius spread within a strut
 MIN_FILL = 0.35        # sampled share of a strut's surface
 CLASS_GAP = 0.10       # relative radius gap between classes
+JOINT_SCALE = 0.85    # joint ball radius / the largest ball inside the part at the joint (user: a little smaller)
+FILLET_PIECES = 6     # joint-blend pieces segmented for the fillet radius (reported only)
 TAPER = 0.10           # relative radius change along a strut that makes it a cone
+
+
+def _intersector(mesh):
+    """Embree ray intersector when embreex is installed (about 1000 times faster here, same distances to
+    1e-13 mm on truss-connector), else trimesh's own."""
+    try:
+        from trimesh.ray.ray_pyembree import RayMeshIntersector
+        return RayMeshIntersector(mesh)
+    except Exception:
+        from trimesh.ray.ray_triangle import RayMeshIntersector
+        return RayMeshIntersector(mesh)
 
 
 def _rays(mesh, n, seed=0):
     """Surface samples, normals and the chord length along the inward normal (inf where none)."""
     import trimesh
-    from trimesh.ray.ray_triangle import RayMeshIntersector
     P, fi = trimesh.sample.sample_surface(mesh, n, seed=seed)
     N = mesh.face_normals[fi]
     O = P - 1e-6 * float(np.linalg.norm(mesh.extents)) * N
     d = np.full(len(P), np.inf)
-    rm = RayMeshIntersector(mesh)
+    rm = _intersector(mesh)
     for ch in np.array_split(np.arange(len(P)), max(1, len(P) // 1000)):
         loc, ri, _ = rm.intersects_location(O[ch], -N[ch], multiple_hits=False)
         d[ch[ri]] = np.linalg.norm(loc - O[ch][ri], axis=1)
@@ -305,21 +317,51 @@ def _seg_surface_distance(P, segs):
     return D
 
 
+def _segment_piece(args):
+    from .segment import Segmenter
+    c, tol = args
+    return Segmenter(c, tol, kinds=("plane", "cylinder", "sphere", "cone", "torus"), log=lambda *a: None).run()
+
+
+def _segment_pieces(pieces, tol):
+    """Segmenter on each piece, in worker processes when more than one CPU is available (same result as
+    serial: each piece is segmented on its own); serial if the pool cannot start."""
+    import os
+    n = min(len(pieces), os.cpu_count() or 1)
+    if n > 1:
+        try:
+            from concurrent.futures import ProcessPoolExecutor
+            order = sorted(range(len(pieces)), key=lambda i: -len(pieces[i].faces))   # largest first
+            with ProcessPoolExecutor(n) as ex:
+                res = dict(zip(order, ex.map(_segment_piece, [(pieces[i], tol) for i in order])))
+            return [res[i] for i in range(len(pieces))]
+        except Exception:
+            pass
+    return [_segment_piece((c, tol)) for c in pieces]
+
+
 def fit_rest(mesh, segs, tol, rmax, log=print):
     """The surface far from every strut, split into connected pieces; each large piece is segmented into
     primitives (stl2cad's Segmenter). Returns tubes (coaxial outer/inner cylinders between two planes), spheres
     (knobs), extra struts (cylinders of strut size) and the joint fillet radius (tori minor radii)."""
-    from .segment import Segmenter
     t0 = time.time()
     far = np.flatnonzero(_seg_surface_distance(mesh.triangles_center, segs) > max(2 * tol, 0.4))
     sub = mesh.submesh([far], append=True)
     comps = sorted(sub.split(only_watertight=False), key=lambda c: -c.area)
     tubes, spheres, extra, fillet_r = [], [], [], []
+    rmin_ = 0.5 * min(float(s["r"]) for s in segs)
+    # large pieces (tubes, knobs and the chords converging into them) are all segmented; small pieces are joint
+    # blends: only the first FILLET_PIECES, for the fillet radius (tori). The pieces are segmented in parallel.
+    todo, n_small = [], 0
     for c in comps:
         if c.area < 20 * rmax * rmax:
             break
-        prims = Segmenter(c, 0.3 * tol, kinds=("plane", "cylinder", "sphere", "cone", "torus"),
-                          log=lambda *a: None).run()
+        if c.area < 200 * rmax * rmax:
+            n_small += 1
+            if n_small > FILLET_PIECES:
+                continue
+        todo.append(c)
+    for c, prims in zip(todo, _segment_pieces(todo, 0.3 * tol)):
         area = {id(p): float(c.area_faces[p.faces].sum()) for p in prims}
         cyl = [p for p in prims if p.kind == "cylinder"]
         big = sorted([p for p in cyl if p.p["r"] > 3 * rmax and area[id(p)] > 30 * rmax * rmax],
@@ -348,7 +390,8 @@ def fit_rest(mesh, segs, tol, rmax, log=print):
             if p.kind == "torus" and 0 < p.p["r"] < 4 * rmax and area[id(p)] > 2.0 and len(tubes) == n_tubes \
                     and not found_sphere:
                 fillet_r.append((float(p.p["r"]), area[id(p)]))
-            if p.kind == "cylinder" and p.p["r"] <= 1.5 * rmax and area[id(p)] > 15 * p.p["r"] ** 2:
+            # a missed strut: radius in the struts' range (a small cylinder is an edge blend), long enough
+            if p.kind == "cylinder" and rmin_ <= p.p["r"] <= 1.5 * rmax and area[id(p)] > 15 * p.p["r"] ** 2:
                 a = p.p["a"] / np.linalg.norm(p.p["a"])
                 X = c.triangles_center[p.faces]
                 t = (X - p.p["c"]) @ a
@@ -493,33 +536,44 @@ def attach(segs, free, tubes, spheres, nodes, log=print):
     return left
 
 
-def build(res, log=print, fuzzy=1e-5, bores=True):
-    """Fused CadQuery solid of struts (cylinders, cones), knobs (spheres) and tubes; no fillets."""
+def _parts(res):
+    """CadQuery solids per stage: struts (cylinders, cones), joint spheres, knobs, tubes (outer - inner)."""
     import cadquery as cq
-    from OCP.BRepAlgoAPI import BRepAlgoAPI_Fuse
-    from OCP.TopTools import TopTools_ListOfShape
     V = lambda p: cq.Vector(*map(float, p))
-    parts = []
+    struts_ = []
     for s in res["segs"]:
         d = np.asarray(s["p1"], float) - np.asarray(s["p0"], float)
         L = float(np.linalg.norm(d))
         if L < 1e-6:
             continue
         if s.get("taper") and abs(s["r0"] - s["r1"]) > 1e-9:
-            parts.append(cq.Solid.makeCone(float(s["r0"]), float(s["r1"]), L, V(s["p0"]), V(d / L)))
+            struts_.append(cq.Solid.makeCone(float(s["r0"]), float(s["r1"]), L, V(s["p0"]), V(d / L)))
         else:
-            parts.append(cq.Solid.makeCylinder(float(s["r"]), L, V(s["p0"]), V(d / L)))
-    for sp in list(res.get("joints", [])) + list(res["spheres"]):
-        parts.append(cq.Solid.makeSphere(float(sp["r"]), V(sp["c"]), angleDegrees1=-90, angleDegrees2=90))
+            struts_.append(cq.Solid.makeCylinder(float(s["r"]), L, V(s["p0"]), V(d / L)))
+    sph = lambda sp: cq.Solid.makeSphere(float(sp["r"]), V(sp["c"]), angleDegrees1=-90, angleDegrees2=90)
+    tubes = []
     for t in res["tubes"]:
         base = V(np.asarray(t["c"]) - 0.5 * t["h"] * np.asarray(t["a"]))
         outer = cq.Solid.makeCylinder(float(t["ro"]), float(t["h"]), base, V(t["a"]))
         inner = cq.Solid.makeCylinder(float(t["ri"]), float(t["h"]), base, V(t["a"]))
-        parts.append(outer.cut(inner))
-    A = TopTools_ListOfShape()
-    A.Append(parts[0].wrapped)
-    B = TopTools_ListOfShape()
-    for p in parts[1:]:
+        tubes.append(outer.cut(inner))
+    return dict(struts=struts_, joints=[sph(x) for x in res.get("joints", [])],
+                knobs=[sph(x) for x in res["spheres"]], tubes=tubes)
+
+
+def _fuse(base, tools, fuzzy=1e-5):
+    """One fuzzy Boolean fuse of the tools onto the base (base None: the first tool)."""
+    import cadquery as cq
+    from OCP.BRepAlgoAPI import BRepAlgoAPI_Fuse
+    from OCP.TopTools import TopTools_ListOfShape
+    tools = list(tools)
+    if base is None:
+        base, tools = tools[0], tools[1:]
+    if not tools:
+        return base
+    A, B = TopTools_ListOfShape(), TopTools_ListOfShape()
+    A.Append(base.wrapped)
+    for p in tools:
         B.Append(p.wrapped)
     op = BRepAlgoAPI_Fuse()
     op.SetArguments(A)
@@ -527,16 +581,30 @@ def build(res, log=print, fuzzy=1e-5, bores=True):
     op.SetFuzzyValue(fuzzy)
     op.SetRunParallel(True)
     op.Build()
-    shape = cq.Shape.cast(op.Shape())
+    return cq.Shape.cast(op.Shape())
+
+
+def _bore(t):
+    import cadquery as cq
+    V = lambda p: cq.Vector(*map(float, p))
+    base = V(np.asarray(t["c"]) - (0.5 * t["h"] + 1.0) * np.asarray(t["a"]))
+    return cq.Solid.makeCylinder(float(t["ri"]), float(t["h"]) + 2.0, base, V(t["a"]))
+
+
+def build(res, log=print, fuzzy=1e-5, bores=True):
+    """Fused CadQuery solid of struts (cylinders, cones), joint spheres, knobs (spheres) and tubes; no
+    fillets; the tube bores cut (struts reaching into a bore are cut back by it)."""
+    P = _parts(res)
+    shape = _fuse(None, P["struts"] + P["joints"] + P["knobs"] + P["tubes"], fuzzy)
     try:
-        shape = shape.clean()
+        cleaned = shape.clean()             # merging faces can fail or leave an invalid solid: then not used
+        if cleaned.isValid():
+            shape = cleaned
     except Exception:
         pass
-    # the solid holes of the tubes: struts reaching into a tube's bore are cut back by the bores
     nb = len(res["tubes"]) if bores is True else (0 if bores is False else int(bores))
     for t in res["tubes"][:nb]:
-        base = V(np.asarray(t["c"]) - (0.5 * t["h"] + 1.0) * np.asarray(t["a"]))
-        shape = shape.cut(cq.Solid.makeCylinder(float(t["ri"]), float(t["h"]) + 2.0, base, V(t["a"])))
+        shape = shape.cut(_bore(t))
     return shape
 
 
@@ -629,8 +697,7 @@ def measure_radii(mesh, segs, stations=15, dirs=12):
     stations over the middle 60 % of its length, where no joint blend is); the median per station, then a
     linear fit from start to end (r0, r1) and its middle value (r). Stations widened by a crossing strut or a
     joint are dropped: the fit is repeated without stations more than 4 % of the radius above it."""
-    from trimesh.ray.ray_triangle import RayMeshIntersector
-    rm = RayMeshIntersector(mesh)
+    rm = _intersector(mesh)
     O, D, owner = [], [], []
     for k, s in enumerate(segs):
         a, b = np.asarray(s["p0"], float), np.asarray(s["p1"], float)
@@ -677,26 +744,24 @@ def measure_radii(mesh, segs, stations=15, dirs=12):
 
 
 def _stage_volumes(res):
-    """Expected part volumes after each SolidWorks stage (CadQuery): struts, knobs, each tube, each bore."""
-    sub = dict(segs=res["segs"], spheres=[], tubes=[])
-    out = [("struts", _fused_volume(sub, bores=False))]
-    if res.get("joints"):
-        sub["joints"] = res["joints"]
-        out.append(("joints", _fused_volume(sub, bores=False)))
-    sub["spheres"] = res["spheres"]
-    out.append(("knobs", _fused_volume(sub, bores=False)))
-    for k in range(len(res["tubes"])):
-        sub["tubes"] = res["tubes"][:k + 1]
-        out.append((f"tube {k + 1}", _fused_volume(sub, bores=False)))
-    for k in range(len(res["tubes"])):
-        out.append((f"bore {k + 1}", _fused_volume(res, bores=k + 1)))
-    out.append(("bores", out[-1][1] if res["tubes"] else out[-1][1]))
+    """Expected part volumes after each SolidWorks stage (CadQuery): struts, joint spheres, knobs, each tube,
+    each bore. Each stage is fused onto the previous stage's solid (one Boolean per stage)."""
+    P = _parts(res)
+    shape = _fuse(None, P["struts"])
+    out = [("struts", float(shape.Volume()))]
+    if P["joints"]:
+        shape = _fuse(shape, P["joints"])
+        out.append(("joints", float(shape.Volume())))
+    shape = _fuse(shape, P["knobs"])
+    out.append(("knobs", float(shape.Volume())))
+    for k, tb in enumerate(P["tubes"]):
+        shape = _fuse(shape, [tb])
+        out.append((f"tube {k + 1}", float(shape.Volume())))
+    for k, t in enumerate(res["tubes"]):
+        shape = shape.cut(_bore(t))
+        out.append((f"bore {k + 1}", float(shape.Volume())))
+    out.append(("bores", out[-1][1]))
     return out
-
-
-def _fused_volume(res, bores=True):  # noqa
-    sh = build(res, log=lambda *a: None, bores=bores)
-    return float(sh.Volume())
 
 
 def solidworks_code(res, name):
@@ -1201,7 +1266,9 @@ def build():
     op.Build()
     shape = cq.Shape.cast(op.Shape())
     try:
-        shape = shape.clean()               # merging faces can fail on these intersections; then left as is
+        cleaned = shape.clean()             # merging faces can fail or leave an invalid solid: then not used
+        if cleaned.isValid():
+            shape = cleaned
     except Exception:
         pass
     for t in DATA["tubes"]:
@@ -1305,9 +1372,9 @@ def extend_free_ends(mesh, segs, spheres, tubes, log=print):
 
 
 def joint_spheres(mesh, segs, spheres, tubes, log=print, eps=1e-3):
-    """A sphere of the strut's end radius at every strut end that meets another strut: the end discs of
-    struts meeting at a joint otherwise show as blades beyond the other struts (the part's joint blends
-    are not made). Ends in knobs or tubes, free ends, and spheres that a strut through the point already
+    """A sphere at every strut end that meets another strut: the part's joint ball, JOINT_SCALE times the
+    largest sphere centred at the joint inside the part, and at least the end radius (the end discs of struts meeting at a joint
+    otherwise show as blades beyond the other struts). Ends in knobs or tubes, free ends, and spheres that a strut through the point already
     contains or that leave the part are skipped."""
     import trimesh
     pq = trimesh.proximity.ProximityQuery(mesh)
@@ -1334,6 +1401,12 @@ def joint_spheres(mesh, segs, spheres, tubes, log=print, eps=1e-3):
                     break
             else:
                 pts.append(dict(c=p.copy(), r=_end_radius(s, e)))
+    # the part's joint ball: JOINT_SCALE times the largest sphere centred at the joint that stays inside the
+    # part (the distance from the joint to the surface), rounded down to 0.01 mm, at least the end radius
+    if pts:
+        dist = pq.signed_distance(np.array([c["c"] for c in pts]))
+        for c, d_ in zip(pts, dist):
+            c["r"] = max(c["r"], math.floor(100 * JOINT_SCALE * float(d_)) / 100)
     out, n_in, n_out = [], 0, 0
     fib = np.arange(64) + 0.5
     phi, th = np.arccos(1 - 2 * fib / 64), np.pi * (1 + 5 ** 0.5) * fib

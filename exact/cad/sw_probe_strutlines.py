@@ -1,6 +1,6 @@
-"""Probe: for each strut of organic-truss_solidworks.py in the open SolidWorks part, the 3D sketch line that
+"""Probe: for each strut of truss-connector_solidworks.py in the open SolidWorks part, the 3D sketch line that
 SolidWorks holds (its segments and end points) and the cylinder faces of the sweep, against the data.
-Run with the organic-truss part open (after organic-truss_solidworks.py):
+Run with the truss-connector part open (after truss-connector_solidworks.py):
     python sw_probe_strutlines.py            (all struts)
     python sw_probe_strutlines.py 20 27      (these struts)"""
 import json
@@ -9,7 +9,7 @@ import sys
 import numpy as np
 import win32com.client
 
-src = open("organic-truss_solidworks.py").read()
+src = open("truss-connector_solidworks.py").read()
 DATA = json.loads(src.split("DATA_JSON = r'''")[1].split("'''")[0])
 
 
