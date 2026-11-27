@@ -102,7 +102,7 @@ fails on some bars there; the fillet is not checked by the stand-in.
 ## Pattern detection and segmentation (`analyze.py`)
 
 Reads only the two STL files of a case folder (design domain + `*_finalIsoBinary.stl`) and writes
-`CASE/cad/analysis.json`, `analysis.txt` and `labels.npz` (voxel segment labels). Steps: frame from the
+`CASE/results/analysis.json`, `analysis.txt` and `labels.npz` (voxel segment labels). Steps: frame from the
 domain's face normals; voxels; clean-up (TO outside the domain, voids, islands); symmetry (mirrors, C_n);
 extrude / height-field / two-layer tests along each frame axis; retained regions (TO = domain); local shape
 (rod / plate / blob) at medial points; segments with thickness, plane or line fit, face contact; part class

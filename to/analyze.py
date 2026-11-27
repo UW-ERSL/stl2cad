@@ -29,7 +29,7 @@ A case folder holds the design domain STL and the TO STL (*_finalIsoBinary.stl);
      shares of the segment kinds: rod frame (4), curved rods (5), plates (3), shells (6), solid mass (7), or a
      hybrid of those with share >= HYBRID_SHARE.
 
-Outputs in CASE/cad/: analysis.json, analysis.txt, labels.npz (voxel segment labels, frame, grid).
+Outputs in CASE/results/: analysis.json, analysis.txt, labels.npz (voxel segment labels, frame, grid).
 Usage (from to/):  python analyze.py CASE_DIR [CASE_DIR ...] [--res 300]
                    python analyze.py --all ../casestudies
 """
@@ -699,7 +699,7 @@ def analyze(case, res=RES, log=print):
                volume_fraction=round(float(V.sum() / D.sum()), 3), cleanup=clean, symmetry=sym,
                tests=tests, route=rt, retained=dict(share=round(float(K.sum() / V.sum()), 3), window=kw),
                segments=segs, part_class=cls, reason=why, seconds=round(time.time() - t0, 1))
-    od_ = os.path.join(case, 'cad')
+    od_ = os.path.join(case, 'results')
     os.makedirs(od_, exist_ok=True)
     with open(os.path.join(od_, 'analysis.json'), 'w') as f:
         json.dump(rep, f, indent=1)
