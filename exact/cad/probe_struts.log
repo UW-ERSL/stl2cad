@@ -1,0 +1,27 @@
+== A. one strut
+    3D sketch not reported open (try 1)
+  path = sketch: line True, selected True, sweep feature; volume 215.7019 (expected 215.7019)
+    3D sketch not reported open (try 1)
+  path = line: line True, selected True, sweep feature; volume 215.7019 (expected 215.7019)
+== B. the node's 6 struts; expected union 701.7219
+    3D sketch not reported open (try 1)
+  strut 0 (r 1.37): sweep feature; volume 215.7019, bodies 1
+  strut 1 (r 1.0): sweep feature; volume 319.077, bodies 1
+  strut 2 (r 1.37): sweep feature; volume 503.1077, bodies 1
+  strut 3 (r 1.0): sweep feature; volume 544.8589, bodies 1
+  strut 4 (r 1.0): sweep feature; volume 659.9579, bodies 1
+  strut 5 (r 1.0): sweep feature; volume 701.6513, bodies 1
+== C. fillets on the node's 21 re-entrant edges
+  all edges, r 2.2: picked 21 of 21; no feature; volume 701.6513 (before 701.6513)
+  all edges, r 1.5: picked 21 of 21; no feature; volume 701.6513 (before 701.6513)
+  all edges, r 1.0: picked 21 of 21; no feature; volume 701.6513 (before 701.6513)
+  all edges, r 0.5: picked 21 of 21; no feature; volume 701.6513 (before 701.6513)
+  edge by edge, r 2.2: 3 of 21 filleted; volume 750.3977
+== D. tapered strut: loft between circles on planes normal to a 3D sketch line; expected 262.5975
+    3D sketch not reported open (try 1)
+  plane at end 0: selected True; plane
+  plane at end 1: selected True; plane
+  section r 2.3: centre in sketch (0.0000, 0.0000, z 0.0000); circle True
+  section r 1.37: centre in sketch (0.0000, 0.0000, z 0.0000); circle True
+  loft: feature; volume 262.5687 (expected 262.5975)
+done

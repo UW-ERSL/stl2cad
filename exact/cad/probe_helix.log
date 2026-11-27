@@ -1,0 +1,40 @@
+swFmSweep = 17
+== A. one helix and one sweep; expected volume 0.21002 mm^3
+-- clockwised False, start angle 0.0000 rad
+  base circle on Front Plane (selected True): circle True, feature Sketch2
+  InsertHelix(clockwised=False, start=0.0000) returned None; new feature Helix/Spiral1 (Helix)
+  sweep (path selected True): feature Sweep1; mass (0.21008, (-0.0007, 0.0001, 7.9998)); bodies 1
+  planar faces (centre mm, normal): [((1.5, 0.0, 0.0), (-0.0, -0.5075, -0.8616)), ((1.5, 0.0, 16.0), (0.0, 0.5075, 0.8616))]
+-- clockwised True, start angle 0.0000 rad
+  base circle on Front Plane (selected True): circle True, feature Sketch2
+  InsertHelix(clockwised=True, start=0.0000) returned None; new feature Helix/Spiral1 (Helix)
+  sweep (path selected True): feature Sweep1; mass (0.21007, (-0.0007, -0.0002, 7.9998)); bodies 1
+  planar faces (centre mm, normal): [((1.5, 0.0, 0.0), (-0.0, 0.5075, -0.8616)), ((1.5, 0.0, 16.0), (0.0, -0.5075, 0.8616))]
+-- clockwised False, start angle 1.5708 rad
+  base circle on Front Plane (selected True): circle True, feature Sketch2
+  InsertHelix(clockwised=False, start=1.5708) returned None; new feature Helix/Spiral1 (Helix)
+  sweep (path selected True): feature Sweep1; mass (0.21008, (-0.0001, -0.0007, 7.9998)); bodies 1
+  planar faces (centre mm, normal): [((0.0, 1.5, 0.0), (0.5075, -0.0, -0.8616)), ((0.0, 1.5, 16.0), (-0.5075, 0.0, 0.8616))]
+== B. two helices of opposite hand, both swept; expected union 0.4158 +- 0.003 mm^3 (sum 0.42003)
+  base circle on Front Plane (selected True): circle True, feature Sketch2
+  InsertHelix(clockwised=False, start=0.0000) returned None; new feature Helix/Spiral1 (Helix)
+  sweep (path selected True): feature Sweep1; mass (0.21008, (-0.0007, 0.0001, 7.9998)); bodies 1
+  base circle on Front Plane (selected True): circle True, feature Sketch5
+  InsertHelix(clockwised=True, start=0.0000) returned None; new feature Helix/Spiral2 (Helix)
+  sweep (path selected True): feature Sweep2; mass (0.4175, (-0.0, -0.0002, 7.9995)); bodies 1
+== C. circular pattern of the two sweeps, 10 about z; expected union 3.939 +- 0.005 mm^3
+  axis from Top and Right Planes (selected True, True): returned True; feature Axis1 (RefAxis)
+  FeatureCircularPattern4 (7 args), axis mark 1, features mark 4 (selected True, True): feature CirPattern1; mass (3.93783, (0.0, 0.0, 7.999)); bodies 1
+== D. helices 16.12 high, pattern, cut above z = 16; expected 3.938 +- 0.005 mm^3
+  base circle on Front Plane (selected True): circle True, feature Sketch2
+  InsertHelix(clockwised=False, start=0.0000) returned None; new feature Helix/Spiral1 (Helix)
+  sweep (path selected True): feature Sweep1; mass (0.21168, (0.0108, 0.0024, 8.0598)); bodies 1
+  base circle on Front Plane (selected True): circle True, feature Sketch5
+  InsertHelix(clockwised=True, start=0.0000) returned None; new feature Helix/Spiral2 (Helix)
+  sweep (path selected True): feature Sweep2; mass (0.42001, (0.0106, -0.0029, 8.0502)); bodies 1
+  pattern (marks 1/4): True; mass (3.96331, (0.0, 0.0, 8.0514))
+  before the cut: (3.96331, (0.0, 0.0, 8.0514))
+  cut z 16..17 (reverse=False, flip_start=False): True; mass (3.71959, (0.0, 0.0, 7.5633))
+  cut z 16..17 (reverse=True, flip_start=False): True; mass (3.93761, (0.0, 0.0, 7.9994))
+  planar faces: 20
+done

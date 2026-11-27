@@ -1,0 +1,23 @@
+loaded stent.STL: 111270 triangles, extents [3.12, 3.12, 16.03] mm, watertight=True
+only got 3956/4000 samples!
+symmetry (detected): detected: D10 about frame axis x + mirror x  (group order 40, max element error 0.0017 mm, threshold 0.0333)
+  wires: 10 right-handed helices, pitch 15.998
+  wires: 10 left-handed helices, pitch 16
+  wires: refined on 15000 vertices: R 1.50000, r 0.05990; residual median 2.89e-04, p95 1.11e-03
+  wires: 20 wires (10 right-handed, 10 left-handed), wire diameter 0.12, helix radius 1.5, pitch 16; ends: caps / cut (57.6s)
+  wires: model built (20 solids, 28.6s); numerical check:
+  ref_to_model  mean 0.0014  median 0.0011  p95 0.0038  max 0.0054 mm
+  model_to_ref  mean 0.0013  median 0.0010  p95 0.0038  max 0.0054 mm
+  volume ref 3.9101  model 3.9358 +- 0.0059 mm^3  (+0.66 %)
+mode: exact
+tolerance: 0.0083 mm
+symmetry imposed: none (detected: D10 about frame axis x + mirror x)
+solid valid: True, faces: 60
+deviation:
+  ref_to_model  mean 0.0014  median 0.0011  p95 0.0038  max 0.0054 mm
+  model_to_ref  mean 0.0013  median 0.0010  p95 0.0038  max 0.0054 mm
+  volume ref 3.91  model 3.94 mm^3  (+0.66 %)
+time: 95.1 s
+script: wires script, one solid per wire, checked numerically (the tubes are not fused: see the script's note)
+SolidWorks script: helix + circular-profile sweep per wire family, circular patterns, cuts (not stand-in checked)
+saved: outs/stent/stent_exact.step, outs/stent/stent_exact.stl, outs/stent/stent_exact.py, outs/stent/stent_solidworks.py, outs/stent/stent_exact_report.txt

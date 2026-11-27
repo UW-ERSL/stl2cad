@@ -1,0 +1,18 @@
+connected to SolidWorks; 82 struts, 2 knobs, 3 tubes
+  strut 5: the sweep runs 3.51 mm past its line; made as a loft
+  strut 19: the sweep runs 8.97 mm past its line; made as a loft
+  strut 27: the sweep runs 1.91 mm past its line; made as a loft
+  strut 74: the sweep runs 0.44 mm past its line; made as a loft
+struts: volume 12519.505 mm^3 (expected 12544.463, -0.199 %)  <-- differs
+  joint 4: FAILED (RuntimeError: joint 4: no revolve); left out
+  joint 8: FAILED (RuntimeError: joint 8: no revolve); left out
+  joint 9: FAILED (RuntimeError: joint 9: no revolve); left out
+  joint 21: FAILED (RuntimeError: joint 21: no revolve); left out
+  joint 22: FAILED (RuntimeError: joint 22: no revolve); left out
+joints: volume 12573.739 mm^3 (expected 12584.159, -0.083 %)
+knobs: volume 13375.181 mm^3 (expected 13383.842, -0.065 %)
+Bore 2: no strut reaches into the bore; no cut
+Bore 3: no strut reaches into the bore; no cut
+part: volume 18323.500 mm^3 (expected 18330.675, -0.039 %)
+left out: joint 4, joint 8, joint 9, joint 21, joint 22
+hidden: 56 plane(s), 0 axis(es), 271 sketch(es)

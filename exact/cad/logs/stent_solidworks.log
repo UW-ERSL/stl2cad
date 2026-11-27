@@ -1,0 +1,10 @@
+connected to SolidWorks; building 20 wire(s) in 2 families
+  sketch opened on try 2
+  wire 1: right-handed, pitch 16, start 0 deg; volume so far 0.21168 mm^3
+  wire 2: left-handed, pitch 16, start 0 deg; volume so far 0.42001 mm^3
+  circular pattern x 10 of families 1, 2: volume so far 3.96331 mm^3
+all wires: volume 3.96331 mm^3 (expected 3.96223 +- 0.01473)
+  Cut top: reverse=True, flip_start=False: volume 3.93761 mm^3 (expected 3.93748)
+part: volume 3.93761 mm^3 (expected 3.93748 +- 0.01473), centre of mass (1.5660, 1.5660, 8.0294) mm
+dimensions: 9 added
+sketch status: fully defined, fully defined

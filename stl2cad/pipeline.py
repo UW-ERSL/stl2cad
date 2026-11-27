@@ -34,6 +34,7 @@ class Options:
     separators: bool = False           # experimental: strips at near-tangent junctions
     fillets: bool = True               # rebuild tangent blends as fillets on a sharp solid
     prism25: bool = True               # try stacked prisms (2.5D) before the surface arrangement
+    wires: bool = True                 # try round wires along helices (stents, springs) first
     export_script: bool = True         # write a verified CadQuery script (exact mode)
     export_solidworks: bool = True     # write a SolidWorks feature-tree script (2.5D results)
     grid: float = 0.0                  # mm; 0 = off
@@ -92,12 +93,21 @@ def run(path, o: Options, log=None, mesh=None):
     spec, sym_report = resolve_symmetry(mesh, o, tol, log)
     mode = o.mode
     cf_ = coplanar_fraction(mesh)
-    if mode == "auto":
+    res = None
+    if mode in ("auto", "exact") and o.wires and cf_ < 0.5:      # wire parts have little flat area
+        from . import wires
+        try:
+            res = wires.reconstruct(mesh, tol, log=log)
+        except Exception as e:
+            log(f"  wires: failed ({type(e).__name__}: {e})")
+            res = None
+        if res is not None:
+            mode = "exact"
+    if res is None and mode == "auto":
         mode = "exact" if cf_ > 0.3 else "smooth"
         log(f"auto mode: coplanar-area fraction {cf_:.2f} -> {mode}")
 
-    res = None
-    if mode == "exact":
+    if res is None and mode == "exact":
         from . import exact
         kinds = [k for k in o.surfaces]
         opts = dict(tol=tol, kinds=kinds, allow_extrusion=o.allow_extrusion and not o.algebraic_only,
@@ -136,13 +146,23 @@ def run(path, o: Options, log=None, mesh=None):
         res = smooth.reconstruct(mesh, opts, spec=spec, log=log)
 
     diag = float(np.linalg.norm(mesh.extents))
-    from .core import heal_via_step
-    res.shape = heal_via_step(res.shape)
-    from .brep_helpers import clean_mesh
-    clean_mesh(res.shape)
-    res.valid = res.shape.isValid()          # checked before meshing (the mesh leaves edge polygons)
-    res.mesh = shape_to_mesh(res.shape, tolerance=max(2e-4 * diag, 0.25 * tol), angular=0.25)
-    res.deviation = deviation(mesh, res.mesh)
+    if res.extras.get("wires") is not None:
+        # one solid per wire (overlapping): checked numerically, not through a fused mesh
+        res.valid = all(s_.isValid() for s_ in res.shape.Solids())
+        res.mesh = shape_to_mesh(res.shape, tolerance=max(2e-4 * diag, 0.25 * tol), angular=0.25)
+        chk = res.extras["wires_check"]
+        res.deviation = {k: dict(mean=float(np.mean(chk[k])), median=float(np.median(chk[k])),
+                                 p95=float(np.percentile(chk[k], 95)), max=float(np.max(chk[k])))
+                         for k in ("ref_to_model", "model_to_ref")}
+        res.deviation.update(volume_ref=float(mesh.volume), volume_model=float(chk["volume"]))
+    else:
+        from .core import heal_via_step
+        res.shape = heal_via_step(res.shape)
+        from .brep_helpers import clean_mesh
+        clean_mesh(res.shape)
+        res.valid = res.shape.isValid()          # checked before meshing (the mesh leaves edge polygons)
+        res.mesh = shape_to_mesh(res.shape, tolerance=max(2e-4 * diag, 0.25 * tol), angular=0.25)
+        res.deviation = deviation(mesh, res.mesh)
     res.extras["input_mesh"] = mesh
     res.extras["symmetry"] = sym_report
     res.extras["tolerance"] = tol
@@ -172,7 +192,30 @@ def save(res, path, o, log=print, out_dir=None):
         f = os.path.join(out_dir, stem + ".stl")
         res.mesh.export(f)
         files.append(f)
-    if o.export_script and res.mode == "exact":
+    if o.export_script and res.extras.get("wires") is not None:
+        from .wires import cadquery_code
+        f = os.path.join(out_dir, stem + ".py")
+        with open(f, "w") as fh:
+            fh.write(cadquery_code(res.extras["wires"], stem))
+        files.append(f)
+        msg = "one solid per wire, checked numerically (the tubes are not fused: see the script's note)"
+        log(f"script: wires script, {msg}")
+        res.report += f"\nscript: wires script, {msg}"
+        if o.export_solidworks:
+            from .wires import solidworks_code
+            swname = os.path.splitext(os.path.basename(path))[0] + "_solidworks"
+            try:
+                code = solidworks_code(res.extras["wires"], swname)
+                f = os.path.join(out_dir, swname + ".py")
+                with open(f, "w") as fh:
+                    fh.write(code)
+                files.append(f)
+                msg = "helix + circular-profile sweep per wire family, circular patterns, cuts (not stand-in checked)"
+            except ValueError as e:
+                msg = f"not written: {e}"
+            log("SolidWorks script: " + msg)
+            res.report += "\nSolidWorks script: " + msg
+    elif o.export_script and res.mode == "exact":
         from .codegen import generate
         t0 = time.time()
         code, kind, msg = generate(res, stem, res.extras.get("tolerance", 0.1), log=log)
