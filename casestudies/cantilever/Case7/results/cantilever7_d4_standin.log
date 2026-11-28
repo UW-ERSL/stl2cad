@@ -1,14 +1,13 @@
-Truss sketch: unknown; 43 relations, 22 dimensions
-Truss face 1: volume 4453.877 mm^3 (expected 4453.877); centre 0.0001 mm off -> OK
-Truss face 2: volume 8907.754 mm^3 (expected 8907.754); centre 0.0001 mm off -> OK
-Web 1: volume 11132.093 mm^3 (expected 11132.092); centre 0.0001 mm off -> OK
-Web 2: volume 11242.043 mm^3 (expected 11242.043); centre 0.0000 mm off -> OK
-after the equations: volume 11242.043 mm^3 (expected 11242.043)
-relations: 54 added
-dimensions: 27 added
-equations: 21 added
-independent parameters: 19
-Truss sketch: unknown
+Truss sketch: unknown; 40 relations, 26 dimensions so far
+Truss face 1: volume 3500.709 mm^3 (expected 3500.709); centre 0.0000 mm off -> OK
+Truss face 2: volume 7001.418 mm^3 (expected 7001.418); centre 0.0000 mm off -> OK
+Base sketch: unknown; 75 relations, 44 dimensions so far
+Base: volume 10688.019 mm^3 (expected 10688.058); centre 0.0000 mm off -> OK
+after the equations: volume 10688.019 mm^3 (expected 10688.058)
+relations: 75 added
+dimensions: 44 added
+equations: 32 added
+independent parameters: 29
 all features agree
 
-stand-in: volume 11242.043, reference 11242.043 mm^3; booleans failed, volume, area, centre of mass and inertia agree
+stand-in: volume 10688.019, reference 10688.058 mm^3, difference volume 0.000 mm^3

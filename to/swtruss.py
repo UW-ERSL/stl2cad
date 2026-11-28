@@ -39,6 +39,7 @@ import numpy as np
 
 GEOM = r'''
 MITRE = 3.0          # a mitre point farther than this x the widest bar from its joint is replaced by a bevel
+STRAIGHT = 0.35      # members continuing within asin(this) (20 deg) of straight on: a bevel, no mitre point
 
 
 def _unit(v):
@@ -56,10 +57,20 @@ def _isect(p, d, q, e):
 
 def bars(joints, widths, members):
     """Each member as (end at a, end at c, width): chords on their centre line (foot on the outline + n w/2),
-    run on by their ext at free ends."""
+    run on by their ext at free ends; other members run on by w/2 past an end joint of no other member (a support:
+    the clip to the outline ends them there)."""
+    deg = {}
+    for m in members:
+        deg[m["a"]] = deg.get(m["a"], 0) + 1; deg[m["c"]] = deg.get(m["c"], 0) + 1
     out = []
     for m in members:
         A, C, w = joints[m["a"]], joints[m["c"]], widths[m["w"]]
+        if m.get("edge") is None:
+            d = _unit((C[0] - A[0], C[1] - A[1]))
+            if deg[m["a"]] == 1:
+                A = (A[0] - d[0] * w / 2, A[1] - d[1] * w / 2)
+            if deg[m["c"]] == 1:
+                C = (C[0] + d[0] * w / 2, C[1] + d[1] * w / 2)
         if m.get("edge") is not None:
             (fx, fy), (nx, ny) = m["edge"]
             t = (ny, -nx)
@@ -100,11 +111,12 @@ def chord_mitres(joints, widths, members, B):
                 P0 = (joints[q][0] + sgn * nl[0] * w2 / 2, joints[q][1] + sgn * nl[1] * w2 / 2)
                 X = _isect((fx, fy), (ny, -nx), P0, u)
                 if X is not None and (best is None or u[0] * -d[0] + u[1] * -d[1] > best[0]):
-                    best = (u[0] * -d[0] + u[1] * -d[1], X)
+                    best = (u[0] * -d[0] + u[1] * -d[1], X, w2)
             if best is not None:
                 X = best[1]
                 s = (X[0] - E[0]) * d[0] + (X[1] - E[1]) * d[1]           # < 0: past the end
-                B[i][end] = (E[0] + s * d[0], E[1] + s * d[1])
+                if abs(s) <= MITRE * max(B[i][2], best[2]):              # (nearly parallel edges: no mitre)
+                    B[i][end] = (E[0] + s * d[0], E[1] + s * d[1])
     return [tuple(b) for b in B]
 
 
@@ -133,15 +145,47 @@ def outline_2d(joints, widths, members):
             l0 = (P0[0] - d0[1] * w0 / 2, P0[1] + d0[0] * w0 / 2)      # left end corner of member k (seen from
             r1 = (P1[0] + d1[1] * w1 / 2, P1[1] - d1[0] * w1 / 2)      # the joint), right one of member k + 1
             x = _isect(l0, d0, r1, d1)                                  # mitre point of the wedge between them
-            if x is None or math.hypot(x[0] - J[0], x[1] - J[1]) > MITRE * wmax:
+            straight = d0[0] * d1[0] + d0[1] * d1[1] < 0 and abs(d0[0] * d1[1] - d0[1] * d1[0]) < STRAIGHT
+            if x is None or straight or math.hypot(x[0] - J[0], x[1] - J[1]) > MITRE * wmax:
                 node += [l0, r1]                                        # bevel (or parallel edges)
             else:                                                       # an outer mitre lies behind the end
                 behind0 = (x[0] - l0[0]) * d0[0] + (x[1] - l0[1]) * d0[1] < 0       # corners: they join it
                 behind1 = (x[0] - r1[0]) * d1[0] + (x[1] - r1[1]) * d1[1] < 0
                 node += ([l0] if behind0 else []) + [x] + ([r1] if behind1 else [])
         if len(node) >= 3:
-            polys.append(node)
+            polys.append(node if not _crossing(node) else _hull(node))
     return polys
+
+
+def _crossing(p):
+    """True when the closed polygon p crosses itself."""
+    n = len(p)
+    seg = [(p[i], p[(i + 1) % n]) for i in range(n)]
+    orient = lambda a, b, c: (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+    for i in range(n):
+        for j in range(i + 2, n):
+            if i == 0 and j == n - 1:
+                continue
+            (a, b), (c, d) = seg[i], seg[j]
+            if orient(a, b, c) * orient(a, b, d) < -1e-12 and orient(c, d, a) * orient(c, d, b) < -1e-12:
+                return True
+    return False
+
+
+def _hull(p):
+    """Convex hull of points (monotone chain), counter-clockwise."""
+    q = sorted(set((round(x, 9), round(y, 9)) for x, y in p))
+    cr = lambda o, a, b: (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+    lo, hi = [], []
+    for x in q:
+        while len(lo) >= 2 and cr(lo[-2], lo[-1], x) <= 0:
+            lo.pop()
+        lo.append(x)
+    for x in reversed(q):
+        while len(hi) >= 2 and cr(hi[-2], hi[-1], x) <= 0:
+            hi.pop()
+        hi.append(x)
+    return lo[:-1] + hi[:-1]
 
 
 def truss_face(joints, widths, members, box, R):
@@ -180,7 +224,10 @@ def truss_face(joints, widths, members, box, R):
             qs.append(e.positionAt(t1 if t0 == 0.0 else t1))
         mid = (qs[0] + qs[1]) * 0.5
         if BRepClass_FaceClassifier(f.wrapped, gp_Pnt(mid.x, mid.y, mid.z), 1e-9).State() != TopAbs_IN:
-            concave.append(v)                  # the chord between the two edges leaves the face: concave
+            a1, a2 = (qs[0] - p).normalized(), (qs[1] - p).normalized()   # the chord leaves the face: concave;
+            ang = math.acos(max(-1.0, min(1.0, a1.dot(a2))))              # rounded if the fillet fits on both
+            if ang < math.radians(170) and R / math.tan(ang / 2) <= 0.5 * min(es[0].Length(), es[1].Length()):
+                concave.append(v)              # (edges and not nearly straight on)
     if not concave:
         return f
     # each wire rounded on its own (Face.fillet2D drops the holes of a face)
@@ -189,7 +236,16 @@ def truss_face(joints, widths, members, box, R):
     ws = []
     for w in [f.outerWire()] + f.innerWires():
         vs = [v for v in w.Vertices() if key(v) in ck]
-        ws.append(w.fillet2D(R, vs) if vs else w)
+        try:
+            ws.append(w.fillet2D(R, vs) if vs else w)
+        except Exception:                      # OCC refuses some corner: added one at a time, kept if it works
+            keep = []
+            for v in vs:
+                try:
+                    w.fillet2D(R, keep + [v]); keep.append(v)
+                except Exception:
+                    pass
+            ws.append(w.fillet2D(R, keep) if keep else w)
     return cq.Face.makeFromWires(ws[0], ws[1:])
 '''
 
@@ -197,78 +253,155 @@ exec(GEOM)
 
 
 # ---------------------------------------------------------------- parameters from truss2d.fit
-def params(R, box, H, digits=4):
-    """Script parameters from truss2d.fit's result: joints named J1.. (by x, then y), width classes w1.. (by
-    value), members with chord edges; webs as rectangles."""
-    used = sorted(R['J'], key=lambda q: (round(float(R['J'][q][0]), 3), round(float(R['J'][q][1]), 3)))
-    name = {q: 'J%d' % (i + 1) for i, q in enumerate(used)}
-    joints = {name[q]: tuple(round(float(c), digits) for c in R['J'][q]) for q in used}
-    ws = sorted({round(m[2], digits) for m in R['members']})
-    wname = {w: 'w%d' % (i + 1) for i, w in enumerate(ws)}
-    members = []
-    for a, c, w, edge, ext in R['members']:
-        m = dict(a=name[a], c=name[c], w=wname[round(w, digits)])
-        if edge is not None:
-            f, n = edge
-            m['edge'] = (tuple(round(float(v), 6) for v in f), tuple(round(float(v), 9) for v in n))
-            m['ext'] = tuple(round(float(e), digits) for e in ext)
-        members.append(m)
+PLANES = {2: "Front Plane", 1: "Top Plane", 0: "Right Plane"}
+
+
+def params(R, H, digits=4):
+    """Script parameters from truss2d.fit's result: one dict per structure (the face trusses "Truss", the face
+    layers "Base", "Base 2", ...): its plane (normal axis, frame (u, v)), box (u0, v0, u1, v1), faces (start along
+    the normal, direction), depth t and its variable, joints (J1.. / B1.., by u then v), width classes (w1.. / b1..),
+    members; the corner radius R (one for the part); webs (boxes between the truss faces)."""
+    out = []
+    nb = 0
+    for S in R['structures']:
+        if S['name'] == 'faces':
+            nm, jp, wp, tv = 'Truss', 'J', 'w', 't'
+        else:
+            nb += 1
+            nm, jp, wp, tv = ('Base', 'B', 'b', 'tb') if nb == 1 else ('Base %d' % nb, 'B%d_' % nb, 'b%d_' % nb, 'tb%d' % nb)
+        used = sorted(S['J'], key=lambda q: (round(float(S['J'][q][0]), 3), round(float(S['J'][q][1]), 3)))
+        name = {q: '%s%d' % (jp, i + 1) for i, q in enumerate(used)}
+        ws = sorted({round(m[2], digits) for m in S['members']})
+        ws = [float(w) for w in ws]
+        wname = {w: '%s%d' % (wp, i + 1) for i, w in enumerate(ws)}
+        members = []
+        for a, c, w, edge, ext in S['members']:
+            m = dict(a=name[a], c=name[c], w=wname[float(round(w, digits))])
+            if edge is not None:
+                f, n = edge
+                m['edge'] = (tuple(round(float(v), 6) for v in f), tuple(round(float(v), 9) for v in n))
+                m['ext'] = tuple(round(float(e), digits) for e in ext)
+            members.append(m)
+        used_j = {m['a'] for m in members} | {m['c'] for m in members}
+        bx = S['O'].bounds
+        if abs(S['O'].area - (bx[2] - bx[0]) * (bx[3] - bx[1])) > 1e-3:
+            raise ValueError('swtruss: the outline of %s is not a rectangle' % nm)
+        out.append(dict(name=nm, axis=int(S['axis']), frame=tuple(int(i) for i in S['frame']), plane=PLANES[S['axis']],
+                        box=tuple(round(float(v), 4) for v in bx), faces=[(round(float(w0), 4), d) for w0, d in S['faces']],
+                        t=float(round(float(S['t']), digits)), tvar=tv,
+                        joints={name[q]: tuple(round(float(c), digits) for c in S['J'][q]) for q in used if name[q] in used_j},
+                        widths={wname[w]: w for w in ws}, members=members, links={}))
+    # the face trusses' outline sides cut by a layer: linked to the layer's thickness
+    T = out[0]
+    for S, Sd in zip(out[1:], R['structures'][1:]):
+        ly = Sd['layer']
+        u, v = T['frame']
+        if ly['axis'] in (u, v):
+            side = {(v, 0): 0, (u, 1): 1, (v, 1): 2, (u, 0): 3}[(ly['axis'], ly['side'])]
+            T['links'][side] = S['tvar']
     webs = []
     for g, _ in R['webs']:
-        x0, y0, x1, y1 = g.bounds
-        webs.append(tuple(round(float(v), digits) for v in (x0, y0, x1, y1)))
-    used_j = {m['a'] for m in members} | {m['c'] for m in members}
-    return dict(joints={k: v for k, v in joints.items() if k in used_j}, widths={wname[w]: w for w in ws},
-                members=members, box=tuple(float(v) for v in box), H=float(H), t=round(float(R['t']), digits),
-                R=float(R['fillet']), webs=webs)
+        webs.append(tuple(round(float(v), digits) for v in g.bounds))
+    return dict(structures=out, R=float(R['fillet']), H=float(H), webs=webs)
+
+
+def to_model(shape, S):
+    """A solid built in the structure's local frame (x = u, y = v, z = the normal) placed in the model."""
+    import cadquery as cq
+    u, v = S['frame']; n = S['axis']
+    if (u, v, n) == (0, 1, 2):
+        return shape
+    M = [[0.0] * 4 for _ in range(3)]
+    M[u][0] = M[v][1] = M[n][2] = 1.0
+    return shape.transformGeometry(cq.Matrix(M + [[0.0, 0.0, 0.0, 1.0]]))
+
+
+def struct_solids(S, R, face=None):
+    """The structure's extrusions (one per face), in the model."""
+    import cadquery as cq
+    f = face or truss_face(S['joints'], S['widths'], S['members'], S['box'], R)
+    out = []
+    for w0, d in S['faces']:
+        s = cq.Solid.extrudeLinear(f, cq.Vector(0, 0, d * S['t'])).translate(cq.Vector(0, 0, w0))
+        out.append(to_model(s, S))
+    return f, out
+
+
+def web_solids(P):
+    import cadquery as cq
+    T = P['structures'][0]
+    (w0, _), (w1, _) = T['faces']
+    out = []
+    for x0, y0, x1, y1 in P['webs']:
+        s = cq.Solid.makeBox(x1 - x0, y1 - y0, (w1 - w0) - 2 * T['t'], cq.Vector(x0, y0, w0 + T['t']))
+        out.append(to_model(s, T))
+    return out
+
+
+def step_names(P):
+    names = []
+    for S in P['structures']:
+        names += ['%s face %d' % (S['name'], i + 1) if len(S['faces']) > 1 else S['name'] for i in range(len(S['faces']))]
+    return names + ['Web %d' % (i + 1) for i in range(len(P['webs']))]
 
 
 def solid(P):
-    """Truss faces and webs (CadQuery), and the solids after each feature (for the SolidWorks checks)."""
-    import cadquery as cq
-    f = truss_face(P['joints'], P['widths'], P['members'], P['box'], P['R'])
-    t, H = P['t'], P['H']
-    f1 = cq.Solid.extrudeLinear(f, cq.Vector(0, 0, t))
-    f2 = f1.translate(cq.Vector(0, 0, H - t))
-    steps = [('Truss face 1', f1), ('Truss face 2', f2)]
-    for i, (x0, y0, x1, y1) in enumerate(P['webs']):
-        steps.append(('Web %d' % (i + 1), cq.Solid.makeBox(x1 - x0, y1 - y0, H - 2 * t, cq.Vector(x0, y0, t))))
+    """Sections (per structure), the part, and the part after each feature (for the SolidWorks checks)."""
+    faces, pieces = [], []
+    for S in P['structures']:
+        f, ss = struct_solids(S, P['R'])
+        faces.append(f); pieces += ss
+    pieces += web_solids(P)
     part, out = None, []
-    for nm, s in steps:
+    for nm, s in zip(step_names(P), pieces):
         part = s if part is None else part.fuse(s).clean()
         out.append((nm, part))
-    return f, part, out
+    return faces, part, out
 
 
 # ---------------------------------------------------------------- CadQuery script
 def write_cq(path, P, title):
     L = ['"""%s: planar-truss model of a topology-optimized part (stl2cad, to/swtruss.py); units mm.' % title, '',
-         'Parameters: joints, member width classes, corner radius R, bar depth t; edit and run again:',
+         'Structures: the face trusses ("Truss": one section on both faces of the domain) and the face layers',
+         '("Base": a planar truss in the plane of the face it lies on). Parameters: joints, member width classes,',
+         'depth t of each structure, one corner radius R; edit and run again:',
          '    python %s [out.step]' % os.path.basename(path),
          'Members are bars between their joints; chords are strips flush with the outline (edge: a point on the',
          'outline and the inward normal; ext: run-on at free ends). Joints are mitred, concave corners rounded with R.',
-         'The section is extruded t on both faces of the domain (depth H); webs are boxes between the faces.',
+         'Each structure is built in its own frame (x = u, y = v, z = the normal axis) and placed in the model.',
          '"""', 'import math', 'import sys', '', 'import cadquery as cq', '',
-         '# ---- parameters ' + '-' * 60,
-         'JOINTS = {']
-    for k, v in P['joints'].items():
-        L.append('    %r: (%.4f, %.4f),' % (k, *v))
-    L += ['}', 'WIDTHS = {']
-    for k, v in P['widths'].items():
-        L.append('    %r: %.4f,' % (k, v))
-    L += ['}', 'MEMBERS = [']
-    for m in P['members']:
-        L.append('    %r,' % m)
-    L += [']', 'R = %.4g          # corner radius' % P['R'], 't = %.4f        # bar depth (each face)' % P['t'],
-          'BOX = %r    # domain section (x0, y0, x1, y1)' % (P['box'],), 'H = %.4f        # domain depth' % P['H'],
-          'WEBS = %r    # (x0, y0, x1, y1), between the faces' % (P['webs'],), '',
+         '# ---- parameters ' + '-' * 60, 'STRUCTURES = [']
+    for S in P['structures']:
+        L += ['    dict(', '        name=%r, axis=%d, frame=%r, box=%r,' % (S['name'], S['axis'], S['frame'], S['box']),
+              '        faces=%r,    # (start along the normal, direction)' % (S['faces'],),
+              '        t=%.4f,    # depth' % S['t'], '        joints={']
+        for k, v in S['joints'].items():
+            L.append('            %r: (%.4f, %.4f),' % (k, *v))
+        L += ['        },', '        widths=%r,' % (S['widths'],), '        members=[']
+        for m in S['members']:
+            L.append('            %r,' % m)
+        L += ['        ],', '    ),']
+    L += [']', 'R = %.4g          # corner radius (all structures)' % P['R'],
+          'WEBS = %r    # boxes between the truss faces (u0, v0, u1, v1)' % (P['webs'],), '',
           '# ---- geometry ' + '-' * 62, GEOM.strip(), '', '',
+          'def to_model(shape, S):',
+          '    u, v = S["frame"]; n = S["axis"]',
+          '    if (u, v, n) == (0, 1, 2):',
+          '        return shape',
+          '    M = [[0.0] * 4 for _ in range(3)]',
+          '    M[u][0] = M[v][1] = M[n][2] = 1.0',
+          '    return shape.transformGeometry(cq.Matrix(M + [[0.0, 0.0, 0.0, 1.0]]))', '', '',
           '# ---- part ' + '-' * 65,
-          'face = truss_face(JOINTS, WIDTHS, MEMBERS, BOX, R)',
-          'part = cq.Solid.extrudeLinear(face, cq.Vector(0, 0, t))',
-          'part = part.fuse(part.translate(cq.Vector(0, 0, H - t)))',
+          'part = None',
+          'for S in STRUCTURES:',
+          '    face = truss_face(S["joints"], S["widths"], S["members"], S["box"], R)',
+          '    for w0, d in S["faces"]:',
+          '        s = to_model(cq.Solid.extrudeLinear(face, cq.Vector(0, 0, d * S["t"])).translate(cq.Vector(0, 0, w0)), S)',
+          '        part = s if part is None else part.fuse(s)',
+          'T = STRUCTURES[0]',
+          '(w0, _), (w1, _) = T["faces"]',
           'for x0, y0, x1, y1 in WEBS:',
-          '    part = part.fuse(cq.Solid.makeBox(x1 - x0, y1 - y0, H - 2 * t, cq.Vector(x0, y0, t)))',
+          '    part = part.fuse(to_model(cq.Solid.makeBox(x1 - x0, y1 - y0, w1 - w0 - 2 * T["t"], cq.Vector(x0, y0, w0 + T["t"])), T))',
           'part = part.clean()',
           'print("volume %.3f mm^3, valid %s" % (part.Volume(), part.isValid()))',
           'cq.exporters.export(cq.Workplane().add(part), sys.argv[1] if len(sys.argv) > 1 else "%s.step")' % title, '']
@@ -320,21 +453,36 @@ def tag_edges(face, P):
         loop = [(e[0], snap(e[1]), e[2], e[3]) if e[0] == 'L' else (e[0], snap(e[1]), e[2], snap(e[3]), e[4])
                 for e in loop]
         loop = [(e[0], e[1], snap(e[2]), e[3]) if e[0] == 'L' else e for e in loop]
-        out.append(loop)
+        # consecutive collinear lines of one role: one line (two would over-define the sketch)
+        merged = []
+        for e in loop:
+            if merged and e[0] == 'L' and merged[-1][0] == 'L' and e[3] == merged[-1][3] and e[3][0] != 'D':
+                a, b, c = merged[-1][1], merged[-1][2], e[2]
+                if abs((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) < 1e-6 * math.dist(a, c):
+                    merged[-1] = ('L', a, c, e[3])
+                    continue
+            merged.append(e)
+        if len(merged) > 2 and merged[0][0] == merged[-1][0] == 'L' and merged[0][3] == merged[-1][3] \
+                and merged[0][3][0] != 'D':
+            a, b, c = merged[-1][1], merged[-1][2], merged[0][2]
+            if abs((b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])) < 1e-6 * math.dist(a, c):
+                merged = [('L', a, c, merged[0][3])] + merged[1:-1]
+        out.append(merged)
     return out
 
 
 SW = r'''"""@NAME@: SolidWorks feature tree of a planar-truss TO (stl2cad, to/swtruss.py), member-driven sketch.
 
-Feature tree:
-  Truss          sketch on the Front Plane: the truss section (lines, tangent arcs) and one construction centerline
-                 per member between its joints. Joints dimensioned from the origin; each member edge parallel to
-                 its centerline at "w_k" / 2; each chord's inner edge at "w_k" from the outline; one corner radius
-                 "R" (all fillet arcs equal); outline edges on the origin or dimensioned from it.
-  Truss face 1   Extruded Boss, depth "t", from the Front Plane.
-  Truss face 2   Extruded Boss of the same sketch from an offset H, reversed, depth "t" (else a copy of the sketch).
+Feature tree (one sketch per structure; the face trusses "Truss" on the Front Plane, face layers "Base" on the
+plane of their face):
+  <name>         sketch: the section (lines, tangent arcs) and one construction centerline per member between its
+                 joints. Joints dimensioned from the origin; each member edge parallel to its centerline at
+                 "w" / 2; each chord's inner edge at "w" from the outline; one corner radius "R" (all fillet arcs
+                 equal); outline edges on the origin or dimensioned from it (the trusses' side on a layer: "tb").
+  <name> face n  Extruded Boss of the sketch, depth "t" ("tb" for a layer), towards the part; the second face of the
+                 trusses from an offset H, reusing the same sketch (else a copy of it).
   Web n          rectangle on "Web plane" (z = "t"), Extruded Boss H - 2 "t" towards the other face.
-Global variables (Equation Manager): t, R and the member widths w1 ... (edit them there).
+Global variables (Equation Manager): t, tb, R and the member widths w1 ..., b1 ... (edit them there).
 After every feature the volume and centre of mass are compared with CadQuery's values (STEPS).
 
 Needs: Windows, SolidWorks, Python with pywin32.   Run: python @NAME@.py [C:\\path\\part.SLDPRT]
@@ -472,19 +620,28 @@ def arc_centre(s, mid, t):
     return ux, uy
 
 
-def draw_loops(sm, T, loops):
-    """Lines and arcs of the section (model mm); returns [[(entry, object)]] per loop."""
+def model_pt(S, p, w=0.0):
+    """Model point (mm) of the structure's local point p = (u, v) at a distance w along its normal."""
+    q = [0.0, 0.0, 0.0]
+    u, v = S["frame"]
+    q[u], q[v], q[S["axis"]] = p[0], p[1], w
+    return tuple(q)
+
+
+def draw_loops(sm, T, S, loops):
+    """Lines and arcs of the section (local mm); returns [[(entry, object)]] per loop."""
+    P = lambda p: to_sk(T, model_pt(S, p))
     out = []
     for loop in loops:
         objs = []
         for e in loop:
             if e[0] == "L":
-                g = sm.CreateLine(*to_sk(T, (*e[1], 0.0)), *to_sk(T, (*e[2], 0.0)))
+                g = sm.CreateLine(*P(e[1]), *P(e[2]))
             else:
                 c = arc_centre(e[1], e[2], e[3])
-                cross = (e[2][0] - e[1][0]) * (e[3][1] - e[1][1]) - (e[2][1] - e[1][1]) * (e[3][0] - e[1][0])
-                g = sm.CreateArc(*to_sk(T, (*c, 0.0)), *to_sk(T, (*e[1], 0.0)), *to_sk(T, (*e[3], 0.0)),
-                                 1 if cross > 0 else -1)          # +1: counter-clockwise
+                a, b, d = (P(q)[:2] for q in (e[1], e[2], e[3]))      # direction in the sketch's own axes
+                cross = (b[0] - a[0]) * (d[1] - a[1]) - (b[1] - a[1]) * (d[0] - a[0])
+                g = sm.CreateArc(*P(c), *P(e[1]), *P(e[3]), 1 if cross > 0 else -1)   # +1: counter-clockwise
             objs.append((e, g))
         out.append(objs)
     return out
@@ -528,11 +685,12 @@ def dim(m, objs, kind, text, what):
     return None
 
 
-def point_at(objs, p, tol=1e-6):
+def point_at(objs, xy, tol=1e-9):
+    """An end point of one of objs at the sketch point xy (m)."""
     for e, g in objs:
         for nm in ("GetStartPoint2", "GetEndPoint2"):
             q = call0(g, nm)
-            if q is not None and math.hypot(q.X / MM - p[0], q.Y / MM - p[1]) < tol:
+            if q is not None and math.hypot(q.X - xy[0], q.Y - xy[1]) < tol:
                 return q
     return None
 
@@ -545,77 +703,86 @@ def equation(m, text):
         LOG["eqs_failed"].append(f"{text} ({type(ex).__name__})")
 
 
-def truss_sketch(m, dimension=True):
-    sm, T = open_sketch(m, "Front Plane")
-    E = draw_loops(sm, T, LOOPS)
+def truss_sketch(m, S, dimension=True):
+    """The structure's sketch on its plane: the section, construction centerlines, relations and dimensions.
+    Returns the sketch feature and [(dimension name, expression)] to link to the global variables."""
+    sm, T = open_sketch(m, S["plane"])
+    E = draw_loops(sm, T, S, S["loops"])
     flat = [x for loop in E for x in loop]
+    skp = lambda p: to_sk(T, model_pt(S, p))[:2]                     # sketch point (m) of a local point
+    txt = lambda p: tuple(c / MM for c in skp(p))                    # (mm, for dimension text)
+    o, ex = skp((0.0, 0.0)), skp((1.0, 0.0))
+    swap = abs(ex[1] - o[1]) > abs(ex[0] - o[0])                     # local u along the sketch's y axis
+    hv = lambda k: {"H": "V", "V": "H", "sgHORIZONTAL2D": "sgVERTICAL2D", "sgVERTICAL2D": "sgHORIZONTAL2D",
+                    "sgHORIZONTALPOINTS2D": "sgVERTICALPOINTS2D",
+                    "sgVERTICALPOINTS2D": "sgHORIZONTALPOINTS2D"}[k] if swap else k
+    J, MB, box = S["joints"], S["members"], S["box"]
     cl = {}
-    for i, mb in enumerate(MEMBERS):          # construction centerlines (not chords)
+    for i, mb in enumerate(MB):               # construction centerlines (not chords)
         if mb.get("edge") is None:
-            a, c = JOINTS[mb["a"]], JOINTS[mb["c"]]
-            cl[i] = sm.CreateCenterLine(*to_sk(T, (*a, 0.0)), *to_sk(T, (*c, 0.0)))
+            cl[i] = sm.CreateCenterLine(*to_sk(T, model_pt(S, J[mb["a"]])), *to_sk(T, model_pt(S, J[mb["c"]])))
     sm.AddToDB = False
     links = []
     if dimension:
         # joints: centerline ends coincident; one end per joint dimensioned from the origin
-        for j, p in JOINTS.items():
-            pts = [point_at([(None, cl[i])], p) for i in cl if j in (MEMBERS[i]["a"], MEMBERS[i]["c"])]
+        for j, p in J.items():
+            pts = [point_at([(None, cl[i])], skp(p)) for i in cl if j in (MB[i]["a"], MB[i]["c"])]
             pts = [q for q in pts if q is not None]
             for q in pts[1:]:
-                rel(m, [pts[0], q], "sgCOINCIDENT", f"joint {j}")
+                rel(m, [pts[0], q], "sgCOINCIDENT", f"{S['name']} joint {j}")
             if pts:
-                if abs(p[0]) > 1e-9:
-                    dim(m, [pts[0], "ORIGIN"], "H", (p[0] / 2, p[1] + 4), f"joint {j} x")
-                else:
-                    rel(m, [pts[0], "ORIGIN"], "sgVERTICALPOINTS2D", f"joint {j} on x = 0")
-                if abs(p[1]) > 1e-9:
-                    dim(m, [pts[0], "ORIGIN"], "V", (p[0] + 4, p[1] / 2), f"joint {j} y")
-                else:
-                    rel(m, [pts[0], "ORIGIN"], "sgHORIZONTALPOINTS2D", f"joint {j} on y = 0")
-        # outline edges: horizontal / vertical; the first piece of each side on the origin or dimensioned,
-        # the others collinear with it
+                for k, kind, relk in ((0, "H", "sgVERTICALPOINTS2D"), (1, "V", "sgHORIZONTALPOINTS2D")):
+                    if abs(p[k]) > 1e-9:
+                        q2 = (p[0] / 2, p[1] + 4) if k == 0 else (p[0] + 4, p[1] / 2)
+                        dim(m, [pts[0], "ORIGIN"], hv(kind), txt(q2), f"{S['name']} joint {j} {'uv'[k]}")
+                    else:
+                        rel(m, [pts[0], "ORIGIN"], hv(relk), f"{S['name']} joint {j} on the axis")
+        # outline edges: along the local axes; the first piece of each side on the origin or dimensioned (linked
+        # to a layer's thickness where the side was cut by that layer), the others collinear with it
         first = {}
         for e, g in flat:
             if e[0] == "L" and e[3][0] == "D":
                 side = e[3][1]
-                rel(m, [g], "sgHORIZONTAL2D" if side in (0, 2) else "sgVERTICAL2D", f"outline side {side}")
+                rel(m, [g], hv("sgHORIZONTAL2D" if side in (0, 2) else "sgVERTICAL2D"), f"{S['name']} outline {side}")
                 if side in first:
-                    rel(m, [first[side], g], "sgCOLINEAR", f"outline side {side} piece")
+                    rel(m, [first[side], g], "sgCOLINEAR", f"{S['name']} outline {side} piece")
                     continue
                 first[side] = g
-                if side == 0 and abs(BOX[1]) < 1e-9 or side == 3 and abs(BOX[0]) < 1e-9:
-                    rel(m, [g, "ORIGIN"], "sgCOINCIDENT", f"outline side {side} on the origin")
+                if side == 0 and abs(box[1]) < 1e-9 or side == 3 and abs(box[0]) < 1e-9:
+                    rel(m, [g, "ORIGIN"], "sgCOINCIDENT", f"{S['name']} outline {side} on the origin")
                 else:
                     q = call0(g, "GetStartPoint2")
-                    dim(m, [q, "ORIGIN"], "V" if side in (0, 2) else "H", (e[1][0] + 4, e[1][1] + 4),
-                        f"outline side {side}")
+                    nm = dim(m, [q, "ORIGIN"], hv("V" if side in (0, 2) else "H"), txt((e[1][0] + 4, e[1][1] + 4)),
+                             f"{S['name']} outline {side}")
+                    if nm and side in S["links"]:
+                        links.append((nm, '"%s"' % S["links"][side]))
         # member edges: parallel to the centerline at w/2; chord inner edges parallel to the outline at w
         for e, g in flat:
             if e[0] != "L":
                 continue
             tg = e[3]
+            mid = ((e[1][0] + e[2][0]) / 2 + 2, (e[1][1] + e[2][1]) / 2 + 2)
             if tg[0] == "M":
                 i = tg[1]
-                rel(m, [g, cl[i]], "sgPARALLEL", f"member {i} edge")
-                mid = ((e[1][0] + e[2][0]) / 2, (e[1][1] + e[2][1]) / 2)
-                nm = dim(m, [g, cl[i]], "any", (mid[0] + 2, mid[1] + 2), f"member {i} edge offset")
+                rel(m, [g, cl[i]], "sgPARALLEL", f"{S['name']} member {i} edge")
+                nm = dim(m, [g, cl[i]], "any", txt(mid), f"{S['name']} member {i} edge offset")
                 if nm:
-                    links.append((nm, '"%s" / 2' % MEMBERS[i]["w"]))
+                    links.append((nm, '"%s" / 2' % MB[i]["w"]))
             elif tg[0] == "C":
                 i = tg[1]
-                side = CHORD_SIDE[i]
+                side = S["chord_side"][i]
                 if side in first:
-                    rel(m, [g, first[side]], "sgPARALLEL", f"chord {i} edge")
-                    mid = ((e[1][0] + e[2][0]) / 2, (e[1][1] + e[2][1]) / 2)
-                    nm = dim(m, [g, first[side]], "any", (mid[0] + 2, mid[1] + 2), f"chord {i} width")
+                    rel(m, [g, first[side]], "sgPARALLEL", f"{S['name']} chord {i} edge")
+                    nm = dim(m, [g, first[side]], "any", txt(mid), f"{S['name']} chord {i} width")
                     if nm:
-                        links.append((nm, '"%s"' % MEMBERS[i]["w"]))
+                        links.append((nm, '"%s"' % MB[i]["w"]))
             elif tg[0] == "E":
                 i = tg[1]
-                side = CHORD_SIDE[i]
-                rel(m, [g], "sgVERTICAL2D" if side in (0, 2) else "sgHORIZONTAL2D", f"chord {i} end")
+                side = S["chord_side"][i]
+                rel(m, [g], hv("sgVERTICAL2D" if side in (0, 2) else "sgHORIZONTAL2D"), f"{S['name']} chord {i} end")
                 q = call0(g, "GetStartPoint2")
-                dim(m, [q, "ORIGIN"], "H" if side in (0, 2) else "V", (e[1][0] + 2, e[1][1] - 4), f"chord {i} end")
+                dim(m, [q, "ORIGIN"], hv("H" if side in (0, 2) else "V"), txt((e[1][0] + 2, e[1][1] - 4)),
+                    f"{S['name']} chord {i} end")
         # fillet arcs: tangent to their neighbours, equal, one radius
         arc0 = None
         for loop in E:
@@ -624,18 +791,18 @@ def truss_sketch(m, dimension=True):
                     continue
                 for nb in (loop[k - 1], loop[(k + 1) % len(loop)]):
                     if nb[0][0] == "L":
-                        rel(m, [g, nb[1]], "sgTANGENT", "fillet tangency")
+                        rel(m, [g, nb[1]], "sgTANGENT", f"{S['name']} fillet tangency")
                 if arc0 is None:
                     arc0 = g
-                    nm = dim(m, [g], "any", (e[2][0] + 3, e[2][1] + 3), "corner radius")
+                    nm = dim(m, [g], "any", txt((e[2][0] + 3, e[2][1] + 3)), f"{S['name']} corner radius")
                     if nm:
                         links.append((nm, '"R"'))
                 else:
-                    rel(m, [arc0, g], "sgSAMELENGTH", "equal radius")
+                    rel(m, [arc0, g], "sgSAMELENGTH", f"{S['name']} equal radius")
     m.ClearSelection2(True)
     sm.InsertSketch(True)
     f = m.FeatureByPositionReverse(0)
-    f.Name = "Truss" if dimension else "Truss copy"
+    f.Name = S["name"] if dimension else S["name"] + " copy"
     return f, links
 
 
@@ -671,9 +838,10 @@ def plane_at(m, z, name):
 
 
 def web(m, plane, k, box):
+    S = STRUCTS[0]
     x0, y0, x1, y1 = box
     sm, T = open_sketch(m, plane)
-    z = T_DEPTH
+    z = S["faces"][0][0] + S["t"]
     c = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
     ln = [sm.CreateLine(*to_sk(T, (*c[i], z)), *to_sk(T, (*c[(i + 1) % 4], z))) for i in range(4)]
     sm.AddToDB = False
@@ -683,6 +851,7 @@ def web(m, plane, k, box):
     dim(m, [ln[0]], "any", ((x0 + x1) / 2, y0 - 3), f"web {k} length")
     dim(m, [ln[3]], "any", (x0 - 3, (y0 + y1) / 2), f"web {k} height")
     # position: a web at the domain's end is placed by that end (on the origin, or dimensioned from it)
+    BOX = S["box"]
     q, qx = (pts[1], x1) if abs(x1 - BOX[2]) < 1e-9 and abs(x0 - BOX[0]) > 1e-9 else (pts[0], x0)
     if abs(qx) > 1e-9:
         dim(m, [q, "ORIGIN"], "H", (qx / 2, y0 - 6), f"web {k} position")
@@ -695,7 +864,7 @@ def web(m, plane, k, box):
     sk.Name = f"Web {k} sketch"
     f = None
     for rev in (False, True):                 # towards +z from the plane at z = t; the side checked by volume
-        f = boss(m, sk, H - 2 * T_DEPTH, reverse=rev)
+        f = boss(m, sk, abs(S["faces"][1][0] - S["faces"][0][0]) - 2 * S["t"], reverse=rev)
         if f is None:
             continue
         f.Name = f"Web {k}"
@@ -715,41 +884,60 @@ def status(f):
         return f"not available ({type(ex).__name__})"
 
 
+def boss_checked(m, sk, S, i, name):
+    """Extruded Boss of the structure's face i: blind t from its start, towards the part; the direction is
+    checked by the volume (the reverse is tried when it differs)."""
+    w0, d = S["faces"][i]
+    off = None if abs(w0) < 1e-9 else abs(w0)
+    for rev in ((d < 0, d >= 0) if off is None else (True, False)):
+        f = boss(m, sk, S["t"], offset=off, reverse=rev)
+        if f is None:
+            continue
+        f.Name = name
+        v, c = mass(m)
+        if abs(v - STEPS[name][0]) <= TOL * STEPS[name][0]:
+            return f
+        m.ClearSelection2(True); f.Select2(False, 0); m.Extension.DeleteSelection2(0)
+    return None
+
+
 def build():
     m = new_part()
     ok = True
-    sk, links = truss_sketch(m)
-    print(f"Truss sketch: {status(sk)}; {LOG['rels']} relations, {LOG['dims']} dimensions")
-    f1 = boss(m, sk, T_DEPTH)
-    if f1 is not None:
-        f1.Name = "Truss face 1"
-    ok &= check(m, "Truss face 1", f1)
-    f2 = boss(m, sk, T_DEPTH, offset=H, reverse=True)            # the same sketch, from z = H towards the part
-    if f2 is None or not check(m, "Truss face 2", f2):
-        if f2 is not None:
-            m.ClearSelection2(True); f2.Select2(False, 0); m.Extension.DeleteSelection2(0)
-        print("Truss face 2: the shared sketch was not used; a copy of the sketch instead")
-        sk2, _ = truss_sketch(m, dimension=False)
-        f2 = boss(m, sk2, T_DEPTH, offset=H, reverse=True)
-        ok &= check(m, "Truss face 2", f2)
-    if f2 is not None:
-        f2.Name = "Truss face 2"
-    wp = plane_at(m, T_DEPTH, "Web plane") if WEBS else None
+    links, depth = [], []
+    for S in STRUCTS:
+        sk, lk = truss_sketch(m, S)
+        links += lk
+        print(f"{S['name']} sketch: {status(sk)}; {LOG['rels']} relations, {LOG['dims']} dimensions so far")
+        for i in range(len(S["faces"])):
+            name = f"{S['name']} face {i + 1}" if len(S["faces"]) > 1 else S["name"]
+            f = boss_checked(m, sk, S, i, name)
+            if f is None and i > 0:           # the shared sketch refused: a copy of it (geometry only)
+                print(f"{name}: the shared sketch was not used; a copy of the sketch instead")
+                sk2, _ = truss_sketch(m, S, dimension=False)
+                f = boss_checked(m, sk2, S, i, name)
+            ok &= check(m, name, f)
+            depth.append((name, S["tvar"]))
+    S0 = STRUCTS[0]
+    wp = plane_at(m, S0["faces"][0][0] + S0["t"], "Web plane") if WEBS else None
     for k, box in enumerate(WEBS, 1):
         ok &= check(m, f"Web {k}", web(m, wp, k, box))
     # global variables and links
-    equation(m, f'"t" = {T_DEPTH:g}mm')
+    for S in STRUCTS:
+        equation(m, f'"{S["tvar"]}" = {S["t"]:g}mm')
     equation(m, f'"R" = {R_CORNER:g}mm')
-    for w, v in WIDTHS.items():
-        equation(m, f'"{w}" = {v:g}mm')
+    for S in STRUCTS:
+        for w, v in S["widths"].items():
+            equation(m, f'"{w}" = {v:g}mm')
     for nm, expr in links:
         equation(m, f'"{nm}" = {expr}')
-    for nm in ("D1@Truss face 1", "D1@Truss face 2"):
-        equation(m, f'"{nm}" = "t"')
+    for nm, tv in depth:
+        equation(m, f'"D1@{nm}" = "{tv}"')
     if WEBS:
-        equation(m, '"D1@Web plane" = "t"')
-    for k in range(1, len(WEBS) + 1):
-        equation(m, f'"D1@Web {k}" = {H:g}mm - 2 * "t"')
+        H0 = abs(S0["faces"][1][0] - S0["faces"][0][0])
+        equation(m, f'"D1@Web plane" = "{S0["tvar"]}"')
+        for k in range(1, len(WEBS) + 1):
+            equation(m, f'"D1@Web {k}" = {H0:g}mm - 2 * "{S0["tvar"]}"')
     try:
         m.EditRebuild3()
     except Exception:
@@ -761,7 +949,6 @@ def build():
     print(f"dimensions: {LOG['dims']} added" + (f"; failed: {LOG['dims_failed']}" if LOG['dims_failed'] else ""))
     print(f"equations: {LOG['eqs']} added" + (f"; failed: {LOG['eqs_failed']}" if LOG['eqs_failed'] else ""))
     print(f"independent parameters: {N_PARAMS}")
-    print("Truss sketch: " + status(sk))
     print("all features " + ("agree" if ok else "do NOT all agree"))
     return m
 
@@ -778,32 +965,32 @@ if __name__ == "__main__":
 
 
 def write_sw(path, P, loops, steps, title):
-    chord_side = {}
-    x0, y0, x1, y1 = P['box']
-    for i, m in enumerate(P['members']):
-        if m.get('edge') is not None:
-            (fx, fy), (nx, ny) = m['edge']
-            chord_side[i] = 0 if ny > 0.5 else 2 if ny < -0.5 else 3 if nx > 0.5 else 1
-    n_joint = sum((abs(p[0]) > 1e-9) + (abs(p[1]) > 1e-9) for j, p in P['joints'].items()
-                  if any(j in (m['a'], m['c']) for m in P['members'] if m.get('edge') is None))
-    n_end = sum(1 for lp in loops for e in lp if e[0] == 'L' and e[3][0] == 'E')
-    n_web = sum(2 + (abs(b[0] - x0) > 1e-9) for b in P['webs'])
-    n_params = n_joint + len(P['widths']) + 2 + n_end + n_web
-    D = ['H = %.6f                 # domain depth (mm)' % P['H'],
-         'BOX = %r' % (P['box'],),
-         'T_DEPTH = %.6f            # global variable "t"' % P['t'],
-         'R_CORNER = %.6g            # global variable "R"' % P['R'],
-         'WIDTHS = %r' % (P['widths'],),
-         'JOINTS = %r' % ({k: tuple(v) for k, v in P['joints'].items()},),
-         'MEMBERS = %r' % (P['members'],),
-         'CHORD_SIDE = %r            # outline side of each chord (0 y0, 1 x1, 2 y1, 3 x0)' % chord_side,
+    """loops: per structure (tag_edges). Returns the number of independent parameters."""
+    structs, npar, notes = [], 0, []
+    for S, lp in zip(P['structures'], loops):
+        x0, y0, x1, y1 = S['box']
+        cs = {}
+        for i, m in enumerate(S['members']):
+            if m.get('edge') is not None:
+                (fx, fy), (nx, ny) = m['edge']
+                cs[i] = 0 if ny > 0.5 else 2 if ny < -0.5 else 3 if nx > 0.5 else 1
+        nj = sum((abs(p[0]) > 1e-9) + (abs(p[1]) > 1e-9) for j, p in S['joints'].items()
+                 if any(j in (m['a'], m['c']) for m in S['members'] if m.get('edge') is None))
+        ne = sum(1 for L in lp for e in L if e[0] == 'L' and e[3][0] == 'E')
+        npar += nj + len(S['widths']) + 1 + ne
+        notes.append('%s: joints %d, widths %d, depth 1, chord ends %d' % (S['name'], nj, len(S['widths']), ne))
+        d = dict(S); d['loops'] = lp; d['chord_side'] = cs
+        structs.append(d)
+    nw = sum(2 + (abs(b[0] - P['structures'][0]['box'][0]) > 1e-9) for b in P['webs'])
+    npar += 1 + nw
+    notes.append('R 1, webs %d' % nw)
+    D = ['R_CORNER = %.6g            # global variable "R"' % P['R'],
          'WEBS = %r' % (P['webs'],),
-         'N_PARAMS = %d             # joints %d, widths %d, R and t, chord ends %d, webs %d' %
-         (n_params, n_joint, len(P['widths']), n_end, n_web),
-         'LOOPS = ['] + ['    %r,' % lp for lp in loops] + [']', 'STEPS = {'] + \
+         'N_PARAMS = %d             # %s' % (npar, '; '.join(notes)),
+         'STRUCTS = ['] + ['    %r,' % S for S in structs] + [']', 'STEPS = {'] + \
         ['    %r: (%.4f, %r),' % (nm, v, c) for nm, v, c in steps] + ['}']
     open(path, 'w').write(SW.replace('@NAME@', title).replace('@DATA@', '\n'.join(D)))
-    return n_params
+    return npar
 
 
 def verify(script, ref, timeout=900):
@@ -816,9 +1003,10 @@ def verify(script, ref, timeout=900):
     open(py, 'w').write(open(script).read())
     pkg = os.path.dirname(stl2cad.__file__)
     env = dict(os.environ, PYTHONPATH=os.pathsep.join([os.path.join(pkg, 'swmock'), os.path.dirname(pkg)]),
-               SWMOCK_CUT_REVERSED='1', SWMOCK_BOSS_REVERSED='0', SWMOCK_EDGE_SIGHT='1')
+               SWMOCK_CUT_REVERSED='1', SWMOCK_BOSS_REVERSED='0', SWMOCK_EDGE_SIGHT='1',
+               SWMOCK_FRONT_ONLY='0')       # sketches on the plane selected (SolidWorks 2025 with open_sketch's
     r = subprocess.run([sys.executable, py, out], capture_output=True, text=True, timeout=timeout, env=env)
-    log = r.stdout + r.stderr
+    log = r.stdout + r.stderr                # retries: the bike hook's Top Plane sketches)
     if r.returncode != 0 or not os.path.exists(out):
         return False, log
     s = cq.importers.importStep(out).val()
@@ -847,25 +1035,25 @@ def main():
     to = trimesh.load(a.to); to.apply_scale(sc)
     to = max(to.split(only_watertight=False), key=lambda b: len(b.faces))
     R = truss2d.fit(to, orig, a.detail)
-    R['fillet'] = float('%.2g' % (truss2d.FILLET_SHARE * min(m[2] for m in R['members'])))
-    k = R['axis']
-    if k != 2:
-        sys.exit('swtruss: the mirror axis must be z (the Front Plane sketch); got %s' % 'xyz'[k])
+    R['fillet'] = float('%.2g' % (truss2d.FILLET_SHARE * min(m[2] for S in R['structures'] for m in S['members'])))
     ob = orig.bounds
-    P = params(R, (ob[0][0], ob[0][1], ob[1][0], ob[1][1]), ob[1][2] - ob[0][2])
-    f0 = truss_face(P['joints'], P['widths'], P['members'], P['box'], P['R'])
-    P['t'] = round(R['v_truss'] / f0.Area(), 4)          # flat bars of the face's truss volume
-    print('bar depth t = %.4f mm (truss volume of one face over the section area)' % P['t'])
-    face, part, steps = solid(P)
+    P = params(R, ob[1][R['axis']] - ob[0][R['axis']])
+    for S, Sd in zip(P['structures'], R['structures']):    # flat bars of the structure's volume
+        if Sd['name'] == 'faces':                        # (a layer keeps the fit's depth: the trusses stand on it)
+            f0 = truss_face(S['joints'], S['widths'], S['members'], S['box'], P['R'])
+            S['t'] = float(round(float(Sd['v']) / f0.Area(), 4))
+        print('%s: depth %s = %.4f mm (volume %.0f mm^3)' % (S['name'], S['tvar'], S['t'], Sd['v']))
+    faces, part, steps = solid(P)
     write_cq(a.name + '.py', P, a.name)
     r = subprocess.run([sys.executable, a.name + '.py', a.name + '.step'], capture_output=True, text=True)
     print('CadQuery script: ' + (r.stdout.strip() or r.stderr.strip()[-300:]))
     import cadquery as cq
     cq.exporters.export(cq.Workplane().add(part), a.name + '.stl', tolerance=0.02, angularTolerance=0.2)
-    loops = tag_edges(face, P)
-    tags = [e[-1][0] for lp in loops for e in lp]
-    print('section: %d loops, %d edges (%s)' % (len(loops), len(tags),
-          ', '.join('%s %d' % (t, tags.count(t)) for t in 'DMCEAB' if tags.count(t))))
+    loops = [tag_edges(f, S) for f, S in zip(faces, P['structures'])]
+    for S, lp in zip(P['structures'], loops):
+        tags = [e[-1][0] for L in lp for e in L]
+        print('%s section: %d loops, %d edges (%s)' % (S['name'], len(lp), len(tags),
+              ', '.join('%s %d' % (t, tags.count(t)) for t in 'DMCEAB' if tags.count(t))))
     st = [(nm, s.Volume(), tuple(round(v, 4) for v in s.Center().toTuple())) for nm, s in steps]
     npar = write_sw(a.name + '_solidworks.py', P, loops, st, a.name + '_solidworks')
     ok, log = verify(a.name + '_solidworks.py', part)
@@ -877,13 +1065,16 @@ def main():
     m = tm.load(a.name + '.stl')
     print('volume: TO %.0f, model %.0f mm^3 (%+.1f %%); independent parameters %d'
           % (to.volume, m.volume, 100 * (m.volume / to.volume - 1), npar))
-    L = ['%s: planar truss (to/swtruss.py, detail %d); units mm.' % (a.name, a.detail),
-         'Bar depth t = %.4f on both faces; corner radius R = %.4g; domain depth H = %.4f.' % (P['t'], P['R'], P['H']),
-         '', 'joints:'] + ['  %-4s %9.4f %9.4f' % (j, *p) for j, p in P['joints'].items()] + \
-        ['', 'widths:'] + ['  %-4s %.4f' % kv for kv in P['widths'].items()] + \
-        ['', 'members:'] + ['  %s - %s  %s%s' % (mb['a'], mb['c'], mb['w'], '  chord, run-on %s' % (mb['ext'],)
-                                                 if mb.get('edge') is not None else '') for mb in P['members']] + \
-        ['', 'webs (x0, y0, x1, y1):'] + ['  %r' % (w,) for w in P['webs']]
+    L = ['%s: planar trusses (to/swtruss.py, detail %d); units mm; corner radius R = %.4g.' % (a.name, a.detail, P['R'])]
+    for S in P['structures']:
+        u, v = S['frame']
+        L += ['', '%s: plane normal to %s (local u = %s, v = %s), outline %r; faces (start, direction) %r; depth %s = %.4f'
+              % (S['name'], 'xyz'[S['axis']], 'xyz'[u], 'xyz'[v], S['box'], S['faces'], S['tvar'], S['t']),
+              '  joints (u, v):'] + ['    %-4s %9.4f %9.4f' % (j, *p) for j, p in S['joints'].items()] + \
+             ['  widths:'] + ['    %-4s %.4f' % kv for kv in S['widths'].items()] + \
+             ['  members:'] + ['    %s - %s  %s%s' % (mb['a'], mb['c'], mb['w'], '  chord, run-on %s' % (mb['ext'],)
+                                                     if mb.get('edge') is not None else '') for mb in S['members']]
+    L += ['', 'webs (u0, v0, u1, v1), between the truss faces:'] + ['  %r' % (w,) for w in P['webs']]
     open(a.name + '_truss.txt', 'w').write('\n'.join(L) + '\n')
 
 

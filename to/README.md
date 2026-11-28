@@ -99,43 +99,50 @@ handled. The stand-in check of the bar model runs with a volume check after ever
 fails on some bars there; the fillet is not checked by the stand-in.
 
 
-## Planar trusses on both faces (`truss2d.py`, `swtruss.py`)
+## Planar trusses on the faces (`truss2d.py`, `swtruss.py`)
 
-For a mirror-symmetric TO that is a planar truss on each face of the domain joined by full-depth webs (cantilever
-Case 7, class 8/9: rods + plate). `truss2d.fit` finds the truss; `swtruss.py` builds member-driven models from it.
+For a mirror-symmetric TO whose members all lie in faces of the domain (cantilever Case 7: a truss on each z face,
+and on the bottom face y = 0 a plate, a bar and a fork whose arms run inclined to the xy plane out to both faces).
+Each face structure is planar: a sketch on its own plane, extruded to its depth (no 3D lofts). The 3D medial axis of
+the TO confirms the planes: its points lie at z = 0-4 and 16-20 (face trusses) and y = 1.0-2.0 (the base).
 
-Truss (`truss2d.fit`): mirror axis and web/truss break b (two-piece fit of A(h)); projection of one face's truss,
-2D skeleton graph (spurs ending on the outline kept: supports), straight members, joints merged in clusters;
-member lines fitted to their skeleton pixels, joints at the least-squares intersection of their lines; widths in
-classes by detail level; chords (members along which the TO reaches the outline) flush with the outline, free
-chord ends run on as far as the TO, ends near the outline run on to it; webs from the web core as flush strips.
+Fit (`truss2d.fit`): mirror axis; face layers on the other faces (the section area at a depth from the face is
+LAYER x larger in a first piece than beyond it, and the band holds material near the mid-plane: the top chords at
+y = 40 are not a layer); each layer fitted as a planar truss in its own plane (`_planar`), its depth by volume; the
+face trusses fitted from the material outside the layers, their outline starting at each layer's depth (they stand
+on it). `_planar`: projection, pinholes filled, 2D skeleton graph (spurs ending on the outline kept: supports),
+Douglas-Peucker members, split where the width steps (a plate running into a bar), joints merged in clusters
+(narrower half-width), member lines fitted to their skeleton pixels, joints at the least-squares intersection in
+the directions the lines fix (nearly parallel lines keep the skeleton position), width classes, chords flush with
+the outline.
 
-Models (`swtruss.py`): parameters = joints, width classes, one corner radius R, bar depth t (the face's truss volume
-over the section area). Members are bars between their joints, chords strips flush with the outline; joints are
-mitred (a chord end ends where its outer edge meets the outer edge of the member carrying on past it); concave
-corners rounded with R. The CadQuery script holds the parameters and the geometry code: edit a joint or a width and
-run it again. SolidWorks: one sketch "Truss" (construction centerlines between the joints, each joint dimensioned
-from the origin, member edges parallel to their centerline at "w"/2, chord edges at "w" from the outline, equal
-tangent arcs with radius "R"), extruded "t" on both faces (the second face from the same, shared sketch: one set
-of parameters), webs on a plane at z = "t"; global variables t, R, w1 ... in the Equation Manager.
+Models (`swtruss.py`): per structure, joints, width classes and a depth; one corner radius R. Bars between joints,
+chords flush with the outline, mitred joints (bevels for nearly straight continuations, chord ends mitred with the
+member carrying on past them), concave corners rounded with R where the fillet fits. The CadQuery script holds the
+parameters and the geometry code (edit and run again). SolidWorks: sketch "Truss" on the Front Plane (extruded "t"
+on both faces, the second face reusing the sketch) and sketch "Base" on the Top Plane (extruded "tb"); joints
+dimensioned from the origin, member edges at "w"/2 from construction centerlines, chord edges at "w" from the
+outline, the trusses' bottom edge at "tb"; global variables t, tb, R, w1.., b1...
 
     python swtruss.py ../casestudies/cantilever/Case7/Cantilever.STL ../casestudies/cantilever/Case7/Cantilever_finalIsoBinary.stl cantilever7_d4 --units m --detail 4
 
-Cantilever 7 (stand-in: every feature agrees at every level; 54 relations, 27 dimensions):
+Cantilever 7 (stand-in: every feature agrees at every level, no relation or dimension fails):
 
-| detail | joints / members | widths (mm) | t (mm) | volume vs TO | independent parameters |
-|---|---|---|---|---|---|
-| 1 | 7 / 7 | 4.14 | 3.30 | +0.6 % | 17 |
-| 2 | 7 / 7 | 3.30, 4.76 | 3.32 | +0.5 % | 18 |
-| 3 | 9 / 9 | 3.57, 5.22 | 3.22 | +0.8 % | 18 |
-| 4 | 9 / 9 | 3.23, 4.25, 5.42 | 3.23 | +0.8 % | 19 |
-| 5 | 10 / 10 | 6 widths | 3.26 | +0.7 % | 22 |
+| detail | t / tb (mm) | volume vs TO | independent parameters |
+|---|---|---|---|
+| 1 | 3.96 / 2.64 | -3.8 % | 26 |
+| 2 | 3.19 / 2.39 | -3.4 % | 30 |
+| 3 | 3.05 / 2.39 | -3.4 % | 30 |
+| 4 | 3.17 / 2.54 | -4.2 % | 29 |
+| 5 | 3.20 / 2.46 | -4.6 % | 47 |
 
-Voxel overlap at detail 4: 74 % of the TO in the model, 77 % of the model in the TO (a round TO member about 5 mm
-across becomes a flat bar of equal area). Not yet run in SolidWorks: the shared sketch for the second face, the
-line-to-line distance dimensions and the equations are the calls to watch (the script falls back to a copy of the
-sketch for the second face). Limits: the truss must be planar, on the faces, and normal to z (Front Plane); no
-fillet where the webs meet the truss faces.
+Detail 4: voxel overlap 77 % of the TO in the model, 80 % of the model in the TO; member centre lines against the
+3D medial axis: face trusses median 0.29 mm (90 % within 0.74 mm), base bar and arms median 0.98 mm, at most
+2.3 mm where the arms bend after the fork (straight at detail 4; detail 5 bends them). Not modelled: the small
+post at the tip between the faces (about 400 mm^3, below the web threshold). Not yet run in SolidWorks; watch the
+Top Plane sketch (the stand-in was run with sketches on the plane selected, as the bike hook's SolidWorks 2025 run
+showed), the shared sketch for the second face, line-to-line distance dimensions and the equations. The bevel
+edges carry no relation, so the sketches may be under-defined there.
 
 ## Pattern detection and segmentation (`analyze.py`)
 

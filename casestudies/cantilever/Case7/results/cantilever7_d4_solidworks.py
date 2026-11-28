@@ -1,14 +1,15 @@
 """cantilever7_d4_solidworks: SolidWorks feature tree of a planar-truss TO (stl2cad, to/swtruss.py), member-driven sketch.
 
-Feature tree:
-  Truss          sketch on the Front Plane: the truss section (lines, tangent arcs) and one construction centerline
-                 per member between its joints. Joints dimensioned from the origin; each member edge parallel to
-                 its centerline at "w_k" / 2; each chord's inner edge at "w_k" from the outline; one corner radius
-                 "R" (all fillet arcs equal); outline edges on the origin or dimensioned from it.
-  Truss face 1   Extruded Boss, depth "t", from the Front Plane.
-  Truss face 2   Extruded Boss of the same sketch from an offset H, reversed, depth "t" (else a copy of the sketch).
+Feature tree (one sketch per structure; the face trusses "Truss" on the Front Plane, face layers "Base" on the
+plane of their face):
+  <name>         sketch: the section (lines, tangent arcs) and one construction centerline per member between its
+                 joints. Joints dimensioned from the origin; each member edge parallel to its centerline at
+                 "w" / 2; each chord's inner edge at "w" from the outline; one corner radius "R" (all fillet arcs
+                 equal); outline edges on the origin or dimensioned from it (the trusses' side on a layer: "tb").
+  <name> face n  Extruded Boss of the sketch, depth "t" ("tb" for a layer), towards the part; the second face of the
+                 trusses from an offset H, reusing the same sketch (else a copy of it).
   Web n          rectangle on "Web plane" (z = "t"), Extruded Boss H - 2 "t" towards the other face.
-Global variables (Equation Manager): t, R and the member widths w1 ... (edit them there).
+Global variables (Equation Manager): t, tb, R and the member widths w1 ..., b1 ... (edit them there).
 After every feature the volume and centre of mass are compared with CadQuery's values (STEPS).
 
 Needs: Windows, SolidWorks, Python with pywin32.   Run: python cantilever7_d4_solidworks.py [C:\\path\\part.SLDPRT]
@@ -25,25 +26,17 @@ sys.stdout.reconfigure(line_buffering=True)
 NOTHING = VARIANT(pythoncom.VT_DISPATCH, None)
 MM = 0.001
 TOL = 2e-3                    # a feature's volume may differ from CadQuery's by this fraction
-H = 20.000000                 # domain depth (mm)
-BOX = (0.0, 0.0, 119.99999731779099, 39.99999910593033)
-T_DEPTH = 3.232000            # global variable "t"
-R_CORNER = 1.3            # global variable "R"
-WIDTHS = {'w1': 3.2286, 'w2': 4.2525, 'w3': 5.4243}
-JOINTS = {'J1': (0.75, 1.5827), 'J2': (2.0, 37.341), 'J3': (5.5256, 37.1913), 'J4': (36.5, 37.2924), 'J5': (37.5, 1.6132), 'J6': (53.4698, 2.2013), 'J7': (79.25, 1.5827), 'J8': (83.4716, 36.6064), 'J9': (119.9438, 1.704)}
-MEMBERS = [{'a': 'J8', 'c': 'J9', 'w': 'w2'}, {'a': 'J1', 'c': 'J5', 'w': 'w1', 'edge': ((19.25, 0.0), (0.0, 1.0)), 'ext': (1.25, 0.0)}, {'a': 'J5', 'c': 'J6', 'w': 'w1', 'edge': ((19.25, 0.0), (0.0, 1.0)), 'ext': (0.0, 0.0)}, {'a': 'J2', 'c': 'J3', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (2.5, 0.0)}, {'a': 'J3', 'c': 'J4', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (0.0, 0.0)}, {'a': 'J4', 'c': 'J8', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (0.0, 0.0)}, {'a': 'J3', 'c': 'J6', 'w': 'w2'}, {'a': 'J9', 'c': 'J7', 'w': 'w1', 'edge': ((97.75, 0.0), (0.0, 1.0)), 'ext': (0.5562, 0.0)}, {'a': 'J6', 'c': 'J8', 'w': 'w2'}]
-CHORD_SIDE = {1: 0, 2: 0, 3: 2, 4: 2, 5: 2, 7: 0}            # outline side of each chord (0 y0, 1 x1, 2 y1, 3 x0)
-WEBS = [(0.0, 0.0, 91.875, 1.7886), (116.875, 0.0, 120.0, 2.5993)]
-N_PARAMS = 19             # joints 8, widths 3, R and t, chord ends 1, webs 5
-LOOPS = [
-    [('L', (79.25, 3.2286), (112.03654450143272, 3.2286), ('C', 1)), ('A', (112.03654450143272, 3.2286), (113.24298513893078, 4.044346979159362), (112.93534838323785, 5.467829248933409), ('A',)), ('L', (112.93534838323785, 5.467829248933409), (84.59422035961109, 32.58912675036824), ('M', 0, -1)), ('A', (84.59422035961109, 32.58912675036824), (83.63677326560713, 32.948574125411334), (82.71561928808629, 32.50429639364939), ('A',)), ('L', (82.71561928808629, 32.50429639364939), (54.37135057376806, 0.0), ('M', 8, -1)), ('L', (54.37135057376806, 0.0), (0.0, 0.0), ('D', 0)), ('L', (0.0, 0.0), (0.0, 3.2286), ('D', 3)), ('L', (0.0, 3.2286), (44.46883983274119, 3.2286), ('C', 1)), ('A', (44.46883983274119, 3.2286), (45.704784136848794, 4.125559459676862), (45.23520238679786, 5.5786897274708185), ('A',)), ('L', (45.23520238679786, 5.5786897274708185), (5.845184901230553, 34.32578972747081), ('M', 6, -1)), ('A', (5.845184901230553, 34.32578972747081), (5.481862887497022, 34.511644304107605), (5.078822347173883, 34.5757), ('A',)), ('L', (5.078822347173883, 34.5757), (0.0, 34.5757), ('C', 3)), ('L', (0.0, 34.5757), (0.0, 39.99999910593033), ('D', 3)), ('L', (0.0, 39.99999910593033), (83.00070468233181, 39.99999910593033), ('D', 2)), ('L', (83.00070468233181, 39.99999910593033), (119.99999731779099, 4.593193065169143), ('M', 0, 1)), ('L', (119.99999731779099, 4.593193065169143), (119.99999731779099, 0.0), ('D', 1)), ('L', (119.99999731779099, 0.0), (79.25, 0.0), ('D', 0)), ('L', (79.25, 0.0), (79.25, 3.2286), ('E', 1))],
-    [('L', (53.93189503949535, 5.966384962531873), (77.00100697948878, 32.42130110778544), ('M', 8, 1)), ('A', (77.00100697948878, 32.42130110778544), (77.20457756013448, 33.8138827942814), (76.02120978976913, 34.5757), ('A',)), ('L', (76.02120978976913, 34.5757), (16.702889771717224, 34.5757), ('C', 3)), ('A', (16.702889771717224, 34.5757), (15.46694546760962, 33.67874054032314), (15.936527217660554, 32.22561027252918), ('A',)), ('L', (15.936527217660554, 32.22561027252918), (52.18573529571903, 5.770694127275615), ('M', 6, 1)), ('A', (52.18573529571903, 5.770694127275615), (53.09688152176937, 5.5288714396330745), (53.93189503949535, 5.966384962531873), ('A',))],
+R_CORNER = 1            # global variable "R"
+WEBS = []
+N_PARAMS = 29             # Truss: joints 10, widths 3, depth 1, chord ends 2; Base: joints 8, widths 3, depth 1, chord ends 0; R 1, webs 0
+STRUCTS = [
+    {'name': 'Truss', 'axis': 2, 'frame': (0, 1), 'plane': 'Front Plane', 'box': (0.0, 2.542, 120.0, 40.0), 'faces': [(0.0, 1), (20.0, -1)], 't': 3.1716, 'tvar': 't', 'joints': {'J1': (2.0, 37.2878), 'J2': (5.1222, 37.2878), 'J3': (36.25, 3.7859), 'J4': (36.5, 37.2878), 'J5': (52.0435, 3.7859), 'J6': (54.5915, 3.7859), 'J7': (83.567, 36.6375), 'J8': (113.75, 3.7859), 'J9': (117.8049, 3.7859), 'J10': (119.0, 3.7859)}, 'widths': {'w1': 2.4878, 'w2': 4.2525, 'w3': 5.4243}, 'members': [{'a': 'J7', 'c': 'J9', 'w': 'w2'}, {'a': 'J5', 'c': 'J2', 'w': 'w2'}, {'a': 'J9', 'c': 'J10', 'w': 'w1', 'edge': ((117.5, 2.542), (0.0, 1.0)), 'ext': (0.0, 1.5)}, {'a': 'J1', 'c': 'J2', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (2.5, 0.0)}, {'a': 'J2', 'c': 'J4', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (5.6222, 0.0)}, {'a': 'J4', 'c': 'J7', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (0.0, 0.0)}, {'a': 'J3', 'c': 'J5', 'w': 'w1', 'edge': ((40.0, 2.542), (0.0, 1.0)), 'ext': (0.0, 0.0)}, {'a': 'J8', 'c': 'J9', 'w': 'w1', 'edge': ((117.5, 2.542), (0.0, 1.0)), 'ext': (0.0, 2.6951)}, {'a': 'J5', 'c': 'J6', 'w': 'w1', 'edge': ((40.0, 2.542), (0.0, 1.0)), 'ext': (0.0, 0.0)}, {'a': 'J6', 'c': 'J7', 'w': 'w2'}], 'links': {0: 'tb'}, 'loops': [[('L', (113.44234772834753, 5.0250875710485765), (84.44735768687232, 32.84606417436031), ('M', 0, -1)), ('A', (84.44735768687232, 32.84606417436031), (83.71338642001793, 33.12363352760378), (83.00504520356418, 32.78597795234895), ('A',)), ('L', (83.00504520356418, 32.78597795234895), (56.32949871090365, 2.541999999999999), ('M', 9, -1)), ('L', (56.32949871090365, 2.541999999999999), (36.25, 2.542), ('D', 0)), ('L', (36.25, 2.542), (36.25, 5.0298), ('E', 2)), ('L', (36.25, 5.0298), (43.520772146137006, 5.029799999999998), ('C', 2)), ('A', (43.520772146137006, 5.029799999999998), (44.47309632478766, 5.724712047505387), (44.101857413688286, 6.843642682485289), ('A',)), ('L', (44.101857413688286, 6.843642682485289), (5.522271250813937, 34.389542682485285), ('M', 1, 1)), ('A', (5.522271250813937, 34.389542682485285), (5.246273935757268, 34.528024178650654), (4.941185983262656, 34.5757), ('A',)), ('L', (4.941185983262656, 34.5757), (0.0, 34.5757), ('C', 3)), ('L', (0.0, 34.5757), (0.0, 40.0), ('D', 3)), ('L', (0.0, 40.0), (83.1336787407193, 40.0), ('D', 2)), ('L', (83.1336787407193, 40.0), (119.579581241, 5.0298), ('M', 0, 1)), ('L', (119.579581241, 5.0298), (120.0, 5.0298), ('C', 2)), ('L', (120.0, 5.0298), (120.0, 2.542), ('D', 1)), ('L', (120.0, 2.542), (113.75, 2.542), ('D', 0)), ('L', (113.75, 2.542), (113.75, 4.303523559299084), ('E', 2)), ('A', (113.75, 4.303523559299084), (113.66987709188443, 4.695730310676771), (113.44234772834753, 5.0250875710485765), ('A',))], [('L', (53.87803177195517, 6.191383600306628), (77.44789169179948, 32.914222210261855), ('M', 9, 1)), ('A', (77.44789169179948, 32.914222210261855), (77.60937572578374, 33.987113545147615), (76.69792693683887, 34.5757), ('A',)), ('L', (76.69792693683887, 34.5757), (15.701224740345438, 34.5757), ('C', 3)), ('A', (15.701224740345438, 34.5757), (14.748900561694853, 33.88078795249483), (15.120139472793781, 32.76185731751497), ('A',)), ('L', (15.120139472793781, 32.76185731751497), (52.54698174944289, 6.039018707559743), ('M', 1, -1)), ('A', (52.54698174944289, 6.039018707559743), (53.241794038639895, 5.859349354613047), (53.87803177195517, 6.191383600306628), ('A',))]], 'chord_side': {2: 0, 3: 2, 4: 2, 5: 2, 6: 0, 7: 0, 8: 0}},
+    {'name': 'Base', 'axis': 1, 'frame': (0, 2), 'plane': 'Top Plane', 'box': (0.0, 0.0, 120.0, 20.0), 'faces': [(0.0, 1)], 't': 2.542, 'tvar': 'tb', 'joints': {'B1': (10.25, 9.875), 'B2': (43.25, 9.9375), 'B3': (68.6669, 10.0329), 'B4': (118.4583, 3.2623), 'B5': (118.4583, 16.5776)}, 'widths': {'b1': 3.0833, 'b2': 9.0, 'b3': 20.25}, 'members': [{'a': 'B4', 'c': 'B3', 'w': 'b1'}, {'a': 'B2', 'c': 'B3', 'w': 'b2'}, {'a': 'B3', 'c': 'B5', 'w': 'b1'}, {'a': 'B4', 'c': 'B5', 'w': 'b1', 'edge': ((120.0, 10.0), (-1.0, -0.0)), 'ext': (0.0, 0.0)}, {'a': 'B1', 'c': 'B2', 'w': 'b3', 'edge': ((26.75, 20.0), (0.0, -1.0)), 'ext': (10.75, 0.0)}], 'links': {}, 'loops': [[('L', (120.0, 1.4968231467041562), (74.5830846692229, 7.672583758748801), ('M', 0, 1)), ('A', (74.5830846692229, 7.672583758748801), (74.33234969458887, 7.674952399518741), (74.0889077886683, 7.614871816918432), ('A',)), ('L', (74.0889077886683, 7.614871816918432), (68.68379021788478, 5.532931697914503), ('B',)), ('L', (68.68379021788478, 5.532931697914503), (44.26018264630967, 5.441259929740951), ('M', 1, -1)), ('A', (44.26018264630967, 5.441259929740951), (43.556552218820634, 5.148096618284743), (43.263940437542686, 4.444236652716507), ('A',)), ('L', (43.263940437542686, 4.444236652716507), (43.250742423027106, 2.7755575615628914e-17), ('B',)), ('L', (43.250742423027106, 2.7755575615628914e-17), (0.0, 0.0), ('D', 0)), ('L', (0.0, 0.0), (0.0, 20.0), ('D', 3)), ('L', (0.0, 20.0), (43.25, 20.0), ('D', 2)), ('L', (43.25, 20.0), (43.25528872046819, 15.440152153390688), ('B',)), ('A', (43.25528872046819, 15.440152153390688), (43.54992048978761, 14.732470261485508), (44.25904142957427, 14.44131904239331), ('A',)), ('L', (44.25904142957427, 14.44131904239331), (68.65000978211522, 14.532868302085497), ('M', 1, 1)), ('L', (68.65000978211522, 14.532868302085497), (74.07970044873878, 12.423361431109065), ('B',)), ('A', (74.07970044873878, 12.423361431109065), (74.32219398183909, 12.362668019473857), (74.57216397226743, 12.364012525569544), ('A',)), ('L', (74.57216397226743, 12.364012525569544), (120.0, 18.335155302247873), ('M', 2, 1)), ('L', (120.0, 18.335155302247873), (120.0, 1.4968231467041562), ('D', 1))], [('L', (115.78637858930392, 14.671485708316553), (87.71435235647445, 10.981631836242277), ('M', 2, -1)), ('A', (87.71435235647445, 10.981631836242277), (86.84467625053408, 9.992388650507635), (87.70993444587646, 8.99927895608365), ('A',)), ('L', (87.70993444587646, 8.99927895608365), (115.78196067870593, 5.182064320383606), ('M', 0, -1)), ('A', (115.78196067870593, 5.182064320383606), (116.57444640960856, 5.41970595625276), (116.91669999999999, 6.172945400683968), ('A',)), ('L', (116.91669999999999, 6.172945400683968), (116.91669999999999, 13.680013908458287), ('C', 3)), ('A', (116.91669999999999, 13.680013908458287), (116.57612345624943, 14.43178561938391), (115.78637858930392, 14.671485708316553), ('A',))]], 'chord_side': {3: 1, 4: 2}},
 ]
 STEPS = {
-    'Truss face 1': (4453.8769, (55.8384, 21.2335, 1.616)),
-    'Truss face 2': (8907.7538, (55.8384, 21.2335, 10.0)),
-    'Web 1': (11132.0924, (53.86, 17.1694, 10.0)),
-    'Web 2': (11242.0428, (54.4916, 17.0142, 10.0)),
+    'Truss face 1': (3500.7091, (55.0224, 26.1921, 1.5858)),
+    'Truss face 2': (7001.4182, (55.0224, 26.1921, 10.0)),
+    'Base': (10688.0583, (51.6995, 17.5961, 9.9965)),
 }
 
 
@@ -165,19 +158,28 @@ def arc_centre(s, mid, t):
     return ux, uy
 
 
-def draw_loops(sm, T, loops):
-    """Lines and arcs of the section (model mm); returns [[(entry, object)]] per loop."""
+def model_pt(S, p, w=0.0):
+    """Model point (mm) of the structure's local point p = (u, v) at a distance w along its normal."""
+    q = [0.0, 0.0, 0.0]
+    u, v = S["frame"]
+    q[u], q[v], q[S["axis"]] = p[0], p[1], w
+    return tuple(q)
+
+
+def draw_loops(sm, T, S, loops):
+    """Lines and arcs of the section (local mm); returns [[(entry, object)]] per loop."""
+    P = lambda p: to_sk(T, model_pt(S, p))
     out = []
     for loop in loops:
         objs = []
         for e in loop:
             if e[0] == "L":
-                g = sm.CreateLine(*to_sk(T, (*e[1], 0.0)), *to_sk(T, (*e[2], 0.0)))
+                g = sm.CreateLine(*P(e[1]), *P(e[2]))
             else:
                 c = arc_centre(e[1], e[2], e[3])
-                cross = (e[2][0] - e[1][0]) * (e[3][1] - e[1][1]) - (e[2][1] - e[1][1]) * (e[3][0] - e[1][0])
-                g = sm.CreateArc(*to_sk(T, (*c, 0.0)), *to_sk(T, (*e[1], 0.0)), *to_sk(T, (*e[3], 0.0)),
-                                 1 if cross > 0 else -1)          # +1: counter-clockwise
+                a, b, d = (P(q)[:2] for q in (e[1], e[2], e[3]))      # direction in the sketch's own axes
+                cross = (b[0] - a[0]) * (d[1] - a[1]) - (b[1] - a[1]) * (d[0] - a[0])
+                g = sm.CreateArc(*P(c), *P(e[1]), *P(e[3]), 1 if cross > 0 else -1)   # +1: counter-clockwise
             objs.append((e, g))
         out.append(objs)
     return out
@@ -221,11 +223,12 @@ def dim(m, objs, kind, text, what):
     return None
 
 
-def point_at(objs, p, tol=1e-6):
+def point_at(objs, xy, tol=1e-9):
+    """An end point of one of objs at the sketch point xy (m)."""
     for e, g in objs:
         for nm in ("GetStartPoint2", "GetEndPoint2"):
             q = call0(g, nm)
-            if q is not None and math.hypot(q.X / MM - p[0], q.Y / MM - p[1]) < tol:
+            if q is not None and math.hypot(q.X - xy[0], q.Y - xy[1]) < tol:
                 return q
     return None
 
@@ -238,77 +241,86 @@ def equation(m, text):
         LOG["eqs_failed"].append(f"{text} ({type(ex).__name__})")
 
 
-def truss_sketch(m, dimension=True):
-    sm, T = open_sketch(m, "Front Plane")
-    E = draw_loops(sm, T, LOOPS)
+def truss_sketch(m, S, dimension=True):
+    """The structure's sketch on its plane: the section, construction centerlines, relations and dimensions.
+    Returns the sketch feature and [(dimension name, expression)] to link to the global variables."""
+    sm, T = open_sketch(m, S["plane"])
+    E = draw_loops(sm, T, S, S["loops"])
     flat = [x for loop in E for x in loop]
+    skp = lambda p: to_sk(T, model_pt(S, p))[:2]                     # sketch point (m) of a local point
+    txt = lambda p: tuple(c / MM for c in skp(p))                    # (mm, for dimension text)
+    o, ex = skp((0.0, 0.0)), skp((1.0, 0.0))
+    swap = abs(ex[1] - o[1]) > abs(ex[0] - o[0])                     # local u along the sketch's y axis
+    hv = lambda k: {"H": "V", "V": "H", "sgHORIZONTAL2D": "sgVERTICAL2D", "sgVERTICAL2D": "sgHORIZONTAL2D",
+                    "sgHORIZONTALPOINTS2D": "sgVERTICALPOINTS2D",
+                    "sgVERTICALPOINTS2D": "sgHORIZONTALPOINTS2D"}[k] if swap else k
+    J, MB, box = S["joints"], S["members"], S["box"]
     cl = {}
-    for i, mb in enumerate(MEMBERS):          # construction centerlines (not chords)
+    for i, mb in enumerate(MB):               # construction centerlines (not chords)
         if mb.get("edge") is None:
-            a, c = JOINTS[mb["a"]], JOINTS[mb["c"]]
-            cl[i] = sm.CreateCenterLine(*to_sk(T, (*a, 0.0)), *to_sk(T, (*c, 0.0)))
+            cl[i] = sm.CreateCenterLine(*to_sk(T, model_pt(S, J[mb["a"]])), *to_sk(T, model_pt(S, J[mb["c"]])))
     sm.AddToDB = False
     links = []
     if dimension:
         # joints: centerline ends coincident; one end per joint dimensioned from the origin
-        for j, p in JOINTS.items():
-            pts = [point_at([(None, cl[i])], p) for i in cl if j in (MEMBERS[i]["a"], MEMBERS[i]["c"])]
+        for j, p in J.items():
+            pts = [point_at([(None, cl[i])], skp(p)) for i in cl if j in (MB[i]["a"], MB[i]["c"])]
             pts = [q for q in pts if q is not None]
             for q in pts[1:]:
-                rel(m, [pts[0], q], "sgCOINCIDENT", f"joint {j}")
+                rel(m, [pts[0], q], "sgCOINCIDENT", f"{S['name']} joint {j}")
             if pts:
-                if abs(p[0]) > 1e-9:
-                    dim(m, [pts[0], "ORIGIN"], "H", (p[0] / 2, p[1] + 4), f"joint {j} x")
-                else:
-                    rel(m, [pts[0], "ORIGIN"], "sgVERTICALPOINTS2D", f"joint {j} on x = 0")
-                if abs(p[1]) > 1e-9:
-                    dim(m, [pts[0], "ORIGIN"], "V", (p[0] + 4, p[1] / 2), f"joint {j} y")
-                else:
-                    rel(m, [pts[0], "ORIGIN"], "sgHORIZONTALPOINTS2D", f"joint {j} on y = 0")
-        # outline edges: horizontal / vertical; the first piece of each side on the origin or dimensioned,
-        # the others collinear with it
+                for k, kind, relk in ((0, "H", "sgVERTICALPOINTS2D"), (1, "V", "sgHORIZONTALPOINTS2D")):
+                    if abs(p[k]) > 1e-9:
+                        q2 = (p[0] / 2, p[1] + 4) if k == 0 else (p[0] + 4, p[1] / 2)
+                        dim(m, [pts[0], "ORIGIN"], hv(kind), txt(q2), f"{S['name']} joint {j} {'uv'[k]}")
+                    else:
+                        rel(m, [pts[0], "ORIGIN"], hv(relk), f"{S['name']} joint {j} on the axis")
+        # outline edges: along the local axes; the first piece of each side on the origin or dimensioned (linked
+        # to a layer's thickness where the side was cut by that layer), the others collinear with it
         first = {}
         for e, g in flat:
             if e[0] == "L" and e[3][0] == "D":
                 side = e[3][1]
-                rel(m, [g], "sgHORIZONTAL2D" if side in (0, 2) else "sgVERTICAL2D", f"outline side {side}")
+                rel(m, [g], hv("sgHORIZONTAL2D" if side in (0, 2) else "sgVERTICAL2D"), f"{S['name']} outline {side}")
                 if side in first:
-                    rel(m, [first[side], g], "sgCOLINEAR", f"outline side {side} piece")
+                    rel(m, [first[side], g], "sgCOLINEAR", f"{S['name']} outline {side} piece")
                     continue
                 first[side] = g
-                if side == 0 and abs(BOX[1]) < 1e-9 or side == 3 and abs(BOX[0]) < 1e-9:
-                    rel(m, [g, "ORIGIN"], "sgCOINCIDENT", f"outline side {side} on the origin")
+                if side == 0 and abs(box[1]) < 1e-9 or side == 3 and abs(box[0]) < 1e-9:
+                    rel(m, [g, "ORIGIN"], "sgCOINCIDENT", f"{S['name']} outline {side} on the origin")
                 else:
                     q = call0(g, "GetStartPoint2")
-                    dim(m, [q, "ORIGIN"], "V" if side in (0, 2) else "H", (e[1][0] + 4, e[1][1] + 4),
-                        f"outline side {side}")
+                    nm = dim(m, [q, "ORIGIN"], hv("V" if side in (0, 2) else "H"), txt((e[1][0] + 4, e[1][1] + 4)),
+                             f"{S['name']} outline {side}")
+                    if nm and side in S["links"]:
+                        links.append((nm, '"%s"' % S["links"][side]))
         # member edges: parallel to the centerline at w/2; chord inner edges parallel to the outline at w
         for e, g in flat:
             if e[0] != "L":
                 continue
             tg = e[3]
+            mid = ((e[1][0] + e[2][0]) / 2 + 2, (e[1][1] + e[2][1]) / 2 + 2)
             if tg[0] == "M":
                 i = tg[1]
-                rel(m, [g, cl[i]], "sgPARALLEL", f"member {i} edge")
-                mid = ((e[1][0] + e[2][0]) / 2, (e[1][1] + e[2][1]) / 2)
-                nm = dim(m, [g, cl[i]], "any", (mid[0] + 2, mid[1] + 2), f"member {i} edge offset")
+                rel(m, [g, cl[i]], "sgPARALLEL", f"{S['name']} member {i} edge")
+                nm = dim(m, [g, cl[i]], "any", txt(mid), f"{S['name']} member {i} edge offset")
                 if nm:
-                    links.append((nm, '"%s" / 2' % MEMBERS[i]["w"]))
+                    links.append((nm, '"%s" / 2' % MB[i]["w"]))
             elif tg[0] == "C":
                 i = tg[1]
-                side = CHORD_SIDE[i]
+                side = S["chord_side"][i]
                 if side in first:
-                    rel(m, [g, first[side]], "sgPARALLEL", f"chord {i} edge")
-                    mid = ((e[1][0] + e[2][0]) / 2, (e[1][1] + e[2][1]) / 2)
-                    nm = dim(m, [g, first[side]], "any", (mid[0] + 2, mid[1] + 2), f"chord {i} width")
+                    rel(m, [g, first[side]], "sgPARALLEL", f"{S['name']} chord {i} edge")
+                    nm = dim(m, [g, first[side]], "any", txt(mid), f"{S['name']} chord {i} width")
                     if nm:
-                        links.append((nm, '"%s"' % MEMBERS[i]["w"]))
+                        links.append((nm, '"%s"' % MB[i]["w"]))
             elif tg[0] == "E":
                 i = tg[1]
-                side = CHORD_SIDE[i]
-                rel(m, [g], "sgVERTICAL2D" if side in (0, 2) else "sgHORIZONTAL2D", f"chord {i} end")
+                side = S["chord_side"][i]
+                rel(m, [g], hv("sgVERTICAL2D" if side in (0, 2) else "sgHORIZONTAL2D"), f"{S['name']} chord {i} end")
                 q = call0(g, "GetStartPoint2")
-                dim(m, [q, "ORIGIN"], "H" if side in (0, 2) else "V", (e[1][0] + 2, e[1][1] - 4), f"chord {i} end")
+                dim(m, [q, "ORIGIN"], hv("H" if side in (0, 2) else "V"), txt((e[1][0] + 2, e[1][1] - 4)),
+                    f"{S['name']} chord {i} end")
         # fillet arcs: tangent to their neighbours, equal, one radius
         arc0 = None
         for loop in E:
@@ -317,18 +329,18 @@ def truss_sketch(m, dimension=True):
                     continue
                 for nb in (loop[k - 1], loop[(k + 1) % len(loop)]):
                     if nb[0][0] == "L":
-                        rel(m, [g, nb[1]], "sgTANGENT", "fillet tangency")
+                        rel(m, [g, nb[1]], "sgTANGENT", f"{S['name']} fillet tangency")
                 if arc0 is None:
                     arc0 = g
-                    nm = dim(m, [g], "any", (e[2][0] + 3, e[2][1] + 3), "corner radius")
+                    nm = dim(m, [g], "any", txt((e[2][0] + 3, e[2][1] + 3)), f"{S['name']} corner radius")
                     if nm:
                         links.append((nm, '"R"'))
                 else:
-                    rel(m, [arc0, g], "sgSAMELENGTH", "equal radius")
+                    rel(m, [arc0, g], "sgSAMELENGTH", f"{S['name']} equal radius")
     m.ClearSelection2(True)
     sm.InsertSketch(True)
     f = m.FeatureByPositionReverse(0)
-    f.Name = "Truss" if dimension else "Truss copy"
+    f.Name = S["name"] if dimension else S["name"] + " copy"
     return f, links
 
 
@@ -364,9 +376,10 @@ def plane_at(m, z, name):
 
 
 def web(m, plane, k, box):
+    S = STRUCTS[0]
     x0, y0, x1, y1 = box
     sm, T = open_sketch(m, plane)
-    z = T_DEPTH
+    z = S["faces"][0][0] + S["t"]
     c = [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
     ln = [sm.CreateLine(*to_sk(T, (*c[i], z)), *to_sk(T, (*c[(i + 1) % 4], z))) for i in range(4)]
     sm.AddToDB = False
@@ -376,6 +389,7 @@ def web(m, plane, k, box):
     dim(m, [ln[0]], "any", ((x0 + x1) / 2, y0 - 3), f"web {k} length")
     dim(m, [ln[3]], "any", (x0 - 3, (y0 + y1) / 2), f"web {k} height")
     # position: a web at the domain's end is placed by that end (on the origin, or dimensioned from it)
+    BOX = S["box"]
     q, qx = (pts[1], x1) if abs(x1 - BOX[2]) < 1e-9 and abs(x0 - BOX[0]) > 1e-9 else (pts[0], x0)
     if abs(qx) > 1e-9:
         dim(m, [q, "ORIGIN"], "H", (qx / 2, y0 - 6), f"web {k} position")
@@ -388,7 +402,7 @@ def web(m, plane, k, box):
     sk.Name = f"Web {k} sketch"
     f = None
     for rev in (False, True):                 # towards +z from the plane at z = t; the side checked by volume
-        f = boss(m, sk, H - 2 * T_DEPTH, reverse=rev)
+        f = boss(m, sk, abs(S["faces"][1][0] - S["faces"][0][0]) - 2 * S["t"], reverse=rev)
         if f is None:
             continue
         f.Name = f"Web {k}"
@@ -408,41 +422,60 @@ def status(f):
         return f"not available ({type(ex).__name__})"
 
 
+def boss_checked(m, sk, S, i, name):
+    """Extruded Boss of the structure's face i: blind t from its start, towards the part; the direction is
+    checked by the volume (the reverse is tried when it differs)."""
+    w0, d = S["faces"][i]
+    off = None if abs(w0) < 1e-9 else abs(w0)
+    for rev in ((d < 0, d >= 0) if off is None else (True, False)):
+        f = boss(m, sk, S["t"], offset=off, reverse=rev)
+        if f is None:
+            continue
+        f.Name = name
+        v, c = mass(m)
+        if abs(v - STEPS[name][0]) <= TOL * STEPS[name][0]:
+            return f
+        m.ClearSelection2(True); f.Select2(False, 0); m.Extension.DeleteSelection2(0)
+    return None
+
+
 def build():
     m = new_part()
     ok = True
-    sk, links = truss_sketch(m)
-    print(f"Truss sketch: {status(sk)}; {LOG['rels']} relations, {LOG['dims']} dimensions")
-    f1 = boss(m, sk, T_DEPTH)
-    if f1 is not None:
-        f1.Name = "Truss face 1"
-    ok &= check(m, "Truss face 1", f1)
-    f2 = boss(m, sk, T_DEPTH, offset=H, reverse=True)            # the same sketch, from z = H towards the part
-    if f2 is None or not check(m, "Truss face 2", f2):
-        if f2 is not None:
-            m.ClearSelection2(True); f2.Select2(False, 0); m.Extension.DeleteSelection2(0)
-        print("Truss face 2: the shared sketch was not used; a copy of the sketch instead")
-        sk2, _ = truss_sketch(m, dimension=False)
-        f2 = boss(m, sk2, T_DEPTH, offset=H, reverse=True)
-        ok &= check(m, "Truss face 2", f2)
-    if f2 is not None:
-        f2.Name = "Truss face 2"
-    wp = plane_at(m, T_DEPTH, "Web plane") if WEBS else None
+    links, depth = [], []
+    for S in STRUCTS:
+        sk, lk = truss_sketch(m, S)
+        links += lk
+        print(f"{S['name']} sketch: {status(sk)}; {LOG['rels']} relations, {LOG['dims']} dimensions so far")
+        for i in range(len(S["faces"])):
+            name = f"{S['name']} face {i + 1}" if len(S["faces"]) > 1 else S["name"]
+            f = boss_checked(m, sk, S, i, name)
+            if f is None and i > 0:           # the shared sketch refused: a copy of it (geometry only)
+                print(f"{name}: the shared sketch was not used; a copy of the sketch instead")
+                sk2, _ = truss_sketch(m, S, dimension=False)
+                f = boss_checked(m, sk2, S, i, name)
+            ok &= check(m, name, f)
+            depth.append((name, S["tvar"]))
+    S0 = STRUCTS[0]
+    wp = plane_at(m, S0["faces"][0][0] + S0["t"], "Web plane") if WEBS else None
     for k, box in enumerate(WEBS, 1):
         ok &= check(m, f"Web {k}", web(m, wp, k, box))
     # global variables and links
-    equation(m, f'"t" = {T_DEPTH:g}mm')
+    for S in STRUCTS:
+        equation(m, f'"{S["tvar"]}" = {S["t"]:g}mm')
     equation(m, f'"R" = {R_CORNER:g}mm')
-    for w, v in WIDTHS.items():
-        equation(m, f'"{w}" = {v:g}mm')
+    for S in STRUCTS:
+        for w, v in S["widths"].items():
+            equation(m, f'"{w}" = {v:g}mm')
     for nm, expr in links:
         equation(m, f'"{nm}" = {expr}')
-    for nm in ("D1@Truss face 1", "D1@Truss face 2"):
-        equation(m, f'"{nm}" = "t"')
+    for nm, tv in depth:
+        equation(m, f'"D1@{nm}" = "{tv}"')
     if WEBS:
-        equation(m, '"D1@Web plane" = "t"')
-    for k in range(1, len(WEBS) + 1):
-        equation(m, f'"D1@Web {k}" = {H:g}mm - 2 * "t"')
+        H0 = abs(S0["faces"][1][0] - S0["faces"][0][0])
+        equation(m, f'"D1@Web plane" = "{S0["tvar"]}"')
+        for k in range(1, len(WEBS) + 1):
+            equation(m, f'"D1@Web {k}" = {H0:g}mm - 2 * "{S0["tvar"]}"')
     try:
         m.EditRebuild3()
     except Exception:
@@ -454,7 +487,6 @@ def build():
     print(f"dimensions: {LOG['dims']} added" + (f"; failed: {LOG['dims_failed']}" if LOG['dims_failed'] else ""))
     print(f"equations: {LOG['eqs']} added" + (f"; failed: {LOG['eqs_failed']}" if LOG['eqs_failed'] else ""))
     print(f"independent parameters: {N_PARAMS}")
-    print("Truss sketch: " + status(sk))
     print("all features " + ("agree" if ok else "do NOT all agree"))
     return m
 
