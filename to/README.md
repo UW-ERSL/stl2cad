@@ -133,10 +133,11 @@ Cantilever 7 (stand-in: every feature agrees at every level, no relation or dime
 | 1 | 3.96 / 2.64 | -3.8 % | 26 |
 | 2 | 3.19 / 2.39 | -3.4 % | 30 |
 | 3 | 3.05 / 2.39 | -3.4 % | 30 |
-| 4 | 3.17 / 2.54 | -4.2 % | 29 |
-| 5 | 3.20 / 2.46 | -4.6 % | 47 |
+| 4 | 3.16 / 2.40 | -3.0 % | 31 |
+| 5 | 3.19 / 2.33 | -3.5 % | 49 |
 
-Detail 4: voxel overlap 77 % of the TO in the model, 80 % of the model in the TO; member centre lines against the
+Detail 4: voxel overlap 74 % of the TO in the model, 83 % of the model in the TO; the root plate runs on past its skeleton's end as far as the TO does near both
+faces (x = 55.5), under the face trusses; member centre lines against the
 3D medial axis: face trusses median 0.29 mm (90 % within 0.74 mm), base bar and arms median 0.98 mm, at most
 2.3 mm where the arms bend after the fork (straight at detail 4; detail 5 bends them). Not modelled: the small
 post at the tip between the faces (about 400 mm^3, below the web threshold). Not yet run in SolidWorks; watch the

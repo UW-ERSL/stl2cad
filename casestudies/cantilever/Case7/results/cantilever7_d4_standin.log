@@ -1,13 +1,13 @@
 Truss sketch: unknown; 40 relations, 26 dimensions so far
-Truss face 1: volume 3500.709 mm^3 (expected 3500.709); centre 0.0000 mm off -> OK
-Truss face 2: volume 7001.418 mm^3 (expected 7001.418); centre 0.0000 mm off -> OK
-Base sketch: unknown; 75 relations, 44 dimensions so far
-Base: volume 10688.019 mm^3 (expected 10688.058); centre 0.0000 mm off -> OK
-after the equations: volume 10688.019 mm^3 (expected 10688.058)
-relations: 75 added
-dimensions: 44 added
+Truss face 1: volume 3500.708 mm^3 (expected 3500.707); centre 0.0001 mm off -> OK
+Truss face 2: volume 7001.415 mm^3 (expected 7001.415); centre 0.0000 mm off -> OK
+Base sketch: unknown; 77 relations, 46 dimensions so far
+Base: volume 10816.179 mm^3 (expected 10816.218); centre 0.0001 mm off -> OK
+after the equations: volume 10816.179 mm^3 (expected 10816.218)
+relations: 77 added
+dimensions: 46 added
 equations: 32 added
-independent parameters: 29
+independent parameters: 31
 all features agree
 
-stand-in: volume 10688.019, reference 10688.058 mm^3, difference volume 0.000 mm^3
+stand-in: volume 10816.179, reference 10816.218 mm^3, difference volume 0.000 mm^3

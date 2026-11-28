@@ -16,7 +16,8 @@ fitted in its own plane by _planar; fit() finds the layers (see its comments). M
      the section it builds).
   4. Chords: members along which the TO reaches the outline (CHORD_SHARE of the length); a chord is a strip
      flush with the outline line nearest its middle, its width the TO's depth from the outline; a chord end with
-     no other member runs on along the outline as far as the TO does (to a support face, or the TO's own end);
+     no other member runs on along the outline as far as the TO does (to a support face, or the TO's own end), and
+     so does a chord end where only narrower members carry on (a plate into a bar: walked near both its edges);
      a chord end within one width of the outline runs on to it.
   5. Webs: the regions of the projection of the web's core (|h| < WEB_CORE x b, clear of the truss members) along
      the outline, each a strip flush with the outline (depth: mean section area over length), between the two
@@ -388,11 +389,14 @@ def _planar(proj, o2, O, detail, log, label):
             sa, sc = (J[m[0]] - f) @ tt, (J[m[1]] - f) @ tt
             u = 1.0 if sc >= sa else -1.0
             for i, (q, s0, dirn) in enumerate(((m[0], sa, -u), (m[1], sc, u))):
-                if deg[q] != 1:
+                others = [mm for mm in members if mm is not m and q in mm[:2]]
+                if deg[q] == 1:                   # free end: walked at half the chord's depth
+                    depths = (0.5,)
+                elif all(mm[2] * WSTEP < m[2] for mm in others):
+                    depths = (0.1, 0.9)           # a plate running into narrower members: walked near both its
+                else:                             # edges (its centre would follow the narrower member)
                     continue
-                e = 0.0
-                while inproj(f + (s0 + dirn * (e + PITCH)) * tt + n * m[2] / 2) and e < 1e3:
-                    e += PITCH
+                e = min(_walk(inproj, f + s0 * tt + n * m[2] * k, dirn * tt) for k in depths)
                 ext[i] = e
         if m[3] is not None:                  # an end within one width of the outline runs on to it
             for i, (q, s0, dirn) in enumerate(((m[0], sa, -u), (m[1], sc, u))):
@@ -408,6 +412,14 @@ def _planar(proj, o2, O, detail, log, label):
     log('%s: %d joints (%d on the outline), %d members, widths %s mm'
         % (label, len(J), len(on_edge), len(members), ', '.join('%.2f' % w for w in sorted(set(W)))))
     return dict(J=J, members=members, on_edge=on_edge, poly=poly, widths=sorted(set(W)))
+
+
+def _walk(inside, x0, step):
+    """Length along the unit vector step from x0 that stays inside (pixel test), in PITCH steps."""
+    e = 0.0
+    while inside(x0 + step * (e + PITCH)) and e < 1e3:
+        e += PITCH
+    return e
 
 
 def _join_deg2(nodes, edges):

@@ -1043,6 +1043,19 @@ def main():
             f0 = truss_face(S['joints'], S['widths'], S['members'], S['box'], P['R'])
             S['t'] = float(round(float(Sd['v']) / f0.Area(), 4))
         print('%s: depth %s = %.4f mm (volume %.0f mm^3)' % (S['name'], S['tvar'], S['t'], Sd['v']))
+    T = P['structures'][0]                               # the trusses' side on a layer: exactly at its depth (the
+    for S in P['structures'][1:]:                        # outline was rounded; a gap of 4e-4 mm left 3 solids)
+        for side, tv in T['links'].items():
+            if tv == S['tvar']:
+                b = list(T['box']); k = {0: 1, 1: 2, 2: 3, 3: 0}[side]
+                b[k] = S['faces'][0][0] + (S['t'] if side in (0, 3) else -S['t'])
+                T['box'] = tuple(b)
+                ax_ = 1 if side in (0, 2) else 0          # the chords on that side move with it
+                for mb in T['members']:
+                    if mb.get('edge') is not None and abs(mb['edge'][1][ax_]) > 0.5 and \
+                            (mb['edge'][1][ax_] > 0) == (side in (0, 3)):
+                        f = list(mb['edge'][0]); f[ax_] = b[k]
+                        mb['edge'] = (tuple(f), mb['edge'][1])
     faces, part, steps = solid(P)
     write_cq(a.name + '.py', P, a.name)
     r = subprocess.run([sys.executable, a.name + '.py', a.name + '.step'], capture_output=True, text=True)
@@ -1063,8 +1076,8 @@ def main():
     # report against the TO
     import trimesh as tm
     m = tm.load(a.name + '.stl')
-    print('volume: TO %.0f, model %.0f mm^3 (%+.1f %%); independent parameters %d'
-          % (to.volume, m.volume, 100 * (m.volume / to.volume - 1), npar))
+    print('volume: TO %.0f, model %.0f mm^3 (%+.1f %%); %d solid(s); independent parameters %d'
+          % (to.volume, m.volume, 100 * (m.volume / to.volume - 1), len(part.Solids()), npar))
     L = ['%s: planar trusses (to/swtruss.py, detail %d); units mm; corner radius R = %.4g.' % (a.name, a.detail, P['R'])]
     for S in P['structures']:
         u, v = S['frame']
