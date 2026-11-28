@@ -1,0 +1,254 @@
+From 6189772b5d59a1f300b346c919845048944dc933 Mon Sep 17 00:00:00 2001
+From: Claude <claude@local>
+Date: Fri, 27 Nov 2026 20:40:15 -0600
+Subject: [PATCH] Classifier: through cut (type 1 on any domain), topology,
+ whole spheres in the test models
+
+Type 1 also when the TO is the domain cut by its own outline along an axis
+(IoU >= 0.8; knuckle Case 1: 0.87), tested after height field and sandwich.
+Sandwich again requires a sheet. Topology reported: components, enclosed
+cavities, tunnels (Euler number). Plate and rod limits separated (both 0.45;
+0.67 for plates added plate noise at rod junctions). Test models: whole
+spheres (makeSphere's default is a hemisphere); mass model of three
+non-collinear lobes (two coaxial spheres are axisymmetric).
+run_classify.py: 11 models x 8 variants pass.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BdLZZ8R4FqXDzDRWDvVnZQ
+---
+ to/classify.py             | 89 ++++++++++++++++++++++++++++++++++----
+ to/testbed/exact_models.py | 40 +++++++++++++----
+ 2 files changed, 112 insertions(+), 17 deletions(-)
+
+diff --git a/to/classify.py b/to/classify.py
+index 6da2a5e..8b7d4bc 100644
+--- a/to/classify.py
++++ b/to/classify.py
+@@ -1,6 +1,6 @@
+ """Classification of a TO part into the types of the reconstruction (lattices are out of scope):
+ 
+-  1 extrude        constant 2D section through the full depth
++  1 extrude / cut  constant 2D section through the full depth, or the domain minus a through cut
+   2 stepped        height field with a few discrete depth levels
+   3 height field   one material interval per column, continuous depth
+   4 sandwich       two face layers joined by webs
+@@ -24,9 +24,13 @@ Every test is computed and reported with its threshold; the type follows from al
+     columns analyze.constraint_tests: full, one interval, centred/anchored, step levels, two layers
+             extrude: full >= 0.8, one >= 0.9, sections IoU >= 0.9                      -> 1
+             sheet and one >= 0.95 and centred or anchored >= 0.9                       -> 2 (step levels >= 0.9) or 3
+-            two layers >= 0.6 (axis: the largest area of two-layer columns)            -> 4
+-  Precedence: 5, 1, 2/3, 4 (an axisymmetric part with a flat base is also a height field).
+-  Otherwise, segments of the medial axis (analyze.local_shape, segments, describe): rod, plate, blob; a rod is
++            sheet and two layers >= 0.6 (axis: the largest area of two-layer columns)  -> 4
++    through IoU of the TO with the domain cut by the TO's outline along a; >= THROUGH -> 1 (after 2/3, 4)
++  Precedence: 5, 1 (extrude), 2/3, 4, 1 (through cut). An axisymmetric part with a flat base is also a height
++  field; a height field of nearly full depth is also close to a through cut.
++  Topology (reported): components, enclosed cavities, tunnels (from the Euler number).
++  Otherwise, segments of the medial axis (local_shape below; analyze.segments, describe): rod (s2 / s1 < ROD_T),
++  else plate (s3 / s2 < PLATE_T), else blob, from the principal axes of the TO near a medial point; a rod is
+   curved when the sagitta of a quadratic fit of its medial points (over its length) is >= CURVE x its radius;
+   a plate is a shell when not flat (analyze.FLAT). Joints (nodes, junctions, a mass smaller than the members it
+   touches) and fragments under FOLD count with their largest member neighbour; retained regions are left out.
+@@ -59,6 +63,9 @@ CURVE = 0.5
+ HYBRID_SHARE = 0.15
+ FOLD = 0.02             # fragments under this share of the part count with their largest member neighbour
+ SAMPLES = 3000
++ROD_T = 0.45            # s2 / s1 below this: rod
++PLATE_T = 0.45          # else s3 / s2 below this: plate (0.67, w / t >= 1.5, put plate noise at rod junctions)
++THROUGH = 0.8           # through cut: IoU of the TO with the domain cut by the TO's outline along an axis
+ 
+ 
+ def grid(dom, to, res=RES):
+@@ -97,6 +104,12 @@ def axisym(V, D, ax):
+     return best
+ 
+ 
++def through(V, D, ax):
++    """IoU of V with the domain cut by V's outline along ax (V = domain minus a through cut: 1)."""
++    P = np.expand_dims(V.any(ax), ax) & D
++    return float((P & V).sum() / max((P | V).sum(), 1))
++
++
+ def area(V, ax, h):
+     return float(V.any(ax).sum() * h * h)
+ 
+@@ -125,18 +138,72 @@ def decide_global(G):
+         return t, '%s along %s (slab %.2f, one %.3f, %s %.3f, step levels %.3f)' % (
+             TYPES[t], g['axis'], g['slab'], g['one'], 'centred' if g['centred'] >= g['anchored'] else 'anchored',
+             max(g['centred'], g['anchored']), g['step_levels'])
+-    sw = [g for g in G if g['two_layers'] >= TWO]
++    sw = [g for g in G if g['slab'] >= SLAB and g['two_layers'] >= TWO]
+     if sw:                                   # the axis whose two layers cover the largest area (the face sheets)
+         g = max(sw, key=lambda g: g['two_layers'] * g['area'])
+         return 4, 'sandwich across %s (two layers %.3f of the columns)' % (g['axis'], g['two_layers'])
++    g = max(G, key=lambda g: g['through'])
++    if g['through'] >= THROUGH:
++        return 1, 'domain minus a through cut along %s (IoU %.3f >= %.2f)' % (g['axis'], g['through'], THROUGH)
+     return None, None
+ 
+ 
++def local_shape(V, K, rng):
++    """analyze.local_shape with separate limits: at a medial point, the principal axes (s1 >= s2 >= s3) of the TO
++    within SHAPE_R x r give rod when s2 / s1 < ROD_T, else plate when s3 / s2 < PLATE_T, else blob. A straight
++    member of section w x t with w / t about 2 (cantilever Case 9's flanges) falls between the limits: blob."""
++    T0 = analyze.SHAPE_T
++    try:
++        analyze.SHAPE_T = None
++        return _local_shape(V, K, rng)
++    finally:
++        analyze.SHAPE_T = T0
++
++
++def _local_shape(V, K, rng):
++    import math
++    from scipy.spatial import cKDTree
++    DT = ndi.distance_transform_edt(np.pad(V, 1))[1:-1, 1:-1, 1:-1]
++    ridge = V & (DT >= ndi.maximum_filter(DT, 3) - analyze.RIDGE_TOL) & (DT >= 1.0) & ~K
++    R = np.argwhere(ridge)
++    if len(R) == 0:
++        return None
++    if len(R) > SAMPLES:
++        R = R[rng.choice(len(R), SAMPLES, replace=False)]
++    rad = np.maximum(analyze.SHAPE_R * DT[tuple(R.T)], analyze.SHAPE_MINR)
++    kind, vec = [], []
++    for p, r in zip(R, rad):
++        ri = int(math.ceil(r))
++        a = np.maximum(p - ri, 0)
++        b = np.minimum(p + ri + 1, V.shape)
++        sub = V[a[0]:b[0], a[1]:b[1], a[2]:b[2]]
++        g = np.indices(sub.shape).reshape(3, -1).T + a - p
++        ball = (np.sum(g * g, 1) <= r * r).reshape(sub.shape) & sub
++        lab, _ = ndi.label(ball, np.ones((3, 3, 3)))
++        c = tuple(p - a)
++        q = np.argwhere(lab == lab[c]) + a - p if lab[c] else np.zeros((1, 3))
++        e, Ev = np.linalg.eigh(np.cov(q.T) if len(q) > 3 else np.eye(3))
++        s = np.sqrt(np.maximum(e[::-1], 1e-12))
++        Ev = Ev[:, ::-1]
++        if s[1] / s[0] < ROD_T:
++            kind.append('rod'); vec.append(Ev[:, 0])
++        elif s[2] / s[1] < PLATE_T:
++            kind.append('plate'); vec.append(Ev[:, 2])
++        else:
++            kind.append('blob'); vec.append(np.zeros(3))
++    kind = np.array(kind)
++    nb = cKDTree(R).query(R, min(analyze.SMOOTH_K, len(R)))[1]
++    codes = np.searchsorted(['blob', 'plate', 'rod'], kind)
++    votes = np.stack([(codes[nb] == c).sum(1) for c in range(3)], 1)
++    kind = np.array(['blob', 'plate', 'rod'])[np.argmax(votes, 1)]
++    vec = np.where((kind == 'blob')[:, None], 0.0, np.array(vec))
++    return dict(DT=DT, R=R, kind=kind, vec=vec)
++
++
+ def segments3d(V, D, lo, h, diag, seed=0):
+     rng = np.random.default_rng(seed)
+-    analyze.MEDIAL_SAMPLES = SAMPLES
+     K, _ = analyze.retained(V, D, h, diag)
+-    sh = analyze.local_shape(V, K, rng)
++    sh = local_shape(V, K, rng)
+     if sh is None:
+         return [dict(id=1, kind='retained', share=1.0)]
+     L, info = analyze.segments(V, K, sh)
+@@ -205,6 +272,12 @@ def classify(dom_tris, to_tris, res=RES):
+         g['axisym'] = round(axisym(V, D, ax), 3)
+         g['slab'] = round(slab(V, D, ax, h), 3)
+         g['area'] = round(area(V, ax, h), 6)
++        g['through'] = round(through(V, D, ax), 3)
++    from skimage.measure import euler_number
++    chi = int(euler_number(V, connectivity=3))
++    comp = int(ndi.label(V, np.ones((3, 3, 3)))[1])
++    cav = int(ndi.label(~V)[1]) - 1                       # enclosed voids (the outside is one component)
++    topo = dict(components=comp, cavities=cav, tunnels=comp + cav - chi)
+     t, why = decide_global(G)
+     segs, share = None, None
+     if t is None:
+@@ -212,7 +285,7 @@ def classify(dom_tris, to_tris, res=RES):
+         t, why, share = decide_3d(segs)
+     return dict(type=t, type_name=TYPES[t], reason=why, frame=dict(R=np.round(Rf, 6).tolist(),
+                 deviation_deg=np.round(dev, 2).tolist()), pitch=h, shape=list(V.shape), cleanup=clean,
+-                tests=G, shares=share, segments=segs, seconds=round(time.time() - t0, 1))
++                topology=topo, tests=G, shares=share, segments=segs, seconds=round(time.time() - t0, 1))
+ 
+ 
+ def classify_case(case, res=RES, write=True):
+diff --git a/to/testbed/exact_models.py b/to/testbed/exact_models.py
+index c35e04b..9c412c1 100644
+--- a/to/testbed/exact_models.py
++++ b/to/testbed/exact_models.py
+@@ -17,6 +17,11 @@ TYPES = {1: 'extrude', 2: 'stepped', 3: 'height field', 4: 'sandwich', 5: 'axisy
+ L, W, H = 120.0, 40.0, 20.0                     # cantilever-like box domain
+ 
+ 
++def sphere(r):
++    """A whole sphere (cq.Solid.makeSphere's default angles give a hemisphere)."""
++    return cq.Solid.makeSphere(r, angleDegrees1=-90, angleDegrees2=90)
++
++
+ def box(l, w, h, x=0, y=0, z=0):
+     return cq.Workplane().box(l, w, h, centered=False).translate((x, y, z))
+ 
+@@ -119,7 +124,7 @@ def m_frame():
+     mid = (50, 50, 50)
+     rods = [rod(top[i], top[(i + 1) % 4], r) for i in range(4)] + [rod(top[i], foot[i], r) for i in range(4)] \
+         + [rod(foot[i], mid, r) for i in range(4)]
+-    nodes = [cq.Solid.makeSphere(1.6 * r).translate(cq.Vector(*p)) for p in top + foot + [mid]]
++    nodes = [sphere(1.6 * r).translate(cq.Vector(*p)) for p in top + foot + [mid]]
+     s = rods[0].fuse(*rods[1:], *nodes).clean()
+     return box(S, S, S), s, dict(regions=['12 straight rods r 3', '9 nodes'], r=r)
+ 
+@@ -149,7 +154,7 @@ def m_shell():
+     # footprint; not a surface of revolution; domain box 100 x 100 x 45
+     S, t = 100.0, 3.0
+     def ell(k):
+-        return cq.Solid.makeSphere(1.0).transformGeometry(
++        return sphere(1.0).transformGeometry(
+             cq.Matrix([[70 - k, 0, 0, S / 2], [0, 55 - k, 0, S / 2], [0, 0, 50 - k, -12.0]]))
+     dom = box(S, S, 45)
+     s = ell(0).cut(ell(t)).intersect(dom.val())
+@@ -157,12 +162,29 @@ def m_shell():
+ 
+ 
+ def m_mass():
+-    # two thick lobes joined by a thick neck (no member with a large aspect ratio); domain box 100 x 60 x 50
+-    a = cq.Solid.makeSphere(22).translate(cq.Vector(28, 30, 25))
+-    b = cq.Solid.makeSphere(18).translate(cq.Vector(74, 30, 25))
+-    n = cq.Solid.makeCylinder(15, 46, cq.Vector(28, 30, 25), cq.Vector(1, 0, 0))
+-    s = a.fuse(b, n).clean()
+-    return box(100, 60, 50), s, dict(regions=['two lobes and a neck, radius 15-22'])
++    # three overlapping lobes (radii 22, 18, 16) on a triangle: compact, no member, not a solid of revolution;
++    # domain box 100 x 80 x 50
++    s = sphere(22).translate(cq.Vector(42, 35, 25)).fuse(sphere(18).translate(cq.Vector(62, 33, 25)),
++                                                          sphere(16).translate(cq.Vector(50, 52, 27))).clean()
++    return box(100, 80, 50), s, dict(regions=['three overlapping lobes, radii 22, 18, 16'])
++
++
++def ibeam(wt):
++    """I-beam in a 120 x 60 x 20 box, as cantilever Case 9: two flanges along x on y = 0 and y = 60 (depth
++    w = 20, thickness t = w / wt at x = 0, tapering to 0.6 t at x = 120), joined by a 3 mm web in the mid-plane
++    z = 10 with four round openings. Plates when w / t >= 1.5 everywhere."""
++    B = 60.0
++    t = H / wt
++    def flange(y0, s):
++        pts = [(0, y0), (L, y0), (L, y0 + s * 0.6 * t), (0, y0 + s * t)]
++        return cq.Workplane('XY').polyline(pts).close().extrude(H)
++    fl = flange(0, 1).union(flange(B, -1))
++    web = box(L, B, 3, 0, 0, H / 2 - 1.5)
++    for xc in (20.0, 50.0, 80.0, 105.0):
++        web = web.cut(cq.Workplane().add(cq.Solid.makeCylinder(min(12, B / 2 - t - 3), H, cq.Vector(xc, B / 2, 0))))
++    return box(L, B, H), fl.union(web).val(), dict(
++        regions=['2 tapered flanges, depth 20, thickness %.3g to %.3g' % (t, 0.6 * t), 'web 3 mm, 4 openings'],
++        w_over_t=[wt, wt / 0.6])
+ 
+ 
+ def m_hybrid():
+@@ -171,7 +193,7 @@ def m_hybrid():
+     base = box(S, S, 6)
+     node = (50, 50, 90)
+     rods = [rod((x, y, 5), node, r) for x, y in ((12, 12), (88, 12), (88, 88), (12, 88))]
+-    s = base.val().fuse(*rods, cq.Solid.makeSphere(8).translate(cq.Vector(*node))).clean()
++    s = base.val().fuse(*rods, sphere(8).translate(cq.Vector(*node))).clean()
+     return box(S, S, S), s, dict(regions=['base plate 6 mm', '4 rods r 4', 'node'])
+ 
+ 
+-- 
+2.43.0
+

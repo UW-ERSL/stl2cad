@@ -1,0 +1,255 @@
+From fdbdc67fe6c4952ae4c6af065ac99969a5feec28 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Fri, 27 Nov 2026 19:14:32 -0600
+Subject: [PATCH 1/2] Case 7 SolidWorks script: links checked before they drive
+ a dimension; bevels constrained
+
+A dimension is linked to its global variable only when the two agree; otherwise
+the link is reported and left out (an equation had moved the geometry by
+-213 mm^3 in SolidWorks). Each bevel end lies on a construction line from its
+joint, normal to its member's centerline (the base sketch was under defined).
+Stand-in: Parameter reads sketch dimensions back.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BdLZZ8R4FqXDzDRWDvVnZQ
+---
+ .../Case7/results/cantilever7_d4.step         |  2 +-
+ .../results/cantilever7_d4_solidworks.py      | 42 ++++++++++++--
+ .../Case7/results/cantilever7_d4_standin.log  |  4 +-
+ stl2cad/swmock/win32com/client.py             |  5 ++
+ to/swtruss.py                                 | 55 +++++++++++++++++--
+ 5 files changed, 96 insertions(+), 12 deletions(-)
+
+diff --git a/casestudies/cantilever/Case7/results/cantilever7_d4.step b/casestudies/cantilever/Case7/results/cantilever7_d4.step
+index 0db5030..0069191 100644
+--- a/casestudies/cantilever/Case7/results/cantilever7_d4.step
++++ b/casestudies/cantilever/Case7/results/cantilever7_d4.step
+@@ -1,7 +1,7 @@
+ ISO-10303-21;
+ HEADER;
+ FILE_DESCRIPTION(('Open CASCADE Model'),'2;1');
+-FILE_NAME('Open CASCADE Shape Model','2026-11-27T18:58:10',('Author'),(
++FILE_NAME('Open CASCADE Shape Model','2026-11-27T19:12:39',('Author'),(
+     'Open CASCADE'),'Open CASCADE STEP processor 7.9','Open CASCADE 7.9'
+   ,'Unknown');
+ FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));
+diff --git a/casestudies/cantilever/Case7/results/cantilever7_d4_solidworks.py b/casestudies/cantilever/Case7/results/cantilever7_d4_solidworks.py
+index 3acfd1a..924b75b 100644
+--- a/casestudies/cantilever/Case7/results/cantilever7_d4_solidworks.py
++++ b/casestudies/cantilever/Case7/results/cantilever7_d4_solidworks.py
+@@ -31,7 +31,7 @@ WEBS = []
+ N_PARAMS = 31             # Truss: joints 10, widths 3, depth 1, chord ends 2; Base: joints 8, widths 3, depth 1, chord ends 2; R 1, webs 0
+ STRUCTS = [
+     {'name': 'Truss', 'axis': 2, 'frame': (0, 1), 'plane': 'Front Plane', 'box': (0.0, 2.4046, 120.0, 40.0), 'faces': [(0.0, 1), (20.0, -1)], 't': 4.875, 'tvar': 't', 'joints': {'J1': (2.0, 37.2878), 'J2': (5.1222, 37.2878), 'J3': (36.25, 3.7212), 'J4': (36.5, 37.2878), 'J5': (52.1341, 3.7212), 'J6': (54.5333, 3.7212), 'J7': (83.567, 36.6375), 'J8': (113.75, 3.7212), 'J9': (117.8736, 3.7212), 'J10': (120.0, 3.7212)}, 'widths': {'w1': 1.6444, 'w2': 2.6564, 'w3': 3.3884}, 'members': [{'a': 'J7', 'c': 'J9', 'w': 'w2'}, {'a': 'J5', 'c': 'J2', 'w': 'w2'}, {'a': 'J9', 'c': 'J10', 'w': 'w1', 'edge': ((117.5, 2.4046), (0.0, 1.0)), 'ext': (0.0, 0.5)}, {'a': 'J1', 'c': 'J2', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (2.5, 0.0)}, {'a': 'J2', 'c': 'J4', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (5.6222, 0.0)}, {'a': 'J4', 'c': 'J7', 'w': 'w3', 'edge': ((6.75, 40.0), (0.0, -1.0)), 'ext': (0.0, 0.0)}, {'a': 'J3', 'c': 'J5', 'w': 'w1', 'edge': ((40.0, 2.4046), (0.0, 1.0)), 'ext': (0.0, 0.0)}, {'a': 'J8', 'c': 'J9', 'w': 'w1', 'edge': ((117.5, 2.4046), (0.0, 1.0)), 'ext': (0.0, 2.6264)}, {'a': 'J5', 'c': 'J6', 'w': 'w1', 'edge': ((40.0, 2.4046), (0.0, 1.0)), 'ext': (0.0, 0.0)}, {'a': 'J6', 'c': 'J7', 'w': 'w2'}], 'links': {0: 'tb'}, 'loops': [[('L', (113.75, 4.0489999999999995), (115.61351743, 4.049), ('C', 2)), ('L', (115.61351743, 4.049), (84.1435056869327, 34.243666551918366), ('M', 0, -1)), ('A', (84.1435056869327, 34.243666551918366), (83.6590937478246, 34.42685388818314), (83.19159671184046, 34.20401078583464), ('A',)), ('L', (83.19159671184046, 34.20401078583464), (55.14304468950846, 2.4046), ('M', 9, -1)), ('L', (55.14304468950846, 2.4046), (36.25, 2.4046), ('D', 0)), ('L', (36.25, 2.4046), (36.25, 4.0489999999999995), ('E', 2)), ('L', (36.25, 4.0489999999999995), (47.329102806003974, 4.0489999999999995), ('C', 2)), ('A', (47.329102806003974, 4.0489999999999995), (47.957636747710886, 4.507641900777813), (47.71261916903043, 5.2461361087200835), ('A',)), ('L', (47.71261916903043, 5.2461361087200835), (3.9556111030107672, 36.48873610875421), ('M', 1, 1)), ('A', (3.9556111030107672, 36.48873610875421), (3.773452839226322, 36.58013394171587), (3.5720947400320995, 36.611599999999996), ('A',)), ('L', (3.5720947400320995, 36.611599999999996), (0.0, 36.611599999999996), ('C', 3)), ('L', (0.0, 36.611599999999996), (0.0, 40.0), ('D', 3)), ('L', (0.0, 40.0), (81.9809137730296, 40.0), ('D', 2)), ('L', (81.9809137730296, 40.0), (119.25887088458812, 4.232759303273443), ('M', 0, 1)), ('A', (119.25887088458812, 4.232759303273443), (119.46955851856806, 4.096660690531986), (119.71581157962567, 4.0489999999999995), ('A',)), ('L', (119.71581157962567, 4.0489999999999995), (120.0, 4.0489999999999995), ('C', 2)), ('L', (120.0, 4.0489999999999995), (120.0, 2.4046), ('D', 1)), ('L', (120.0, 2.4046), (113.75, 2.4046), ('D', 0)), ('L', (113.75, 2.4046), (113.75, 4.0489999999999995), ('E', 2))], [('L', (53.79665743643089, 4.893932408479012), (80.80586951828668, 35.51501506931763), ('M', 9, 1)), ('A', (80.80586951828668, 35.51501506931763), (80.91246006916678, 36.223127112596174), (80.31090123819081, 36.611599999999996), ('A',)), ('L', (80.31090123819081, 36.611599999999996), (10.415150872865155, 36.6116), ('C', 3)), ('A', (10.415150872865155, 36.6116), (9.786616931158148, 36.15295809922189), (10.031634509839193, 35.41446389127956), ('A',)), ('L', (10.031634509839193, 35.41446389127956), (52.91817279330905, 4.7933812304409305), ('M', 1, -1)), ('A', (52.91817279330905, 4.7933812304409305), (53.37674258600915, 4.674798662674157), (53.79665743643089, 4.893932408479012), ('A',))]], 'chord_side': {2: 0, 3: 2, 4: 2, 5: 2, 6: 0, 7: 0, 8: 0}},
+-    {'name': 'Base', 'axis': 1, 'frame': (0, 2), 'plane': 'Top Plane', 'box': (0.0, 0.0, 120.0, 20.0), 'faces': [(0.0, 1)], 't': 2.4046, 'tvar': 'tb', 'joints': {'B1': (10.25, 9.875), 'B2': (43.25, 9.9375), 'B3': (68.6669, 10.0329), 'B4': (118.4583, 3.2623), 'B5': (118.4583, 16.5776)}, 'widths': {'b1': 3.0833, 'b2': 9.0, 'b3': 20.25}, 'members': [{'a': 'B4', 'c': 'B3', 'w': 'b1'}, {'a': 'B2', 'c': 'B3', 'w': 'b2'}, {'a': 'B3', 'c': 'B5', 'w': 'b1'}, {'a': 'B4', 'c': 'B5', 'w': 'b1', 'edge': ((120.0, 10.0), (-1.0, -0.0)), 'ext': (0.0, 0.0)}, {'a': 'B1', 'c': 'B2', 'w': 'b3', 'edge': ((26.75, 20.0), (0.0, -1.0)), 'ext': (10.75, 12.25)}], 'links': {}, 'loops': [[('L', (120.0, 1.4968231467041562), (74.49655471506404, 7.684350041834394), ('M', 0, 1)), ('A', (74.49655471506404, 7.684350041834394), (74.33106963180556, 7.685913344742555), (74.17039797389799, 7.646260160226351), ('A',)), ('L', (74.17039797389799, 7.646260160226351), (68.68379021788478, 5.532931697914503), ('B',)), ('L', (68.68379021788478, 5.532931697914503), (56.15752276806046, 5.485915503300867), ('M', 1, -1)), ('A', (56.15752276806046, 5.485915503300867), (55.69243451096124, 5.291733970766844), (55.5, 4.825920152315788), ('A',)), ('L', (55.5, 4.825920152315788), (55.5, 0.0), ('E', 4)), ('L', (55.5, 0.0), (0.0, 0.0), ('D', 0)), ('L', (0.0, 0.0), (0.0, 20.0), ('D', 3)), ('L', (0.0, 20.0), (55.5, 20.0), ('D', 2)), ('L', (55.5, 20.0), (55.5, 15.145992846515696), ('E', 4)), ('A', (55.5, 15.145992846515696), (55.69418618154894, 14.678427357476945), (56.16247723193953, 14.485997495530619), ('A',)), ('L', (56.16247723193953, 14.485997495530619), (68.65000978211522, 14.532868302085497), ('M', 1, 1)), ('L', (68.65000978211522, 14.532868302085497), (74.16083626125571, 12.391839091350697), ('B',)), ('A', (74.16083626125571, 12.391839091350697), (74.3208819931019, 12.351781439671461), (74.48586218678463, 12.352668813694613), ('A',)), ('L', (74.48586218678463, 12.352668813694613), (120.0, 18.335155302247873), ('M', 2, 1)), ('L', (120.0, 18.335155302247873), (120.0, 1.4968231467041562), ('D', 1))], [('L', (116.17068786894058, 14.722000233765485), (85.19322458504666, 10.65024880773407), ('M', 2, -1)), ('A', (85.19322458504666, 10.65024880773407), (84.619238355126, 9.997348305149206), (85.19030876405199, 9.341895906829377), ('A',)), ('L', (85.19030876405199, 9.341895906829377), (116.1677720479459, 5.129601958277374), ('M', 0, -1)), ('A', (116.1677720479459, 5.129601958277374), (116.69081263034165, 5.286445437951015), (116.91669999999999, 5.783583471275613), ('A',)), ('L', (116.91669999999999, 5.783583471275613), (116.91669999999999, 14.06762884585903), ('C', 3)), ('A', (116.91669999999999, 14.06762884585903), (116.69191948112463, 14.563798175069941), (116.17068786894058, 14.722000233765485), ('A',))]], 'chord_side': {3: 1, 4: 2}},
++    {'name': 'Base', 'axis': 1, 'frame': (0, 2), 'plane': 'Top Plane', 'box': (0.0, 0.0, 120.0, 20.0), 'faces': [(0.0, 1)], 't': 2.4046, 'tvar': 'tb', 'joints': {'B1': (10.25, 9.875), 'B2': (43.25, 9.9375), 'B3': (68.6669, 10.0329), 'B4': (118.4583, 3.2623), 'B5': (118.4583, 16.5776)}, 'widths': {'b1': 3.0833, 'b2': 9.0, 'b3': 20.25}, 'members': [{'a': 'B4', 'c': 'B3', 'w': 'b1'}, {'a': 'B2', 'c': 'B3', 'w': 'b2'}, {'a': 'B3', 'c': 'B5', 'w': 'b1'}, {'a': 'B4', 'c': 'B5', 'w': 'b1', 'edge': ((120.0, 10.0), (-1.0, -0.0)), 'ext': (0.0, 0.0)}, {'a': 'B1', 'c': 'B2', 'w': 'b3', 'edge': ((26.75, 20.0), (0.0, -1.0)), 'ext': (10.75, 12.25)}], 'links': {}, 'loops': [[('L', (120.0, 1.4968231467041562), (74.49655471506404, 7.684350041834394), ('M', 0, 1)), ('A', (74.49655471506404, 7.684350041834394), (74.33106963180556, 7.685913344742555), (74.17039797389799, 7.646260160226351), ('A',)), ('L', (74.17039797389799, 7.646260160226351), (68.68379021788478, 5.532931697914503), ('B', (None, (1, 'B3')))), ('L', (68.68379021788478, 5.532931697914503), (56.15752276806046, 5.485915503300867), ('M', 1, -1)), ('A', (56.15752276806046, 5.485915503300867), (55.69243451096124, 5.291733970766844), (55.5, 4.825920152315788), ('A',)), ('L', (55.5, 4.825920152315788), (55.5, 0.0), ('E', 4)), ('L', (55.5, 0.0), (0.0, 0.0), ('D', 0)), ('L', (0.0, 0.0), (0.0, 20.0), ('D', 3)), ('L', (0.0, 20.0), (55.5, 20.0), ('D', 2)), ('L', (55.5, 20.0), (55.5, 15.145992846515696), ('E', 4)), ('A', (55.5, 15.145992846515696), (55.69418618154894, 14.678427357476945), (56.16247723193953, 14.485997495530619), ('A',)), ('L', (56.16247723193953, 14.485997495530619), (68.65000978211522, 14.532868302085497), ('M', 1, 1)), ('L', (68.65000978211522, 14.532868302085497), (74.16083626125571, 12.391839091350697), ('B', ((1, 'B3'), None))), ('A', (74.16083626125571, 12.391839091350697), (74.3208819931019, 12.351781439671461), (74.48586218678463, 12.352668813694613), ('A',)), ('L', (74.48586218678463, 12.352668813694613), (120.0, 18.335155302247873), ('M', 2, 1)), ('L', (120.0, 18.335155302247873), (120.0, 1.4968231467041562), ('D', 1))], [('L', (116.17068786894058, 14.722000233765485), (85.19322458504666, 10.65024880773407), ('M', 2, -1)), ('A', (85.19322458504666, 10.65024880773407), (84.619238355126, 9.997348305149206), (85.19030876405199, 9.341895906829377), ('A',)), ('L', (85.19030876405199, 9.341895906829377), (116.1677720479459, 5.129601958277374), ('M', 0, -1)), ('A', (116.1677720479459, 5.129601958277374), (116.69081263034165, 5.286445437951015), (116.91669999999999, 5.783583471275613), ('A',)), ('L', (116.91669999999999, 5.783583471275613), (116.91669999999999, 14.06762884585903), ('C', 3)), ('A', (116.91669999999999, 14.06762884585903), (116.69191948112463, 14.563798175069941), (116.17068786894058, 14.722000233765485), ('A',))]], 'chord_side': {3: 1, 4: 2}},
+ ]
+ STEPS = {
+     'Truss face 1': (3481.2095, (54.914, 26.3897, 2.4375)),
+@@ -80,7 +80,7 @@ for enum, member, default in (("swEndConditions_e", "swEndCondMidPlane", 6), ("s
+         CONST[member] = sw_constant(app, enum, member)
+     except Exception:
+         CONST[member] = default
+-LOG = dict(rels=0, rels_failed=[], dims=0, dims_failed=[], eqs=0, eqs_failed=[])
++LOG = dict(rels=0, rels_failed=[], dims=0, dims_failed=[], eqs=0, eqs_failed=[], eqs_skipped=[])
+ 
+ 
+ def new_part():
+@@ -321,6 +321,23 @@ def truss_sketch(m, S, dimension=True):
+                 q = call0(g, "GetStartPoint2")
+                 dim(m, [q, "ORIGIN"], hv("H" if side in (0, 2) else "V"), txt((e[1][0] + 2, e[1][1] - 4)),
+                     f"{S['name']} chord {i} end")
++        # bevels: each end on a construction line from its joint, normal to its member's centerline
++        for e, g in flat:
++            if e[0] != "L" or e[3][0] != "B":
++                continue
++            for k_, hit in enumerate(e[3][1]):
++                if hit is None or hit[0] not in cl:
++                    continue
++                i, jn = hit
++                p = e[1] if k_ == 0 else e[2]
++                sm.AddToDB = True
++                c2 = sm.CreateCenterLine(*to_sk(T, model_pt(S, J[jn])), *to_sk(T, model_pt(S, p)))
++                sm.AddToDB = False
++                pj = point_at([(None, cl[i])], skp(J[jn]))
++                pe = point_at([(None, g)], skp(p))
++                rel(m, [call0(c2, "GetStartPoint2"), pj], "sgCOINCIDENT", f"{S['name']} bevel at {jn}")
++                rel(m, [call0(c2, "GetEndPoint2"), pe], "sgCOINCIDENT", f"{S['name']} bevel end")
++                rel(m, [c2, cl[i]], "sgPERPENDICULAR", f"{S['name']} bevel normal to member {i}")
+         # fillet arcs: tangent to their neighbours, equal, one radius
+         arc0 = None
+         for loop in E:
+@@ -467,10 +484,23 @@ def build():
+     for S in STRUCTS:
+         for w, v in S["widths"].items():
+             equation(m, f'"{w}" = {v:g}mm')
+-    for nm, expr in links:
++    # links: a dimension is driven by its variable only when the two already agree (an equation that would change
++    # the geometry is reported and left out, so the part stays as built and checked)
++    var = {S["tvar"]: S["t"] for S in STRUCTS}
++    var["R"] = R_CORNER
++    for S in STRUCTS:
++        var.update(S["widths"])
++    for nm, expr in links + [(f"D1@{nm}", f'"{tv}"') for nm, tv in depth]:
++        want = eval(expr.replace('"', ""), {}, dict(var))
++        short = "@".join(nm.split("@")[:2])
++        try:
++            have = float(m.Parameter(short).SystemValue) / MM
++        except Exception:
++            have = None
++        if have is not None and have > 1e-9 and abs(have - want) > 1e-4:     # (0: not a dimension read)
++            LOG["eqs_skipped"].append(f"{short}: {have:.4f} mm, equation {expr} = {want:.4f} mm")
++            continue
+         equation(m, f'"{nm}" = {expr}')
+-    for nm, tv in depth:
+-        equation(m, f'"D1@{nm}" = "{tv}"')
+     if WEBS:
+         H0 = abs(S0["faces"][1][0] - S0["faces"][0][0])
+         equation(m, f'"D1@Web plane" = "{S0["tvar"]}"')
+@@ -486,6 +516,8 @@ def build():
+     print(f"relations: {LOG['rels']} added" + (f"; failed: {LOG['rels_failed']}" if LOG['rels_failed'] else ""))
+     print(f"dimensions: {LOG['dims']} added" + (f"; failed: {LOG['dims_failed']}" if LOG['dims_failed'] else ""))
+     print(f"equations: {LOG['eqs']} added" + (f"; failed: {LOG['eqs_failed']}" if LOG['eqs_failed'] else ""))
++    for t in LOG["eqs_skipped"]:
++        print("  not linked (value differs): " + t)
+     print(f"independent parameters: {N_PARAMS}")
+     print("all features " + ("agree" if ok else "do NOT all agree"))
+     return m
+diff --git a/casestudies/cantilever/Case7/results/cantilever7_d4_standin.log b/casestudies/cantilever/Case7/results/cantilever7_d4_standin.log
+index 2075a41..4f010a7 100644
+--- a/casestudies/cantilever/Case7/results/cantilever7_d4_standin.log
++++ b/casestudies/cantilever/Case7/results/cantilever7_d4_standin.log
+@@ -1,10 +1,10 @@
+ Truss sketch: unknown; 41 relations, 27 dimensions so far
+ Truss face 1: volume 3481.210 mm^3 (expected 3481.209); centre 0.0000 mm off -> OK
+ Truss face 2: volume 6962.419 mm^3 (expected 6962.419); centre 0.0000 mm off -> OK
+-Base sketch: unknown; 78 relations, 47 dimensions so far
++Base sketch: unknown; 84 relations, 47 dimensions so far
+ Base: volume 10764.032 mm^3 (expected 10764.038); centre 0.0001 mm off -> OK
+ after the equations: volume 10764.032 mm^3 (expected 10764.038)
+-relations: 78 added
++relations: 84 added
+ dimensions: 47 added
+ equations: 33 added
+ independent parameters: 31
+diff --git a/stl2cad/swmock/win32com/client.py b/stl2cad/swmock/win32com/client.py
+index 3ccf80a..ada58eb 100644
+--- a/stl2cad/swmock/win32com/client.py
++++ b/stl2cad/swmock/win32com/client.py
+@@ -1492,6 +1492,8 @@ class Model:
+         class Dim:
+             FullName = f"D{self._dn}@Sketch{k}@Part1.Part"
+             SystemValue = val
++        self._dvals = getattr(self, "_dvals", {})
++        self._dvals[f"D{self._dn}@Sketch{k}"] = val          # (Parameter reads sketch dimensions back)
+ 
+         class DDim:
+             def GetDimension2(self, i):
+@@ -1502,6 +1504,9 @@ class Model:
+         class D:
+             SystemValue = 0.0
+         d = D()
++        if name in getattr(self, "_dvals", {}):
++            d.SystemValue = self._dvals[name]
++            return d
+         if name.startswith("D1@"):                   # a reference plane's offset (swframe's z levels)
+             f = next((g for g in self.features if g.kind == "RefPlane" and g.Name == name[3:]
+                       and isinstance(g.data, dict) and "offset" in g.data), None)
+diff --git a/to/swtruss.py b/to/swtruss.py
+index 8ee345f..07e1650 100644
+--- a/to/swtruss.py
++++ b/to/swtruss.py
+@@ -440,6 +440,21 @@ def tag_edges(face, P):
+                             and abs(along(p) - along(q)) < 1e-6:
+                         tag = ('E', i)
+                         break
++            if tag == ('B',):                   # a bevel: each end is a member's end corner at a joint
++                ends = []
++                for r in ((p.x, p.y), (q.x, q.y)):
++                    hit = None
++                    for i, m in enumerate(P['members']):
++                        if m.get('edge') is not None:
++                            continue
++                        A, C = P['joints'][m['a']], P['joints'][m['c']]
++                        d = _unit((C[0] - A[0], C[1] - A[1])); w = P['widths'][m['w']]
++                        for jn in (m['a'], m['c']):
++                            J = P['joints'][jn]
++                            if abs(math.dist(r, J) - w / 2) < 1e-6 and abs((r[0] - J[0]) * d[0] + (r[1] - J[1]) * d[1]) < 1e-6:
++                                hit = (i, jn)
++                    ends.append(hit)
++                tag = ('B', tuple(ends))
+             loop.append(('L', (p.x, p.y), (q.x, q.y), tag))
+         # end points shared exactly by the edges that meet there (OCC's fillets leave differences of ~1e-7 mm)
+         reps = []
+@@ -542,7 +557,7 @@ for enum, member, default in (("swEndConditions_e", "swEndCondMidPlane", 6), ("s
+         CONST[member] = sw_constant(app, enum, member)
+     except Exception:
+         CONST[member] = default
+-LOG = dict(rels=0, rels_failed=[], dims=0, dims_failed=[], eqs=0, eqs_failed=[])
++LOG = dict(rels=0, rels_failed=[], dims=0, dims_failed=[], eqs=0, eqs_failed=[], eqs_skipped=[])
+ 
+ 
+ def new_part():
+@@ -783,6 +798,23 @@ def truss_sketch(m, S, dimension=True):
+                 q = call0(g, "GetStartPoint2")
+                 dim(m, [q, "ORIGIN"], hv("H" if side in (0, 2) else "V"), txt((e[1][0] + 2, e[1][1] - 4)),
+                     f"{S['name']} chord {i} end")
++        # bevels: each end on a construction line from its joint, normal to its member's centerline
++        for e, g in flat:
++            if e[0] != "L" or e[3][0] != "B":
++                continue
++            for k_, hit in enumerate(e[3][1]):
++                if hit is None or hit[0] not in cl:
++                    continue
++                i, jn = hit
++                p = e[1] if k_ == 0 else e[2]
++                sm.AddToDB = True
++                c2 = sm.CreateCenterLine(*to_sk(T, model_pt(S, J[jn])), *to_sk(T, model_pt(S, p)))
++                sm.AddToDB = False
++                pj = point_at([(None, cl[i])], skp(J[jn]))
++                pe = point_at([(None, g)], skp(p))
++                rel(m, [call0(c2, "GetStartPoint2"), pj], "sgCOINCIDENT", f"{S['name']} bevel at {jn}")
++                rel(m, [call0(c2, "GetEndPoint2"), pe], "sgCOINCIDENT", f"{S['name']} bevel end")
++                rel(m, [c2, cl[i]], "sgPERPENDICULAR", f"{S['name']} bevel normal to member {i}")
+         # fillet arcs: tangent to their neighbours, equal, one radius
+         arc0 = None
+         for loop in E:
+@@ -929,10 +961,23 @@ def build():
+     for S in STRUCTS:
+         for w, v in S["widths"].items():
+             equation(m, f'"{w}" = {v:g}mm')
+-    for nm, expr in links:
++    # links: a dimension is driven by its variable only when the two already agree (an equation that would change
++    # the geometry is reported and left out, so the part stays as built and checked)
++    var = {S["tvar"]: S["t"] for S in STRUCTS}
++    var["R"] = R_CORNER
++    for S in STRUCTS:
++        var.update(S["widths"])
++    for nm, expr in links + [(f"D1@{nm}", f'"{tv}"') for nm, tv in depth]:
++        want = eval(expr.replace('"', ""), {}, dict(var))
++        short = "@".join(nm.split("@")[:2])
++        try:
++            have = float(m.Parameter(short).SystemValue) / MM
++        except Exception:
++            have = None
++        if have is not None and have > 1e-9 and abs(have - want) > 1e-4:     # (0: not a dimension read)
++            LOG["eqs_skipped"].append(f"{short}: {have:.4f} mm, equation {expr} = {want:.4f} mm")
++            continue
+         equation(m, f'"{nm}" = {expr}')
+-    for nm, tv in depth:
+-        equation(m, f'"D1@{nm}" = "{tv}"')
+     if WEBS:
+         H0 = abs(S0["faces"][1][0] - S0["faces"][0][0])
+         equation(m, f'"D1@Web plane" = "{S0["tvar"]}"')
+@@ -948,6 +993,8 @@ def build():
+     print(f"relations: {LOG['rels']} added" + (f"; failed: {LOG['rels_failed']}" if LOG['rels_failed'] else ""))
+     print(f"dimensions: {LOG['dims']} added" + (f"; failed: {LOG['dims_failed']}" if LOG['dims_failed'] else ""))
+     print(f"equations: {LOG['eqs']} added" + (f"; failed: {LOG['eqs_failed']}" if LOG['eqs_failed'] else ""))
++    for t in LOG["eqs_skipped"]:
++        print("  not linked (value differs): " + t)
+     print(f"independent parameters: {N_PARAMS}")
+     print("all features " + ("agree" if ok else "do NOT all agree"))
+     return m
+-- 
+2.43.0
+

@@ -1,0 +1,1510 @@
+From 7b171f6969bea9f8a1d99b61b7be5c0bf931722c Mon Sep 17 00:00:00 2001
+From: Claude <claude@local>
+Date: Fri, 27 Nov 2026 19:29:26 -0600
+Subject: [PATCH 2/2] Validation gate and routing: validate.py, route.py
+
+validate.py checks a model against its TO on one voxel grid: one solid, volume
+within 10 %, overlap at least 70 % both ways, largest missed and extra regions
+at most 5 % of the TO, stand-in agreement. swtruss.py runs it at the end, and
+its SolidWorks script ends with a validation line (sketches fully defined,
+links made, features and final volume as built).
+
+route.py picks plates, heightfield, truss, frame (candidate) or none from
+analysis.json and a planar-truss test (axis-aligned domain filling its box,
+mirror plane, medial material on the box face planes). Case 7 routes to truss;
+route.json and validation.json written for the case studies.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BdLZZ8R4FqXDzDRWDvVnZQ
+---
+ casestudies/GEGrabCAD/results/route.json      |  30 ++++
+ .../cantilever/Case1/results/route.json       |   9 +
+ .../cantilever/Case1/results/validation.json  |  41 +++++
+ .../cantilever/Case2/results/route.json       |   9 +
+ .../cantilever/Case2/results/validation.json  |  41 +++++
+ .../cantilever/Case3/results/route.json       |   9 +
+ .../cantilever/Case3/results/validation.json  |  41 +++++
+ .../cantilever/Case4/results/route.json       |   9 +
+ .../cantilever/Case4/results/validation.json  |  41 +++++
+ .../cantilever/Case5/results/route.json       |   9 +
+ .../cantilever/Case5/results/validation.json  |  41 +++++
+ .../cantilever/Case6/results/route.json       |   9 +
+ .../cantilever/Case6/results/validation.json  |  41 +++++
+ .../results/cantilever7_d4_solidworks.py      |  15 +-
+ .../Case7/results/cantilever7_d4_standin.log  |   1 +
+ .../cantilever/Case7/results/route.json       |  30 ++++
+ .../cantilever/Case7/results/validation.json  |  41 +++++
+ .../cantilever/Case8/results/route.json       |   9 +
+ .../cantilever/Case8/results/validation.json  |  41 +++++
+ .../cantilever/Case9/results/route.json       |  30 ++++
+ casestudies/circularplate/results/route.json  |   9 +
+ .../circularplate/results/validation.json     |  41 +++++
+ casestudies/knuckle/Case1/results/route.json  |  30 ++++
+ casestudies/knuckle/Case2/results/route.json  |  30 ++++
+ casestudies/knuckle/Case3/results/route.json  |  31 ++++
+ .../knuckle/Case3/results/validation.json     |  41 +++++
+ casestudies/stool/Case1/results/route.json    |  31 ++++
+ casestudies/stool/Case2/results/route.json    |  30 ++++
+ casestudies/stool/Case3/results/route.json    |  30 ++++
+ .../torsioncylinder/results/route.json        |  31 ++++
+ to/README.md                                  |  33 ++++
+ to/route.py                                   | 136 +++++++++++++++
+ to/swtruss.py                                 |  21 ++-
+ to/validate.py                                | 155 ++++++++++++++++++
+ 34 files changed, 1141 insertions(+), 5 deletions(-)
+ create mode 100644 casestudies/GEGrabCAD/results/route.json
+ create mode 100644 casestudies/cantilever/Case1/results/route.json
+ create mode 100644 casestudies/cantilever/Case1/results/validation.json
+ create mode 100644 casestudies/cantilever/Case2/results/route.json
+ create mode 100644 casestudies/cantilever/Case2/results/validation.json
+ create mode 100644 casestudies/cantilever/Case3/results/route.json
+ create mode 100644 casestudies/cantilever/Case3/results/validation.json
+ create mode 100644 casestudies/cantilever/Case4/results/route.json
+ create mode 100644 casestudies/cantilever/Case4/results/validation.json
+ create mode 100644 casestudies/cantilever/Case5/results/route.json
+ create mode 100644 casestudies/cantilever/Case5/results/validation.json
+ create mode 100644 casestudies/cantilever/Case6/results/route.json
+ create mode 100644 casestudies/cantilever/Case6/results/validation.json
+ create mode 100644 casestudies/cantilever/Case7/results/route.json
+ create mode 100644 casestudies/cantilever/Case7/results/validation.json
+ create mode 100644 casestudies/cantilever/Case8/results/route.json
+ create mode 100644 casestudies/cantilever/Case8/results/validation.json
+ create mode 100644 casestudies/cantilever/Case9/results/route.json
+ create mode 100644 casestudies/circularplate/results/route.json
+ create mode 100644 casestudies/circularplate/results/validation.json
+ create mode 100644 casestudies/knuckle/Case1/results/route.json
+ create mode 100644 casestudies/knuckle/Case2/results/route.json
+ create mode 100644 casestudies/knuckle/Case3/results/route.json
+ create mode 100644 casestudies/knuckle/Case3/results/validation.json
+ create mode 100644 casestudies/stool/Case1/results/route.json
+ create mode 100644 casestudies/stool/Case2/results/route.json
+ create mode 100644 casestudies/stool/Case3/results/route.json
+ create mode 100644 casestudies/torsioncylinder/results/route.json
+ create mode 100644 to/route.py
+ create mode 100644 to/validate.py
+
+diff --git a/casestudies/GEGrabCAD/results/route.json b/casestudies/GEGrabCAD/results/route.json
+new file mode 100644
+index 0000000..477ad2e
+--- /dev/null
++++ b/casestudies/GEGrabCAD/results/route.json
+@@ -0,0 +1,30 @@
++{
++ "case": "../casestudies/GEGrabCAD",
++ "analyze_route": "3D",
++ "part_class": "7",
++ "units_guess": "in",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": false,
++   "text": "domain fills 38 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": false,
++   "text": "no axis-aligned mirror plane (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 61 % (limit 80 %; 1949 medial voxels; -z 58 %)"
++  }
++ ],
++ "route": "none",
++ "note": "no reconstruction method applies (part class 7)"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case1/results/route.json b/casestudies/cantilever/Case1/results/route.json
+new file mode 100644
+index 0000000..ed4a0bb
+--- /dev/null
++++ b/casestudies/cantilever/Case1/results/route.json
+@@ -0,0 +1,9 @@
++{
++ "case": "../casestudies/cantilever/Case1",
++ "analyze_route": "extrude",
++ "part_class": "1",
++ "units_guess": "m",
++ "truss_test": null,
++ "route": "plates",
++ "command": "python run_plates.py ../casestudies/cantilever/Case1/Cantilever.STL ../casestudies/cantilever/Case1/Cantilever_finalIsoBinary.stl NAME --units m"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case1/results/validation.json b/casestudies/cantilever/Case1/results/validation.json
+new file mode 100644
+index 0000000..2ff986c
+--- /dev/null
++++ b/casestudies/cantilever/Case1/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "cantilever1_d4.step",
++  "to": "Cantilever_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.5173511875359137,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 47574, TO 48527 (-2.0 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 97 %, of the model 98 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 0.1 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 0.0 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 47574.574, reference 47574.574 mm^3, difference volume 0.000 mm^3"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case2/results/route.json b/casestudies/cantilever/Case2/results/route.json
+new file mode 100644
+index 0000000..e5f66e2
+--- /dev/null
++++ b/casestudies/cantilever/Case2/results/route.json
+@@ -0,0 +1,9 @@
++{
++ "case": "../casestudies/cantilever/Case2",
++ "analyze_route": "height field",
++ "part_class": "2b",
++ "units_guess": "m",
++ "truss_test": null,
++ "route": "heightfield",
++ "command": "python run_plates.py ../casestudies/cantilever/Case2/Cantilever.STL ../casestudies/cantilever/Case2/Cantilever_finalIsoBinary.stl NAME --units m --mode heightfield"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case2/results/validation.json b/casestudies/cantilever/Case2/results/validation.json
+new file mode 100644
+index 0000000..ed9a05a
+--- /dev/null
++++ b/casestudies/cantilever/Case2/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "cantilever2_d4.step",
++  "to": "Cantilever_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.5173520175351254,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 48365, TO 48790 (-0.9 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 96 %, of the model 96 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 0.5 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 0.1 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 48205.031, reference 48205.000 mm^3, difference volume 0.030 mm^3"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case3/results/route.json b/casestudies/cantilever/Case3/results/route.json
+new file mode 100644
+index 0000000..f9c6b0a
+--- /dev/null
++++ b/casestudies/cantilever/Case3/results/route.json
+@@ -0,0 +1,9 @@
++{
++ "case": "../casestudies/cantilever/Case3",
++ "analyze_route": "extrude",
++ "part_class": "1",
++ "units_guess": "m",
++ "truss_test": null,
++ "route": "plates",
++ "command": "python run_plates.py ../casestudies/cantilever/Case3/Cantilever.STL ../casestudies/cantilever/Case3/Cantilever_finalIsoBinary.stl NAME --units m"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case3/results/validation.json b/casestudies/cantilever/Case3/results/validation.json
+new file mode 100644
+index 0000000..331bedf
+--- /dev/null
++++ b/casestudies/cantilever/Case3/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "cantilever3_d5.step",
++  "to": "Cantilever_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.5182142745226139,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 29114, TO 29713 (-2.0 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 96 %, of the model 96 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 0.0 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 0.0 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 29104.540, reference 29104.540 mm^3, difference volume 0.000 mm^3"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case4/results/route.json b/casestudies/cantilever/Case4/results/route.json
+new file mode 100644
+index 0000000..7a2034c
+--- /dev/null
++++ b/casestudies/cantilever/Case4/results/route.json
+@@ -0,0 +1,9 @@
++{
++ "case": "../casestudies/cantilever/Case4",
++ "analyze_route": "height field",
++ "part_class": "2b",
++ "units_guess": "m",
++ "truss_test": null,
++ "route": "heightfield",
++ "command": "python run_plates.py ../casestudies/cantilever/Case4/Cantilever.STL ../casestudies/cantilever/Case4/Cantilever_finalIsoBinary.stl NAME --units m --mode heightfield"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case4/results/validation.json b/casestudies/cantilever/Case4/results/validation.json
+new file mode 100644
+index 0000000..2341593
+--- /dev/null
++++ b/casestudies/cantilever/Case4/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "cantilever4_d4.step",
++  "to": "Cantilever_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.5173402339850747,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 77198, TO 77743 (-0.7 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 98 %, of the model 98 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 0.1 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 0.1 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 76851.943, reference 76851.863 mm^3, difference volume 0.080 mm^3"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case5/results/route.json b/casestudies/cantilever/Case5/results/route.json
+new file mode 100644
+index 0000000..3f9d519
+--- /dev/null
++++ b/casestudies/cantilever/Case5/results/route.json
+@@ -0,0 +1,9 @@
++{
++ "case": "../casestudies/cantilever/Case5",
++ "analyze_route": "height field",
++ "part_class": "2b",
++ "units_guess": "m",
++ "truss_test": null,
++ "route": "heightfield",
++ "command": "python run_plates.py ../casestudies/cantilever/Case5/Cantilever.STL ../casestudies/cantilever/Case5/Cantilever_finalIsoBinary.stl NAME --units m --mode heightfield"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case5/results/validation.json b/casestudies/cantilever/Case5/results/validation.json
+new file mode 100644
+index 0000000..60e2a84
+--- /dev/null
++++ b/casestudies/cantilever/Case5/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "cantilever5_d4.step",
++  "to": "Cantilever_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.517976855993437,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 28914, TO 29647 (-2.5 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 93 %, of the model 94 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 0.5 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 0.1 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 28922.642, reference 28922.641 mm^3, difference volume 0.000 mm^3"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case6/results/route.json b/casestudies/cantilever/Case6/results/route.json
+new file mode 100644
+index 0000000..3634dae
+--- /dev/null
++++ b/casestudies/cantilever/Case6/results/route.json
+@@ -0,0 +1,9 @@
++{
++ "case": "../casestudies/cantilever/Case6",
++ "analyze_route": "height field",
++ "part_class": "2b",
++ "units_guess": "m",
++ "truss_test": null,
++ "route": "heightfield",
++ "command": "python run_plates.py ../casestudies/cantilever/Case6/Cantilever.STL ../casestudies/cantilever/Case6/Cantilever_finalIsoBinary.stl NAME --units m --mode heightfield"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case6/results/validation.json b/casestudies/cantilever/Case6/results/validation.json
+new file mode 100644
+index 0000000..ce956e6
+--- /dev/null
++++ b/casestudies/cantilever/Case6/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "cantilever6_d4.step",
++  "to": "Cantilever_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.5177783504318826,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 38570, TO 39054 (-1.2 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 95 %, of the model 95 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 0.1 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 0.4 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 38442.214, reference 38442.169 mm^3, difference volume 0.044 mm^3"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case7/results/cantilever7_d4_solidworks.py b/casestudies/cantilever/Case7/results/cantilever7_d4_solidworks.py
+index 924b75b..7bdc256 100644
+--- a/casestudies/cantilever/Case7/results/cantilever7_d4_solidworks.py
++++ b/casestudies/cantilever/Case7/results/cantilever7_d4_solidworks.py
+@@ -459,11 +459,12 @@ def boss_checked(m, sk, S, i, name):
+ def build():
+     m = new_part()
+     ok = True
+-    links, depth = [], []
++    links, depth, defs = [], [], []
+     for S in STRUCTS:
+         sk, lk = truss_sketch(m, S)
+         links += lk
+-        print(f"{S['name']} sketch: {status(sk)}; {LOG['rels']} relations, {LOG['dims']} dimensions so far")
++        defs.append((S["name"], status(sk)))
++        print(f"{S['name']} sketch: {defs[-1][1]}; {LOG['rels']} relations, {LOG['dims']} dimensions so far")
+         for i in range(len(S["faces"])):
+             name = f"{S['name']} face {i + 1}" if len(S["faces"]) > 1 else S["name"]
+             f = boss_checked(m, sk, S, i, name)
+@@ -520,6 +521,16 @@ def build():
+         print("  not linked (value differs): " + t)
+     print(f"independent parameters: {N_PARAMS}")
+     print("all features " + ("agree" if ok else "do NOT all agree"))
++    # validation: sketches fully defined, every link made, the features and the final volume as built
++    bad = ("under defined", "over defined", "no solution", "invalid solution")
++    probs = [f"{n} sketch {st}" for n, st in defs if st in bad]
++    probs += [f"{len(LOG['eqs_skipped'])} link(s) left out"] if LOG["eqs_skipped"] else []
++    probs += [f"{len(LOG['eqs_failed'])} equation(s) failed"] if LOG["eqs_failed"] else []
++    probs += [] if ok else ["features disagree"]
++    probs += [] if abs(v - ev) <= TOL * ev else [f"volume after the equations {v - ev:+.3f} mm^3"]
++    unk = [n for n, st in defs if st != "fully defined" and st not in bad]
++    print("validation: " + ("PASS" if not probs else "FAIL: " + "; ".join(probs))
++          + (f" (sketch status not available: {', '.join(unk)})" if unk else ""))
+     return m
+ 
+ 
+diff --git a/casestudies/cantilever/Case7/results/cantilever7_d4_standin.log b/casestudies/cantilever/Case7/results/cantilever7_d4_standin.log
+index 4f010a7..4f0fe18 100644
+--- a/casestudies/cantilever/Case7/results/cantilever7_d4_standin.log
++++ b/casestudies/cantilever/Case7/results/cantilever7_d4_standin.log
+@@ -9,5 +9,6 @@ dimensions: 47 added
+ equations: 33 added
+ independent parameters: 31
+ all features agree
++validation: PASS (sketch status not available: Truss, Base)
+ 
+ stand-in: volume 10764.032, reference 10764.038 mm^3, difference volume 0.000 mm^3
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case7/results/route.json b/casestudies/cantilever/Case7/results/route.json
+new file mode 100644
+index 0000000..37de723
+--- /dev/null
++++ b/casestudies/cantilever/Case7/results/route.json
+@@ -0,0 +1,30 @@
++{
++ "case": "../casestudies/cantilever/Case7",
++ "analyze_route": "3D",
++ "part_class": "8/9 (4 + 3)",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": true,
++   "text": "domain fills 98 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": true,
++   "text": "best axis-aligned mirror plane 1.00, normal z (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": true,
++   "text": "medial material on the box faces 89 % (limit 80 %; 1409 medial voxels; -y 24 %, -z 34 %, +x 2 %, +y 37 %, +z 32 %)"
++  }
++ ],
++ "route": "truss",
++ "command": "python swtruss.py ../casestudies/cantilever/Case7/Cantilever.STL ../casestudies/cantilever/Case7/Cantilever_finalIsoBinary.stl NAME --units m --detail 4"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case7/results/validation.json b/casestudies/cantilever/Case7/results/validation.json
+new file mode 100644
+index 0000000..13fce71
+--- /dev/null
++++ b/casestudies/cantilever/Case7/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "cantilever7_d4.step",
++  "to": "Cantilever_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.5177939785247363,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 10764, TO 11156 (-3.5 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 75 %, of the model 75 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 3.5 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 4.7 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 10764.032, reference 10764.038 mm^3, difference volume 0.000 mm^3"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case8/results/route.json b/casestudies/cantilever/Case8/results/route.json
+new file mode 100644
+index 0000000..0e13311
+--- /dev/null
++++ b/casestudies/cantilever/Case8/results/route.json
+@@ -0,0 +1,9 @@
++{
++ "case": "../casestudies/cantilever/Case8",
++ "analyze_route": "height field",
++ "part_class": "2b",
++ "units_guess": "m",
++ "truss_test": null,
++ "route": "heightfield",
++ "command": "python run_plates.py ../casestudies/cantilever/Case8/Cantilever.STL ../casestudies/cantilever/Case8/Cantilever_finalIsoBinary.stl NAME --units m --mode heightfield"
++}
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case8/results/validation.json b/casestudies/cantilever/Case8/results/validation.json
+new file mode 100644
+index 0000000..9f3fa1e
+--- /dev/null
++++ b/casestudies/cantilever/Case8/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "cantilever8_d4.step",
++  "to": "Cantilever_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.516615700714789,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 14409, TO 14519 (-0.8 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 89 %, of the model 92 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 0.3 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 0.3 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 14444.549, reference 14444.549 mm^3, difference volume 0.000 mm^3"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/cantilever/Case9/results/route.json b/casestudies/cantilever/Case9/results/route.json
+new file mode 100644
+index 0000000..bf6deb9
+--- /dev/null
++++ b/casestudies/cantilever/Case9/results/route.json
+@@ -0,0 +1,30 @@
++{
++ "case": "../casestudies/cantilever/Case9",
++ "analyze_route": "3D",
++ "part_class": "7",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": false,
++   "text": "frame deviation 30.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": true,
++   "text": "domain fills 100 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": true,
++   "text": "best axis-aligned mirror plane 0.94, normal z (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 65 % (limit 80 %; 1111 medial voxels; -y 33 %, +x 2 %, +y 30 %, +z 1 %)"
++  }
++ ],
++ "route": "none",
++ "note": "no reconstruction method applies (part class 7)"
++}
+\ No newline at end of file
+diff --git a/casestudies/circularplate/results/route.json b/casestudies/circularplate/results/route.json
+new file mode 100644
+index 0000000..dafdd56
+--- /dev/null
++++ b/casestudies/circularplate/results/route.json
+@@ -0,0 +1,9 @@
++{
++ "case": "../casestudies/circularplate",
++ "analyze_route": "extrude",
++ "part_class": "1",
++ "units_guess": "in",
++ "truss_test": null,
++ "route": "plates",
++ "command": "python run_plates.py ../casestudies/circularplate/CircularPlateHole.STL ../casestudies/circularplate/CircularPlateHole_finalIsoBinary.stl NAME --units in"
++}
+\ No newline at end of file
+diff --git a/casestudies/circularplate/results/validation.json b/casestudies/circularplate/results/validation.json
+new file mode 100644
+index 0000000..2a44f57
+--- /dev/null
++++ b/casestudies/circularplate/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "circularplate_d3.step",
++  "to": "CircularPlateHole_finalIsoBinary.stl",
++  "scale": 25.4,
++  "pitch": 0.7227614280109755,
++  "ok": true,
++  "checks": [
++   [
++    "solids",
++    true,
++    "1 solid(s)"
++   ],
++   [
++    "volume",
++    true,
++    "model 74578, TO 74710 (-0.2 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    true,
++    "of the TO 93 %, of the model 96 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    true,
++    "largest TO region not modelled 0.0 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    true,
++    "largest model region outside the TO 0.0 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 74787.439, reference 74787.439 mm^3; booleans failed, volume, area, centre of mass and inertia agree"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/knuckle/Case1/results/route.json b/casestudies/knuckle/Case1/results/route.json
+new file mode 100644
+index 0000000..5ad62da
+--- /dev/null
++++ b/casestudies/knuckle/Case1/results/route.json
+@@ -0,0 +1,30 @@
++{
++ "case": "../casestudies/knuckle/Case1",
++ "analyze_route": "3D",
++ "part_class": "7",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": false,
++   "text": "domain fills 45 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": true,
++   "text": "best axis-aligned mirror plane 1.00, normal x (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 58 % (limit 80 %; 793 medial voxels; -x 15 %, -z 18 %, +x 15 %, +z 23 %)"
++  }
++ ],
++ "route": "none",
++ "note": "no reconstruction method applies (part class 7)"
++}
+\ No newline at end of file
+diff --git a/casestudies/knuckle/Case2/results/route.json b/casestudies/knuckle/Case2/results/route.json
+new file mode 100644
+index 0000000..762e8ee
+--- /dev/null
++++ b/casestudies/knuckle/Case2/results/route.json
+@@ -0,0 +1,30 @@
++{
++ "case": "../casestudies/knuckle/Case2",
++ "analyze_route": "3D",
++ "part_class": "8/9 (7 + 3 + 6)",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": false,
++   "text": "domain fills 45 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": true,
++   "text": "best axis-aligned mirror plane 1.00, normal x (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 5 % (limit 80 %; 718 medial voxels; -z 3 %, +z 2 %)"
++  }
++ ],
++ "route": "none",
++ "note": "no reconstruction method applies (part class 8/9 (7 + 3 + 6))"
++}
+\ No newline at end of file
+diff --git a/casestudies/knuckle/Case3/results/route.json b/casestudies/knuckle/Case3/results/route.json
+new file mode 100644
+index 0000000..003144e
+--- /dev/null
++++ b/casestudies/knuckle/Case3/results/route.json
+@@ -0,0 +1,31 @@
++{
++ "case": "../casestudies/knuckle/Case3",
++ "analyze_route": "3D",
++ "part_class": "8/9 (3 + 4 + 6)",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": false,
++   "text": "domain fills 45 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": true,
++   "text": "best axis-aligned mirror plane 1.00, normal x (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 46 % (limit 80 %; 1658 medial voxels; -x 6 %, -z 13 %, +x 7 %, +y 5 %, +z 14 %)"
++  }
++ ],
++ "route": "frame",
++ "command": "python swframe.py EXACT_ORIGINAL.py ../casestudies/knuckle/Case3/Knuckle_finalIsoBinary.stl NAME --units m --detail 3",
++ "note": "candidate: rods in the part class; swframe needs the exact model of the original (stl2cad.cli) and hubs; not tested for applicability"
++}
+\ No newline at end of file
+diff --git a/casestudies/knuckle/Case3/results/validation.json b/casestudies/knuckle/Case3/results/validation.json
+new file mode 100644
+index 0000000..6ae4419
+--- /dev/null
++++ b/casestudies/knuckle/Case3/results/validation.json
+@@ -0,0 +1,41 @@
++[
++ {
++  "model": "knuckle3_d3.step",
++  "to": "Knuckle_finalIsoBinary.stl",
++  "scale": 1000.0,
++  "pitch": 0.5871507973970612,
++  "ok": false,
++  "checks": [
++   [
++    "solids",
++    false,
++    "43 solids in the file, 3 after a fuse"
++   ],
++   [
++    "volume",
++    false,
++    "model 35365, TO 25539 (+38.5 %; limit 10 %)"
++   ],
++   [
++    "overlap",
++    false,
++    "of the TO 67 %, of the model 49 % (limit 70 %)"
++   ],
++   [
++    "missed",
++    false,
++    "largest TO region not modelled 18.5 % of the TO (limit 5 %)"
++   ],
++   [
++    "extra",
++    false,
++    "largest model region outside the TO 13.7 % of the TO (limit 5 %)"
++   ],
++   [
++    "stand-in",
++    true,
++    "stand-in: volume 26227.907, reference 26227.904 mm^3; centres of mass 0.00011 mm apart; bounding boxes 0.00308 mm"
++   ]
++  ]
++ }
++]
+\ No newline at end of file
+diff --git a/casestudies/stool/Case1/results/route.json b/casestudies/stool/Case1/results/route.json
+new file mode 100644
+index 0000000..d71d2cc
+--- /dev/null
++++ b/casestudies/stool/Case1/results/route.json
+@@ -0,0 +1,31 @@
++{
++ "case": "../casestudies/stool/Case1",
++ "analyze_route": "3D",
++ "part_class": "4",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": true,
++   "text": "domain fills 99 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": true,
++   "text": "best axis-aligned mirror plane 1.00, normal x (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 37 % (limit 80 %; 1162 medial voxels; -x 6 %, -y 6 %, -z 19 %, +x 6 %, +y 6 %, +z 12 %)"
++  }
++ ],
++ "route": "frame",
++ "command": "python swframe.py EXACT_ORIGINAL.py ../casestudies/stool/Case1/Stool_finalIsoBinary.stl NAME --units m --detail 3",
++ "note": "candidate: rods in the part class; swframe needs the exact model of the original (stl2cad.cli) and hubs; not tested for applicability"
++}
+\ No newline at end of file
+diff --git a/casestudies/stool/Case2/results/route.json b/casestudies/stool/Case2/results/route.json
+new file mode 100644
+index 0000000..a83e002
+--- /dev/null
++++ b/casestudies/stool/Case2/results/route.json
+@@ -0,0 +1,30 @@
++{
++ "case": "../casestudies/stool/Case2",
++ "analyze_route": "3D",
++ "part_class": "3",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": true,
++   "text": "domain fills 98 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": true,
++   "text": "best axis-aligned mirror plane 1.00, normal x (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 26 % (limit 80 %; 1247 medial voxels; -x 12 %, -y 11 %, -z 5 %, +x 10 %, +y 10 %, +z 2 %)"
++  }
++ ],
++ "route": "none",
++ "note": "no reconstruction method applies (part class 3)"
++}
+\ No newline at end of file
+diff --git a/casestudies/stool/Case3/results/route.json b/casestudies/stool/Case3/results/route.json
+new file mode 100644
+index 0000000..25caf49
+--- /dev/null
++++ b/casestudies/stool/Case3/results/route.json
+@@ -0,0 +1,30 @@
++{
++ "case": "../casestudies/stool/Case3",
++ "analyze_route": "3D",
++ "part_class": "3",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": true,
++   "text": "domain fills 99 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": true,
++   "text": "best axis-aligned mirror plane 0.98, normal x (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 60 % (limit 80 %; 2460 medial voxels; -x 6 %, -y 5 %, +x 5 %, +y 7 %, +z 39 %)"
++  }
++ ],
++ "route": "none",
++ "note": "no reconstruction method applies (part class 3)"
++}
+\ No newline at end of file
+diff --git a/casestudies/torsioncylinder/results/route.json b/casestudies/torsioncylinder/results/route.json
+new file mode 100644
+index 0000000..8281e63
+--- /dev/null
++++ b/casestudies/torsioncylinder/results/route.json
+@@ -0,0 +1,31 @@
++{
++ "case": "../casestudies/torsioncylinder",
++ "analyze_route": "3D",
++ "part_class": "8/9 (5 + 6)",
++ "units_guess": "m",
++ "truss_test": [
++  {
++   "check": "frame",
++   "ok": true,
++   "text": "frame deviation 0.0 deg (limit 1)"
++  },
++  {
++   "check": "box",
++   "ok": false,
++   "text": "domain fills 46 % of its box (limit 95 %)"
++  },
++  {
++   "check": "mirror",
++   "ok": false,
++   "text": "no axis-aligned mirror plane (limit 0.90)"
++  },
++  {
++   "check": "faces",
++   "ok": false,
++   "text": "medial material on the box faces 22 % (limit 80 %; 2294 medial voxels; -x 4 %, -y 6 %, -z 2 %, +x 5 %, +y 4 %, +z 2 %)"
++  }
++ ],
++ "route": "frame",
++ "command": "python swframe.py EXACT_ORIGINAL.py ../casestudies/torsioncylinder/torsionCylinder_finalIsoBinary.stl NAME --units m --detail 3",
++ "note": "candidate: rods in the part class; swframe needs the exact model of the original (stl2cad.cli) and hubs; not tested for applicability"
++}
+\ No newline at end of file
+diff --git a/to/README.md b/to/README.md
+index f3167b9..65b7137 100644
+--- a/to/README.md
++++ b/to/README.md
+@@ -160,3 +160,36 @@ extrude / height-field / two-layer tests along each frame axis; retained regions
+ 
+     python analyze.py ../casestudies/cantilever/Case1
+     python analyze.py --all ../casestudies
++
++## Routing (`route.py`) and the validation gate (`validate.py`)
++
++`route.py` reads `analysis.json` and picks the method for a case: `plates` (extrude, class 1), `heightfield`
++(classes 2a, 2b), `truss` (the planar-truss test passes), `frame` (rods in the part class; a candidate only, since
++`swframe.py` also needs the original's exact model and hubs), or `none`. The planar-truss test checks what
++`truss2d.fit` assumes: the domain is axis aligned (frame deviation below 1 deg), it fills at least 95 % of its box,
++the TO has an axis-aligned mirror plane (score at least 0.9), and at least 80 % of the TO's medial material (3D
++skeleton, weighted by the square of the local radius) lies within 1.5 local radii plus one voxel of a box face
++plane. Lengths are relative to analyze's voxel pitch (diagonal / 300). Writes `CASE/results/route.json` with the
++command to run; the units in it are a guess from the size (m below a 1 m diagonal, else in).
++
++    python route.py --all ../casestudies
++
++`validate.py` checks a model (STEP or STL) against its TO on one voxel grid (TO diagonal / 250): one solid (several
++solids in the file must fuse into one); volume within 10 %; voxel overlap at least 70 % of the TO and of the model;
++the largest TO region more than one voxel from the model, and the largest model region more than one voxel from
++the TO, each at most 5 % of the TO volume; the SolidWorks script's stand-in part agrees with the CadQuery model
++(from `NAME_standin.log`). The TO is scaled to the model's units (factor among 1, 1000, 25.4 and inverses nearest
++in diagonal). `swtruss.py` runs it at the end and exits with 1 on FAIL; its SolidWorks script ends with a line
++`validation: PASS` or `FAIL: ...` (sketches fully defined, every link made, features and final volume as built).
++
++    python validate.py MODEL.step TO.stl --standin NAME_standin.log
++    python validate.py --all ../casestudies          # every CASE/results/*.step; writes validation.json
++
++On the case studies: the 18 cases route as plates 3, heightfield 5, truss 1 (cantilever Case 7), frame candidate 3
++(knuckle Case 3, stool Case 1, torsion cylinder), none 6 (GE bracket, cantilever Case 9,
++knuckle Cases 1 and 2, stool Cases 2 and 3). The face test separates Case 7 (89 %) from every other 3D case (65 %
++or less); the 80 % limit is set from these cases only. The 10 models in the results folders: 9 PASS; the knuckle
++Case 3 STEP FAILs (43 feature bodies whose fuse leaves 3 solids, +38 % volume), although its SolidWorks script
++agrees with its own reference on the stand-in. Case 7 passes with the least margin (overlap 75 %, largest extra
++region 4.7 %). Limits: the gate measures shape agreement with the TO, not structural performance; a missed member
++under 5 % of the TO volume passes; the thresholds are not yet tested on new geometry.
+diff --git a/to/route.py b/to/route.py
+new file mode 100644
+index 0000000..6270fc0
+--- /dev/null
++++ b/to/route.py
+@@ -0,0 +1,136 @@
++"""Route a case to the reconstruction method that applies to it, or flag it as having none.
++
++Reads CASE/results/analysis.json (analyze.py: frame, grid, symmetry, route, part class) and the case's two STLs.
++
++  extrude (class 1)        plates        run_plates.py
++  height field (2a, 2b)    heightfield   run_plates.py --mode heightfield
++  otherwise, the planar-truss test passes
++                           truss         swtruss.py (truss2d.py)
++  otherwise, rods (class 4 or 5 in the part class)
++                           frame         swframe.py; needs the original's exact model (stl2cad.cli); candidate only
++  otherwise                none
++
++Planar-truss test (what truss2d.fit assumes):
++  frame      the domain is axis aligned (frame deviation < FRAME_DEG): truss2d works in the global axes
++  box        the domain fills its bounding box >= BOX_FILL: the outlines are rectangles
++  mirror     an axis-aligned mirror plane of the TO, score >= MIRROR (analyze's symmetry, accepted or candidate)
++  faces      the material lies in the planes of the domain's box faces: of the medial voxels of the TO
++             (3D skeleton, local radius r from the distance transform), weighted by r^2, a share >= FACES lies
++             within FACE_R x r + one voxel of a box face plane
++
++The voxel grid is analyze's (pitch = diagonal / 300), so every length above is relative to the part.
++Writes CASE/results/route.json. Units for the commands: m when the domain diagonal is below 1, else in
++(a guess from the size; check it).
++
++Usage (from to/):  python route.py CASE [CASE ...]      python route.py --all ../casestudies
++"""
++import argparse, glob, json, os, sys
++import numpy as np
++from scipy import ndimage as ndi
++from skimage.morphology import skeletonize
++
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++import analyze
++
++FRAME_DEG = 1.0
++BOX_FILL = 0.95
++MIRROR = 0.9
++FACES = 0.8             # Case 7 (a face truss): 0.89; every other 3D case: 0.65 or less
++FACE_R = 1.5
++
++
++def face_share(case, rep):
++    """Share (r^2 weighted) of the TO's medial voxels within FACE_R r + h of a plane of the domain's box,
++    and the share per plane (axis, side)."""
++    fd, ft = analyze.find_pair(case)
++    R = np.array(rep['frame']['R'])
++    dom, to = analyze.load_stl(fd) @ R, analyze.load_stl(ft) @ R
++    g = rep['grid']
++    lo, h, shape = np.array(g['lo']), g['pitch'], tuple(g['shape'])
++    D, _ = analyze.voxelize(dom, lo, shape, h)
++    V, _ = analyze.voxelize(to, lo, shape, h)
++    V, _ = analyze.cleanup(V, D)
++    S = skeletonize(V) > 0
++    r = ndi.distance_transform_edt(V)[S] * h
++    p = lo + (np.argwhere(S) + 0.5) * h
++    pd = dom.reshape(-1, 3)
++    box = np.stack([pd.min(0), pd.max(0)])                       # (2, 3): low and high faces
++    d = np.abs(p[:, None, :] - box[None])                  # (n, 2 sides, 3 axes)
++    on = d <= (FACE_R * r + h)[:, None, None]
++    w = r ** 2
++    share = float(w[on.any(axis=(1, 2))].sum() / w.sum())
++    per = {'%s%s' % ('-+'[s], 'xyz'[a]): round(float(w[on[:, s, a]].sum() / w.sum()), 3)
++           for s in range(2) for a in range(3)}
++    return share, per, int(S.sum())
++
++
++def truss_test(case, rep):
++    sym = rep['symmetry']
++    mir = [m for m in sym['mirrors'] + sym['candidates'] if m['kind'] == 'mirror'
++           and max(np.abs(m['vector'])) > 0.999]
++    ms = max([m['to'] for m in mir], default=0.0)
++    dev = max(rep['frame']['deviation_deg'])
++    fill = rep['domain']['fill_of_box']
++    share, per, n = face_share(case, rep)
++    C = [('frame', dev < FRAME_DEG, 'frame deviation %.1f deg (limit %.0f)' % (dev, FRAME_DEG)),
++         ('box', fill >= BOX_FILL, 'domain fills %.0f %% of its box (limit %.0f %%)' % (100 * fill, 100 * BOX_FILL)),
++         ('mirror', ms >= MIRROR, 'best axis-aligned mirror plane %.2f, normal %s (limit %.2f)'
++          % (ms, 'xyz'[int(np.argmax(np.abs(max(mir, key=lambda m: m['to'])['vector'])))], MIRROR) if mir else
++          'no axis-aligned mirror plane (limit %.2f)' % MIRROR),
++         ('faces', share >= FACES, 'medial material on the box faces %.0f %% (limit %.0f %%; %d medial voxels; %s)'
++          % (100 * share, 100 * FACES, n, ', '.join('%s %.0f %%' % (k, 100 * v) for k, v in per.items() if v >= 0.01)))]
++    return all(c[1] for c in C), C
++
++
++def route_case(case):
++    rep = json.load(open(os.path.join(case, 'results', 'analysis.json')))
++    fd, ft = analyze.find_pair(case)
++    units = 'm' if np.linalg.norm(rep['domain']['size']) < 1 else 'in'
++    rt, cls = rep['route']['route'], rep['part_class']
++    name = os.path.basename(os.path.normpath(case)).lower()
++    args = '%s %s NAME --units %s' % (os.path.relpath(fd), os.path.relpath(ft), units)
++    out = dict(case=os.path.relpath(case), analyze_route=rt, part_class=cls, units_guess=units, truss_test=None)
++    if rt == 'extrude':
++        out.update(route='plates', command='python run_plates.py ' + args)
++    elif rt == 'height field':
++        out.update(route='heightfield', command='python run_plates.py %s --mode heightfield' % args)
++    else:
++        ok, C = truss_test(case, rep)
++        out['truss_test'] = [dict(check=n, ok=bool(o), text=t) for n, o, t in C]
++        if ok:
++            out.update(route='truss', command='python swtruss.py %s --detail 4' % args)
++        elif any(k in cls.replace('(', ' ').replace('+', ' ').split() for k in ('4', '5')):
++            out.update(route='frame', command='python swframe.py EXACT_ORIGINAL.py %s %s --units %s --detail 3'
++                       % (os.path.relpath(ft), 'NAME', units),
++                       note='candidate: rods in the part class; swframe needs the exact model of the original '
++                            '(stl2cad.cli) and hubs; not tested for applicability')
++        else:
++            out.update(route='none', note='no reconstruction method applies (part class %s)' % cls)
++    json.dump(out, open(os.path.join(case, 'results', 'route.json'), 'w'), indent=1)
++    return out
++
++
++def report(case, r):
++    L = ['%s: %s  (analyze: %s, class %s)' % (case, r['route'], r['analyze_route'], r['part_class'])]
++    for c in r['truss_test'] or []:
++        L.append('  truss %-6s %-4s %s' % (c['check'], 'ok' if c['ok'] else 'no', c['text']))
++    if r.get('note'):
++        L.append('  ' + r['note'])
++    return '\n'.join(L)
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument('case', nargs='*'); ap.add_argument('--all')
++    a = ap.parse_args()
++    cases = a.case or sorted(os.path.dirname(f) for f in
++                             glob.glob(os.path.join(a.all, '**', '*_finalIsoBinary.stl'), recursive=True))
++    for c in cases:
++        if not os.path.exists(os.path.join(c, 'results', 'analysis.json')):
++            print('%s: no analysis.json (run analyze.py first)' % c)
++            continue
++        print(report(os.path.relpath(c, a.all) if a.all else c, route_case(c)))
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/to/swtruss.py b/to/swtruss.py
+index 07e1650..63de030 100644
+--- a/to/swtruss.py
++++ b/to/swtruss.py
+@@ -936,11 +936,12 @@ def boss_checked(m, sk, S, i, name):
+ def build():
+     m = new_part()
+     ok = True
+-    links, depth = [], []
++    links, depth, defs = [], [], []
+     for S in STRUCTS:
+         sk, lk = truss_sketch(m, S)
+         links += lk
+-        print(f"{S['name']} sketch: {status(sk)}; {LOG['rels']} relations, {LOG['dims']} dimensions so far")
++        defs.append((S["name"], status(sk)))
++        print(f"{S['name']} sketch: {defs[-1][1]}; {LOG['rels']} relations, {LOG['dims']} dimensions so far")
+         for i in range(len(S["faces"])):
+             name = f"{S['name']} face {i + 1}" if len(S["faces"]) > 1 else S["name"]
+             f = boss_checked(m, sk, S, i, name)
+@@ -997,6 +998,16 @@ def build():
+         print("  not linked (value differs): " + t)
+     print(f"independent parameters: {N_PARAMS}")
+     print("all features " + ("agree" if ok else "do NOT all agree"))
++    # validation: sketches fully defined, every link made, the features and the final volume as built
++    bad = ("under defined", "over defined", "no solution", "invalid solution")
++    probs = [f"{n} sketch {st}" for n, st in defs if st in bad]
++    probs += [f"{len(LOG['eqs_skipped'])} link(s) left out"] if LOG["eqs_skipped"] else []
++    probs += [f"{len(LOG['eqs_failed'])} equation(s) failed"] if LOG["eqs_failed"] else []
++    probs += [] if ok else ["features disagree"]
++    probs += [] if abs(v - ev) <= TOL * ev else [f"volume after the equations {v - ev:+.3f} mm^3"]
++    unk = [n for n, st in defs if st != "fully defined" and st not in bad]
++    print("validation: " + ("PASS" if not probs else "FAIL: " + "; ".join(probs))
++          + (f" (sketch status not available: {', '.join(unk)})" if unk else ""))
+     return m
+ 
+ 
+@@ -1145,7 +1156,11 @@ def main():
+                                                      if mb.get('edge') is not None else '') for mb in S['members']]
+     L += ['', 'webs (u0, v0, u1, v1), between the truss faces:'] + ['  %r' % (w,) for w in P['webs']]
+     open(a.name + '_truss.txt', 'w').write('\n'.join(L) + '\n')
++    import validate                                      # the gate against the TO (to/validate.py)
++    r = validate.validate(a.name + '.step', a.to, a.name + '_standin.log')
++    print(validate.report(r))
++    return r['ok']
+ 
+ 
+ if __name__ == '__main__':
+-    main()
++    sys.exit(0 if main() else 1)
+diff --git a/to/validate.py b/to/validate.py
+new file mode 100644
+index 0000000..009d839
+--- /dev/null
++++ b/to/validate.py
+@@ -0,0 +1,155 @@
++"""Validation gate: is a reconstructed model an acceptable stand-in for its TO result? Route independent.
++
++The model (STEP, or STL) and the TO STL are voxelized on one grid, pitch = TO diagonal / RES. Checks:
++
++  solids     the model is one solid (several solids in the file: one after a fuse; the voxels and the volume
++             are then those of their union)
++  volume     model volume within VOLUME of the TO's
++  overlap    |M & T| / |T| and |M & T| / |M| both >= OVERLAP (M, T: model and TO voxels)
++  missed     the largest connected TO region more than one voxel from the model, as a share of the TO,
++             is <= REGION (a member or plate left out)
++  extra      the same for model regions more than one voxel from the TO (material the TO does not have)
++  stand-in   the SolidWorks script ran on the stand-in (swmock) and its part agrees with the CadQuery model
++             (read from NAME_standin.log; volumes within STANDIN)
++
++The TO is scaled to the model's units: the factor among 1, 1000 (m to mm), 25.4 (in to mm) and their inverses
++whose diagonal is nearest to the model's. Both are compared in the coordinates they were written in.
++
++Usage (from to/):  python validate.py MODEL.step TO.stl [--standin NAME_standin.log]
++                   python validate.py --all ../casestudies      (every results/*.step; writes validation.json)
++"""
++import argparse, glob, json, os, re, sys
++import numpy as np
++from scipy import ndimage as ndi
++
++sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
++import analyze
++
++RES = 250
++VOLUME = 0.10
++OVERLAP = 0.70
++REGION = 0.05
++STANDIN = 1e-3
++SCALES = (1.0, 1000.0, 25.4, 1e-3, 1 / 25.4)
++
++
++def triangles(path):
++    """Triangles (n, 3, 3) per solid of a STEP or STL file, and the number of solids after a fuse (OCC)."""
++    if path.lower().endswith(('.step', '.stp')):
++        import cadquery as cq
++        s = cq.importers.importStep(path).val()
++        S = s.Solids()
++        n = 1 if len(S) == 1 else len(S[0].fuse(*S[1:]).clean().Solids())
++        out = []
++        for x in S:
++            v, f = x.tessellate(1e-3 * s.BoundingBox().DiagonalLength, 0.2)
++            out.append(np.array([p.toTuple() for p in v])[np.array(f)])
++        return out, len(S), n
++    import trimesh
++    m = trimesh.load(path, force='mesh')
++    P = m.split(only_watertight=False)
++    return [p.vertices[p.faces] for p in P], len(P), len(P)
++
++
++def tri_volume(T):
++    return abs(float(np.sum(np.einsum('ij,ij->i', T[:, 0], np.cross(T[:, 1], T[:, 2]))) / 6))
++
++
++def standin(log):
++    """(ok, line) from a stand-in log: the last 'stand-in:' line; volumes (and the difference) within STANDIN."""
++    if not os.path.exists(log):
++        return None, 'no stand-in log'
++    L = [l for l in open(log, errors='ignore').read().splitlines() if l.startswith('stand-in:')]
++    if not L:
++        return False, 'the stand-in did not finish'
++    v = re.search(r'volume ([0-9.]+), reference ([0-9.]+)', L[-1])
++    d = re.search(r'difference volume ([0-9.]+)', L[-1])
++    if not v:
++        return False, L[-1]
++    a, b = float(v.group(1)), float(v.group(2))
++    ok = abs(a - b) <= STANDIN * b and (d is None or float(d.group(1)) <= STANDIN * b)
++    return ok, L[-1]
++
++
++def validate(model, to_stl, log=None, res=RES):
++    """Checks of one model against its TO. Returns dict(ok, checks=[(name, ok, text)], ...)."""
++    Ms, nfile, nsol = triangles(model)
++    M = np.vstack(Ms)
++    T = analyze.load_stl(to_stl)
++    dm = np.linalg.norm(np.ptp(M.reshape(-1, 3), 0))
++    dt = np.linalg.norm(np.ptp(T.reshape(-1, 3), 0))
++    sc = min(SCALES, key=lambda s: abs(np.log(dm / (s * dt))))
++    T = T * sc
++    pts = np.vstack([M.reshape(-1, 3), T.reshape(-1, 3)])
++    h = dt * sc / res
++    lo = pts.min(0) - 2 * h
++    shape = tuple(int(x) for x in np.ceil((pts.max(0) + 2 * h - lo) / h))
++    Vm = np.zeros(shape, bool)
++    for X in Ms:                           # several solids: the union of their voxels
++        Vm |= analyze.voxelize(X, lo, shape, h)[0]
++    Vt, _ = analyze.voxelize(T, lo, shape, h)
++    ball = ndi.generate_binary_structure(3, 3)
++    nm, nt, both = int(Vm.sum()), int(Vt.sum()), int((Vm & Vt).sum())
++
++    def largest(A, B):                     # largest region of A farther than one voxel from B, share of the TO
++        lab, n = ndi.label(A & ~ndi.binary_dilation(B, ball), ball)
++        return float(np.bincount(lab.ravel())[1:].max() / nt) if n else 0.0
++    vt = tri_volume(T)
++    vm = tri_volume(M) if len(Ms) == 1 else vt * nm / nt     # several solids: the voxel volume of their union,
++    #                                                          # with the TO's ratio of exact to voxel volume
++    miss, extra = largest(Vt, Vm), largest(Vm, Vt)
++    C = [('solids', nsol == 1, '%d solid(s)' % nsol if nfile == 1 else
++          '%d solids in the file, %d after a fuse' % (nfile, nsol)),
++         ('volume', abs(vm / vt - 1) <= VOLUME, 'model %.0f, TO %.0f (%+.1f %%; limit %.0f %%)'
++          % (vm, vt, 100 * (vm / vt - 1), 100 * VOLUME)),
++         ('overlap', min(both / max(nt, 1), both / max(nm, 1)) >= OVERLAP,
++          'of the TO %.0f %%, of the model %.0f %% (limit %.0f %%)'
++          % (100 * both / max(nt, 1), 100 * both / max(nm, 1), 100 * OVERLAP)),
++         ('missed', miss <= REGION, 'largest TO region not modelled %.1f %% of the TO (limit %.0f %%)'
++          % (100 * miss, 100 * REGION)),
++         ('extra', extra <= REGION, 'largest model region outside the TO %.1f %% of the TO (limit %.0f %%)'
++          % (100 * extra, 100 * REGION))]
++    if log is not None:
++        ok, txt = standin(log)
++        C.append(('stand-in', bool(ok), txt))
++    return dict(model=os.path.basename(model), to=os.path.basename(to_stl), scale=sc, pitch=h,
++                ok=all(c[1] for c in C), checks=C)
++
++
++def report(r):
++    L = ['%s against %s: %s' % (r['model'], r['to'], 'PASS' if r['ok'] else 'FAIL')]
++    L += ['  %-9s %-4s %s' % (n, 'ok' if ok else 'FAIL', t) for n, ok, t in r['checks']]
++    return '\n'.join(L)
++
++
++def case_models(case):
++    """The models in CASE/results (STEP files named like the case's outputs; out_* folders excluded)."""
++    return sorted(glob.glob(os.path.join(case, 'results', '*.step')))
++
++
++def main():
++    ap = argparse.ArgumentParser()
++    ap.add_argument('model', nargs='?'); ap.add_argument('to', nargs='?')
++    ap.add_argument('--standin'); ap.add_argument('--all'); ap.add_argument('--res', type=int, default=RES)
++    a = ap.parse_args()
++    if not a.all:
++        r = validate(a.model, a.to, a.standin, a.res)
++        print(report(r))
++        sys.exit(0 if r['ok'] else 1)
++    for f in sorted(glob.glob(os.path.join(a.all, '**', '*_finalIsoBinary.stl'), recursive=True)):
++        case = os.path.dirname(f)
++        ms = case_models(case)
++        if not ms:
++            print('%s: no model' % os.path.relpath(case, a.all))
++            continue
++        out = []
++        for m in ms:
++            log = os.path.splitext(m)[0] + '_standin.log'
++            r = validate(m, f, log, a.res)
++            print('%s: %s' % (os.path.relpath(case, a.all), report(r)))
++            out.append(r)
++        json.dump(out, open(os.path.join(case, 'results', 'validation.json'), 'w'), indent=1)
++
++
++if __name__ == '__main__':
++    main()
+-- 
+2.43.0
+

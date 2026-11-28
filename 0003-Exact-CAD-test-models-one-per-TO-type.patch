@@ -1,0 +1,243 @@
+From 034259898aa949c19cb612a48b39e633da6c216e Mon Sep 17 00:00:00 2001
+From: Claude <claude@local>
+Date: Fri, 27 Nov 2026 19:58:37 -0600
+Subject: [PATCH] Exact CAD test models, one per TO type
+ (to/testbed/exact_models.py)
+
+Twelve CadQuery models (extrude, stepped, height field, sandwich, axisymmetric,
+plates, rod frame, curved rods, shell, solid mass, lattice, hybrid), each written
+as a case folder analyze.py reads (domain STL, *_finalIsoBinary.stl, STEP,
+truth.json). Output in testbed/exact (not committed; regenerated in 15 s).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BdLZZ8R4FqXDzDRWDvVnZQ
+---
+ to/testbed/exact_models.py | 216 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 216 insertions(+)
+ create mode 100644 to/testbed/exact_models.py
+
+diff --git a/to/testbed/exact_models.py b/to/testbed/exact_models.py
+new file mode 100644
+index 0000000..e7e9227
+--- /dev/null
++++ b/to/testbed/exact_models.py
+@@ -0,0 +1,216 @@
++"""Exact CAD test models, one per TO type (types 1-12 of the classification slide). Units mm.
++
++Each model is written to OUT/NN_name/ as a case folder that analyze.py reads:
++  NAME_domain.stl            design domain
++  NAME_finalIsoBinary.stl    the exact "TO" part
++  NAME.step                  the exact part
++  truth.json                 type number, name, regions, parameters
++
++Usage (from to/testbed/):  python exact_models.py [OUT]       (default ../../testbed/exact)
++"""
++import json, math, os, sys
++import cadquery as cq
++
++TYPES = {1: 'extrude', 2: 'stepped', 3: 'height field', 4: 'sandwich', 5: 'axisymmetric', 6: 'plates',
++         7: 'rod frame', 8: 'curved rods', 9: 'shells', 10: 'solid mass', 11: 'lattice', 12: 'hybrid'}
++
++L, W, H = 120.0, 40.0, 20.0                     # cantilever-like box domain
++
++
++def box(l, w, h, x=0, y=0, z=0):
++    return cq.Workplane().box(l, w, h, centered=False).translate((x, y, z))
++
++
++def truss_profile():
++    """2D Warren truss in the x-y plane: outline L x W minus triangular holes (chords and diagonals 6 mm)."""
++    s = cq.Workplane('XY').rect(L, W, centered=False).extrude(1).val()
++    n, c, d = 4, 6.0, 6.0                       # panels, chord width, diagonal width
++    p = L / n
++    holes = []
++    for i in range(n):
++        x0 = i * p
++        up = [(x0 + d, c), (x0 + p - d, c), (x0 + p / 2, W - c - d)]
++        dn = [(x0 + p / 2 + d, W - c), (x0 + p + p / 2 - d, W - c), (x0 + p, c + d)] if i < n - 1 else None
++        for t in (up, dn):
++            if t:
++                holes.append(cq.Workplane('XY').polyline(t).close().extrude(1).val())
++    for h_ in holes:
++        s = s.cut(h_)
++    return s
++
++
++def profile_solid(h, z0=0.0):
++    """The truss profile extruded through depth h from z0."""
++    return truss_profile().transformGeometry(cq.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, h, z0]]))
++
++
++def m_extrude():
++    return box(L, W, H), profile_solid(H), dict(regions=['2D truss section, full depth'], depth=H)
++
++
++def m_stepped():
++    # chords full depth (20), diagonals 10 deep, centred about z = 10: two levels
++    full = profile_solid(H)
++    mid = profile_solid(10, 5)
++    chords = box(L, 6, H).union(box(L, 6, H, 0, W - 6)).union(box(6, W, H)).union(box(6, W, H, L - 6))
++    part = cq.Workplane().add(mid).union(chords.intersect(cq.Workplane().add(full)))
++    return box(L, W, H), part.val(), dict(regions=['chords 20 deep', 'diagonals 10 deep, centred'], levels=[20, 10])
++
++
++def m_height():
++    # plate L x W, thickness varying continuously along x (loft of centred sections), three round holes
++    th = [18.0, 8.0, 14.0, 6.0, 12.0]
++    wp = None
++    secs = []
++    for i, t in enumerate(th):
++        x = L * i / (len(th) - 1)
++        secs.append(cq.Wire.makePolygon([cq.Vector(x, 0, H / 2 - t / 2), cq.Vector(x, W, H / 2 - t / 2),
++                                         cq.Vector(x, W, H / 2 + t / 2), cq.Vector(x, 0, H / 2 + t / 2)], close=True))
++    s = cq.Solid.makeLoft(secs, ruled=False)
++    for xc in (25.0, 60.0, 95.0):
++        s = s.cut(cq.Solid.makeCylinder(10, H, cq.Vector(xc, W / 2, 0)))
++    return box(L, W, H), s, dict(regions=['plate, thickness varying continuously along x'], thickness=th)
++
++
++def m_sandwich():
++    t, wt = 3.0, 3.0
++    faces = box(L, W, t).union(box(L, W, t, 0, 0, H - t))
++    for xc in (20.0, 50.0, 80.0, 105.0):        # holes through the faces
++        faces = faces.cut(cq.Workplane().add(cq.Solid.makeCylinder(7, H, cq.Vector(xc, W / 2, 0))))
++    webs = box(L, wt, H - 2 * t, 0, 0, t).union(box(L, wt, H - 2 * t, 0, W - wt, t)) \
++        .union(box(wt, W, H - 2 * t, 0, 0, t)).union(box(wt, W, H - 2 * t, L - wt, 0, t)) \
++        .union(box(wt, W, H - 2 * t, L / 2 - wt / 2, 0, t))
++    return box(L, W, H), faces.union(webs).val(), dict(regions=['two face sheets 3 mm', 'webs 3 mm'],
++                                                        faces=t, webs=wt)
++
++
++def m_axisym():
++    # wheel: hub, thin web disk, rim; revolved about z; domain cylinder R 50 x 20
++    R, h = 50.0, 20.0
++    prof = cq.Workplane('XZ').polyline([(8, 0), (16, 0), (16, 8), (40, 8), (40, 0), (50, 0), (50, h), (40, h),
++                                        (40, 12), (16, 12), (16, h), (8, h)]).close()
++    part = prof.revolve(360, (0, 0, 0), (0, 1, 0)).val()
++    dom = cq.Workplane().add(cq.Solid.makeCylinder(R, h))
++    return dom, part, dict(regions=['hub', 'web disk 4 mm', 'rim'], axis='z')
++
++
++def m_plates():
++    # box 100^3: top plate (normal z), wall normal x, wall normal y, inclined brace plate; 5 mm thick
++    S, t = 100.0, 5.0
++    top = box(S, S, t, 0, 0, S - t)
++    wx = box(t, S, S - t)
++    wy = box(S, t, S - t)
++    brace = cq.Workplane().box(math.hypot(S - t, S - t) - 2, t, S - 10).val() \
++        .rotate(cq.Vector(0, 0, 0), cq.Vector(0, 0, 1), 45).translate(cq.Vector(S / 2, S / 2, (S - t) / 2))
++    part = top.union(wx).union(wy).union(cq.Workplane().add(brace)).intersect(box(S, S, S))
++    return box(S, S, S), part.val(), dict(regions=['top plate', 'wall x', 'wall y', 'diagonal plate'], t=t)
++
++
++def rod(a, b, r):
++    a, b = cq.Vector(*a), cq.Vector(*b)
++    return cq.Solid.makeCylinder(r, (b - a).Length, a, b - a)
++
++
++def m_frame():
++    # stool: top square ring of rods, four inclined legs to the floor, nodes as spheres; r 3
++    S, r = 100.0, 3.0
++    top = [(10, 10, 95), (90, 10, 95), (90, 90, 95), (10, 90, 95)]
++    foot = [(3, 3, 3), (97, 3, 3), (97, 97, 3), (3, 97, 3)]
++    mid = (50, 50, 50)
++    rods = [rod(top[i], top[(i + 1) % 4], r) for i in range(4)] + [rod(top[i], foot[i], r) for i in range(4)] \
++        + [rod(foot[i], mid, r) for i in range(4)]
++    nodes = [cq.Solid.makeSphere(1.6 * r).translate(cq.Vector(*p)) for p in top + foot + [mid]]
++    s = rods[0].fuse(*rods[1:], *nodes).clean()
++    return box(S, S, S), s, dict(regions=['12 straight rods r 3', '9 nodes'], r=r)
++
++
++def m_curved():
++    # four helical rods (r 3) on a cylinder R 40, quarter turn each, between two end rings; domain cylinder
++    R, h, r = 40.0, 100.0, 3.0
++    parts = []
++    for k in range(4):
++        hx = cq.Wire.makeHelix(pitch=4 * (h - 2 * r), height=h - 2 * r, radius=R) \
++            .rotate(cq.Vector(), cq.Vector(0, 0, 1), 90 * k).translate(cq.Vector(0, 0, r))
++        e0 = hx.startPoint()
++        t0 = hx.tangentAt(0)
++        prof = cq.Wire.makeCircle(r, e0, t0)
++        parts.append(cq.Solid.sweep(prof, [], hx, isFrenet=True))
++    for z in (r, h - r):
++        parts.append(cq.Solid.makeTorus(R, r).translate(cq.Vector(0, 0, z)))
++    s = parts[0]
++    for p in parts[1:]:                         # one at a time (a single n-ary fuse dropped a ring)
++        s = s.fuse(p).clean()
++    dom = cq.Workplane().add(cq.Solid.makeCylinder(R + 5, h))
++    return dom, s, dict(regions=['4 helical rods r 3', '2 end rings'], R=R)
++
++
++def m_shell():
++    # spherical cap shell, thickness 3, over a 100 x 100 footprint; domain box 100 x 100 x 45
++    S, t, Rs = 100.0, 3.0, 60.0
++    c = cq.Vector(S / 2, S / 2, -20.0)
++    sh = cq.Solid.makeSphere(Rs).translate(c).cut(cq.Solid.makeSphere(Rs - t).translate(c))
++    dom = box(S, S, 45)
++    s = sh.intersect(dom.val())
++    return dom, s, dict(regions=['spherical shell 3 mm'], R=Rs, t=t)
++
++
++def m_mass():
++    # two thick lobes joined by a thick neck (no member with a large aspect ratio); domain box 100 x 60 x 50
++    a = cq.Solid.makeSphere(22).translate(cq.Vector(28, 30, 25))
++    b = cq.Solid.makeSphere(18).translate(cq.Vector(74, 30, 25))
++    n = cq.Solid.makeCylinder(15, 46, cq.Vector(28, 30, 25), cq.Vector(1, 0, 0))
++    s = a.fuse(b, n).clean()
++    return box(100, 60, 50), s, dict(regions=['two lobes and a neck, radius 15-22'])
++
++
++def m_lattice():
++    # simple cubic lattice, cell 15, rods r 1.5, in a 60^3 box
++    S, c, r = 60.0, 15.0, 1.5
++    k = [c / 2 + c * i for i in range(4)]
++    rods = []
++    for u in k:
++        for v in k:
++            rods += [rod((0, u, v), (S, u, v), r), rod((u, 0, v), (u, S, v), r), rod((u, v, 0), (u, v, S), r)]
++    s = rods[0].fuse(*rods[1:]).clean()
++    return box(S, S, S), s, dict(regions=['cubic lattice, cell 15, rods r 1.5'], cell=c)
++
++
++def m_hybrid():
++    # base plate 100 x 100 x 6 with four straight rods (r 4) up to a node; domain box 100^3
++    S, r = 100.0, 4.0
++    base = box(S, S, 6)
++    node = (50, 50, 90)
++    rods = [rod((x, y, 5), node, r) for x, y in ((12, 12), (88, 12), (88, 88), (12, 88))]
++    s = base.val().fuse(*rods, cq.Solid.makeSphere(8).translate(cq.Vector(*node))).clean()
++    return box(S, S, S), s, dict(regions=['base plate 6 mm', '4 rods r 4', 'node'])
++
++
++MODELS = [(1, 'extrude', m_extrude), (2, 'stepped', m_stepped), (3, 'heightfield', m_height),
++          (4, 'sandwich', m_sandwich), (5, 'axisymmetric', m_axisym), (6, 'plates', m_plates),
++          (7, 'rodframe', m_frame), (8, 'curvedrods', m_curved), (9, 'shell', m_shell), (10, 'mass', m_mass),
++          (11, 'lattice', m_lattice), (12, 'hybrid', m_hybrid)]
++
++
++def main():
++    out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), '..', '..', 'testbed', 'exact')
++    for n, name, f in MODELS:
++        d = os.path.join(out, '%02d_%s' % (n, name))
++        os.makedirs(d, exist_ok=True)
++        dom, part, info = f()
++        dom = dom.val() if isinstance(dom, cq.Workplane) else dom
++        part = part.val() if isinstance(part, cq.Workplane) else part
++        assert part.isValid(), name
++        cq.exporters.export(cq.Workplane().add(dom), os.path.join(d, name + '_domain.stl'), tolerance=0.02,
++                            angularTolerance=0.1)
++        cq.exporters.export(cq.Workplane().add(part), os.path.join(d, name + '_finalIsoBinary.stl'), tolerance=0.02,
++                            angularTolerance=0.1)
++        cq.exporters.export(cq.Workplane().add(part), os.path.join(d, name + '.step'))
++        info.update(type=n, type_name=TYPES[n], volume=part.Volume(), domain_volume=dom.Volume(),
++                    solids=len(part.Solids()))
++        json.dump(info, open(os.path.join(d, 'truth.json'), 'w'), indent=1)
++        print('%2d %-13s volume %9.0f of %9.0f (%.2f), %d solid(s)' % (n, name, part.Volume(), dom.Volume(),
++                                                                     part.Volume() / dom.Volume(), len(part.Solids())))
++
++
++if __name__ == '__main__':
++    main()
+-- 
+2.43.0
+
