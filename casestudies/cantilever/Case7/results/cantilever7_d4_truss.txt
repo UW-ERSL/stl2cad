@@ -1,6 +1,6 @@
-cantilever7_d4: planar trusses (to/swtruss.py, detail 4); units mm; corner radius R = 1.1.
+cantilever7_d4: planar trusses (to/swtruss.py, detail 4); units mm; corner radius R = 0.66.
 
-Truss: plane normal to z (local u = x, v = y), outline (0.0, 2.4046, 120.0, 40.0); faces (start, direction) [(0.0, 1), (20.0, -1)]; depth t = 3.1579
+Truss: plane normal to z (local u = x, v = y), outline (0.0, 2.4046, 120.0, 40.0); faces (start, direction) [(0.0, 1), (20.0, -1)]; depth t = 4.8750
   joints (u, v):
     J1      2.0000   37.2878
     J2      5.1222   37.2878
@@ -13,9 +13,9 @@ Truss: plane normal to z (local u = x, v = y), outline (0.0, 2.4046, 120.0, 40.0
     J9    117.8736    3.7212
     J10   120.0000    3.7212
   widths:
-    w1   2.6324
-    w2   4.2525
-    w3   5.4243
+    w1   1.6444
+    w2   2.6564
+    w3   3.3884
   members:
     J7 - J9  w2
     J5 - J2  w2

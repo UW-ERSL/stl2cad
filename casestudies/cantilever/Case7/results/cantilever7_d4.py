@@ -18,7 +18,7 @@ STRUCTURES = [
     dict(
         name='Truss', axis=2, frame=(0, 1), box=(0.0, 2.4046, 120.0, 40.0),
         faces=[(0.0, 1), (20.0, -1)],    # (start along the normal, direction)
-        t=3.1579,    # depth
+        t=4.8750,    # depth
         joints={
             'J1': (2.0000, 37.2878),
             'J2': (5.1222, 37.2878),
@@ -31,7 +31,7 @@ STRUCTURES = [
             'J9': (117.8736, 3.7212),
             'J10': (120.0000, 3.7212),
         },
-        widths={'w1': 2.6324, 'w2': 4.2525, 'w3': 5.4243},
+        widths={'w1': 1.6444, 'w2': 2.6564, 'w3': 3.3884},
         members=[
             {'a': 'J7', 'c': 'J9', 'w': 'w2'},
             {'a': 'J5', 'c': 'J2', 'w': 'w2'},
@@ -66,7 +66,7 @@ STRUCTURES = [
         ],
     ),
 ]
-R = 1.1          # corner radius (all structures)
+R = 0.66          # corner radius (all structures)
 WEBS = []    # boxes between the truss faces (u0, v0, u1, v1)
 
 # ---- geometry --------------------------------------------------------------

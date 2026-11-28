@@ -1040,9 +1040,18 @@ def main():
     P = params(R, ob[1][R['axis']] - ob[0][R['axis']])
     for S, Sd in zip(P['structures'], R['structures']):    # flat bars of the structure's volume
         if Sd['name'] == 'faces':                        # (a layer keeps the fit's depth: the trusses stand on it)
-            f0 = truss_face(S['joints'], S['widths'], S['members'], S['box'], P['R'])
-            S['t'] = float(round(float(Sd['v']) / f0.Area(), 4))
+            # the trusses' depth is the TO's (the web/truss break: H - b); the member widths are scaled by one
+            # factor so that the volume is the TO's (wide shallow bars left a gap between the faces)
+            S['t'] = float(round(R['H'] - R['b'], 4))
+            w0 = dict(S['widths']); k = 1.0
+            for _ in range(6):
+                S['widths'] = {nm: float(round(w * k, 4)) for nm, w in w0.items()}
+                f0 = truss_face(S['joints'], S['widths'], S['members'], S['box'], P['R'])
+                k *= float(Sd['v']) / (f0.Area() * S['t'])
+            S['widths'] = {nm: float(round(w * k, 4)) for nm, w in w0.items()}
+            print('%s: widths scaled by %.3f for the volume at depth %.4f' % (S['name'], k, S['t']))
         print('%s: depth %s = %.4f mm (volume %.0f mm^3)' % (S['name'], S['tvar'], S['t'], Sd['v']))
+    P['R'] = float('%.2g' % (truss2d.FILLET_SHARE * min(w for S in P['structures'] for w in S['widths'].values())))
     T = P['structures'][0]                               # the trusses' side on a layer: exactly at its depth (the
     for S in P['structures'][1:]:                        # outline was rounded; a gap of 4e-4 mm left 3 solids)
         for side, tv in T['links'].items():

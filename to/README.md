@@ -128,15 +128,19 @@ outline, the trusses' bottom edge at "tb"; global variables t, tb, R, w1.., b1..
 
 Cantilever 7 (stand-in: every feature agrees at every level, no relation or dimension fails):
 
-| detail | t / tb (mm) | volume vs TO | independent parameters |
-|---|---|---|---|
-| 1 | 3.96 / 2.64 | -3.8 % | 26 |
-| 2 | 3.19 / 2.39 | -3.4 % | 30 |
-| 3 | 3.05 / 2.39 | -3.4 % | 30 |
-| 4 | 3.16 / 2.40 | -3.0 % | 31 |
-| 5 | 3.19 / 2.33 | -3.5 % | 49 |
+| detail | t / tb (mm) | width scale | volume vs TO | independent parameters |
+|---|---|---|---|---|
+| 1 | 4.875 / 2.64 | 0.80 | -4.2 % | 26 |
+| 2 | 4.875 / 2.39 | 0.63 | -3.7 % | 30 |
+| 3 | 4.875 / 2.39 | 0.60 | -3.7 % | 30 |
+| 4 | 4.875 / 2.40 | 0.63 | -3.5 % | 31 |
+| 5 | 4.875 / 2.33 | 0.63 | -3.6 % | 49 |
 
-Detail 4: voxel overlap 74 % of the TO in the model, 83 % of the model in the TO; the root plate runs on past its skeleton's end as far as the TO does near both
+The face trusses' depth t is the TO's (H - b, the web/truss break), and their member widths are scaled by one factor
+so that the volume is the TO's: bars as deep as the TO's members (wide shallow bars of equal volume left an 18 mm gap
+between the faces where the TO's members fill to z = 4.9 and 15.1).
+Detail 4: voxel overlap 79 % of the TO in the model, 79 % of the model in the TO (TO material missed 1370 mm^3,
+largest region 286; extra 1470 mm^3); the root plate runs on past its skeleton's end as far as the TO does near both
 faces (x = 55.5), under the face trusses; member centre lines against the
 3D medial axis: face trusses median 0.29 mm (90 % within 0.74 mm), base bar and arms median 0.98 mm, at most
 2.3 mm where the arms bend after the fork (straight at detail 4; detail 5 bends them). Not modelled: the small
