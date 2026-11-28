@@ -1,10 +1,10 @@
 Truss sketch: unknown; 41 relations, 27 dimensions so far
 Truss face 1: volume 3481.210 mm^3 (expected 3481.209); centre 0.0000 mm off -> OK
 Truss face 2: volume 6962.419 mm^3 (expected 6962.419); centre 0.0000 mm off -> OK
-Base sketch: unknown; 78 relations, 47 dimensions so far
+Base sketch: unknown; 84 relations, 47 dimensions so far
 Base: volume 10764.032 mm^3 (expected 10764.038); centre 0.0001 mm off -> OK
 after the equations: volume 10764.032 mm^3 (expected 10764.038)
-relations: 78 added
+relations: 84 added
 dimensions: 47 added
 equations: 33 added
 independent parameters: 31

@@ -440,6 +440,21 @@ def tag_edges(face, P):
                             and abs(along(p) - along(q)) < 1e-6:
                         tag = ('E', i)
                         break
+            if tag == ('B',):                   # a bevel: each end is a member's end corner at a joint
+                ends = []
+                for r in ((p.x, p.y), (q.x, q.y)):
+                    hit = None
+                    for i, m in enumerate(P['members']):
+                        if m.get('edge') is not None:
+                            continue
+                        A, C = P['joints'][m['a']], P['joints'][m['c']]
+                        d = _unit((C[0] - A[0], C[1] - A[1])); w = P['widths'][m['w']]
+                        for jn in (m['a'], m['c']):
+                            J = P['joints'][jn]
+                            if abs(math.dist(r, J) - w / 2) < 1e-6 and abs((r[0] - J[0]) * d[0] + (r[1] - J[1]) * d[1]) < 1e-6:
+                                hit = (i, jn)
+                    ends.append(hit)
+                tag = ('B', tuple(ends))
             loop.append(('L', (p.x, p.y), (q.x, q.y), tag))
         # end points shared exactly by the edges that meet there (OCC's fillets leave differences of ~1e-7 mm)
         reps = []
@@ -542,7 +557,7 @@ for enum, member, default in (("swEndConditions_e", "swEndCondMidPlane", 6), ("s
         CONST[member] = sw_constant(app, enum, member)
     except Exception:
         CONST[member] = default
-LOG = dict(rels=0, rels_failed=[], dims=0, dims_failed=[], eqs=0, eqs_failed=[])
+LOG = dict(rels=0, rels_failed=[], dims=0, dims_failed=[], eqs=0, eqs_failed=[], eqs_skipped=[])
 
 
 def new_part():
@@ -783,6 +798,23 @@ def truss_sketch(m, S, dimension=True):
                 q = call0(g, "GetStartPoint2")
                 dim(m, [q, "ORIGIN"], hv("H" if side in (0, 2) else "V"), txt((e[1][0] + 2, e[1][1] - 4)),
                     f"{S['name']} chord {i} end")
+        # bevels: each end on a construction line from its joint, normal to its member's centerline
+        for e, g in flat:
+            if e[0] != "L" or e[3][0] != "B":
+                continue
+            for k_, hit in enumerate(e[3][1]):
+                if hit is None or hit[0] not in cl:
+                    continue
+                i, jn = hit
+                p = e[1] if k_ == 0 else e[2]
+                sm.AddToDB = True
+                c2 = sm.CreateCenterLine(*to_sk(T, model_pt(S, J[jn])), *to_sk(T, model_pt(S, p)))
+                sm.AddToDB = False
+                pj = point_at([(None, cl[i])], skp(J[jn]))
+                pe = point_at([(None, g)], skp(p))
+                rel(m, [call0(c2, "GetStartPoint2"), pj], "sgCOINCIDENT", f"{S['name']} bevel at {jn}")
+                rel(m, [call0(c2, "GetEndPoint2"), pe], "sgCOINCIDENT", f"{S['name']} bevel end")
+                rel(m, [c2, cl[i]], "sgPERPENDICULAR", f"{S['name']} bevel normal to member {i}")
         # fillet arcs: tangent to their neighbours, equal, one radius
         arc0 = None
         for loop in E:
@@ -929,10 +961,23 @@ def build():
     for S in STRUCTS:
         for w, v in S["widths"].items():
             equation(m, f'"{w}" = {v:g}mm')
-    for nm, expr in links:
+    # links: a dimension is driven by its variable only when the two already agree (an equation that would change
+    # the geometry is reported and left out, so the part stays as built and checked)
+    var = {S["tvar"]: S["t"] for S in STRUCTS}
+    var["R"] = R_CORNER
+    for S in STRUCTS:
+        var.update(S["widths"])
+    for nm, expr in links + [(f"D1@{nm}", f'"{tv}"') for nm, tv in depth]:
+        want = eval(expr.replace('"', ""), {}, dict(var))
+        short = "@".join(nm.split("@")[:2])
+        try:
+            have = float(m.Parameter(short).SystemValue) / MM
+        except Exception:
+            have = None
+        if have is not None and have > 1e-9 and abs(have - want) > 1e-4:     # (0: not a dimension read)
+            LOG["eqs_skipped"].append(f"{short}: {have:.4f} mm, equation {expr} = {want:.4f} mm")
+            continue
         equation(m, f'"{nm}" = {expr}')
-    for nm, tv in depth:
-        equation(m, f'"D1@{nm}" = "{tv}"')
     if WEBS:
         H0 = abs(S0["faces"][1][0] - S0["faces"][0][0])
         equation(m, f'"D1@Web plane" = "{S0["tvar"]}"')
@@ -948,6 +993,8 @@ def build():
     print(f"relations: {LOG['rels']} added" + (f"; failed: {LOG['rels_failed']}" if LOG['rels_failed'] else ""))
     print(f"dimensions: {LOG['dims']} added" + (f"; failed: {LOG['dims_failed']}" if LOG['dims_failed'] else ""))
     print(f"equations: {LOG['eqs']} added" + (f"; failed: {LOG['eqs_failed']}" if LOG['eqs_failed'] else ""))
+    for t in LOG["eqs_skipped"]:
+        print("  not linked (value differs): " + t)
     print(f"independent parameters: {N_PARAMS}")
     print("all features " + ("agree" if ok else "do NOT all agree"))
     return m

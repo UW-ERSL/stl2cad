@@ -1492,6 +1492,8 @@ class Model:
         class Dim:
             FullName = f"D{self._dn}@Sketch{k}@Part1.Part"
             SystemValue = val
+        self._dvals = getattr(self, "_dvals", {})
+        self._dvals[f"D{self._dn}@Sketch{k}"] = val          # (Parameter reads sketch dimensions back)
 
         class DDim:
             def GetDimension2(self, i):
@@ -1502,6 +1504,9 @@ class Model:
         class D:
             SystemValue = 0.0
         d = D()
+        if name in getattr(self, "_dvals", {}):
+            d.SystemValue = self._dvals[name]
+            return d
         if name.startswith("D1@"):                   # a reference plane's offset (swframe's z levels)
             f = next((g for g in self.features if g.kind == "RefPlane" and g.Name == name[3:]
                       and isinstance(g.data, dict) and "offset" in g.data), None)
